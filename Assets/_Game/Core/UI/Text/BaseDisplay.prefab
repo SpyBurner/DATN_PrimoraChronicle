@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2161182478651011280}
   - component: {fileID: 8279187971284353575}
   - component: {fileID: 2595266419898926446}
+  - component: {fileID: 1614039666517414990}
   m_Layer: 0
   m_Name: BaseDisplay
   m_TagString: Untagged
@@ -76,7 +77,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 0.24313726, g: 0.101960786, b: 0.0627451, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -152,3 +153,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 2
   m_VerticalFit: 2
+--- !u!114 &1614039666517414990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 440933858435683576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0177d57821363004c93f53d52490d141, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Theme::Unity.Theme.Binders.TextMeshProColorBinder
+  data:
+    colorGuid: 187d588c-abd1-410c-a4d7-16a1523b1677
+    overrideAlpha: 0
+    alpha: 1
+  target: {fileID: 8279187971284353575}

@@ -10,7 +10,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 440933858435683576, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
       propertyPath: m_Name
-      value: Text (TMP) Variant
+      value: BaseH1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1614039666517414990, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: data.colorGuid
+      value: 13caab60-2deb-483e-bf64-0f25e4d38a21
       objectReference: {fileID: 0}
     - target: {fileID: 1940162995070605411, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
       propertyPath: m_Pivot.x
@@ -91,6 +95,18 @@ PrefabInstance:
     - target: {fileID: 1940162995070605411, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_fontColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_fontColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_fontColor.r
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

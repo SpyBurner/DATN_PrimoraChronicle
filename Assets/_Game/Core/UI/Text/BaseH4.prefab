@@ -90,7 +90,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2248835003630474771, guid: 350ff2ab342c39441b08be5cde45ce5a, type: 3}
       propertyPath: m_Name
-      value: Text (TMP) (4) Variant
+      value: BaseH4
       objectReference: {fileID: 0}
     - target: {fileID: 7768253193121480908, guid: 350ff2ab342c39441b08be5cde45ce5a, type: 3}
       propertyPath: m_fontSize

@@ -18,7 +18,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5440112294236141396, guid: f570d3cbd136d3b41b4eb0139114ccd2, type: 3}
       propertyPath: m_Name
-      value: Text (TMP) (3) Variant
+      value: BaseH3
       objectReference: {fileID: 0}
     - target: {fileID: 6308836899325017039, guid: f570d3cbd136d3b41b4eb0139114ccd2, type: 3}
       propertyPath: m_Pivot.x
