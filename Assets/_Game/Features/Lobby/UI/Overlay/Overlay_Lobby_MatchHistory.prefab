@@ -16,6 +16,10 @@ PrefabInstance:
       propertyPath: m_text
       value: MATCH HISTORY
       objectReference: {fileID: 0}
+    - target: {fileID: 2262363217277829564, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      propertyPath: m_text
+      value: MATCH HISTORY
+      objectReference: {fileID: 0}
     - target: {fileID: 3375436759903008173, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -141,6 +145,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7351355652224424257, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8605469809361853432, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8605469809361853432, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
@@ -991,7 +1003,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2006811096099154103, guid: 9c654b9875d20ac46a91ee2a544c011c, type: 3}
       propertyPath: m_Size
-      value: 0.6684397
+      value: 0.7248227
       objectReference: {fileID: 0}
     - target: {fileID: 2006811096099154103, guid: 9c654b9875d20ac46a91ee2a544c011c, type: 3}
       propertyPath: m_Value

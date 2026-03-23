@@ -626,9 +626,13 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       propertyPath: m_Name
-      value: Layout_Overlay Variant
+      value: Overlay_Lobby_MatchMaking
       objectReference: {fileID: 0}
     - target: {fileID: 1012185573629641477, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      propertyPath: m_text
+      value: MATCH MAKING
+      objectReference: {fileID: 0}
+    - target: {fileID: 2262363217277829564, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       propertyPath: m_text
       value: MATCH MAKING
       objectReference: {fileID: 0}
@@ -757,6 +761,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7351355652224424257, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8605469809361853432, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8605469809361853432, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}

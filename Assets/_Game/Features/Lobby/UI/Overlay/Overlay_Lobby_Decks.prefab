@@ -1628,6 +1628,10 @@ PrefabInstance:
       propertyPath: m_text
       value: DECKS
       objectReference: {fileID: 0}
+    - target: {fileID: 2262363217277829564, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      propertyPath: m_text
+      value: DECKS
+      objectReference: {fileID: 0}
     - target: {fileID: 3375436759903008173, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1746,6 +1750,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4673220430503174389, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8605469809361853432, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8605469809361853432, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
