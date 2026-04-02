@@ -231,7 +231,6 @@ GameObject:
   - component: {fileID: 4692239780892487958}
   - component: {fileID: 3083300749740381785}
   - component: {fileID: 4916065129095130206}
-  - component: {fileID: 7921202431955461600}
   - component: {fileID: 4796294431982477554}
   - component: {fileID: 7576623800989217236}
   m_Layer: 0
@@ -312,23 +311,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &7921202431955461600
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5020546637153808539}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44e5162ee87061045ba821e0dfb969d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Theme::Unity.Theme.Binders.ImageColorBinder
-  data:
-    colorGuid: ef8b6343-2d12-49ba-9f0c-f65a5121735b
-    overrideAlpha: 0
-    alpha: 1
-  target: {fileID: 4916065129095130206}
 --- !u!114 &4796294431982477554
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -704,7 +686,7 @@ GameObject:
   - component: {fileID: 2711124222115081001}
   - component: {fileID: 8050420902627716907}
   m_Layer: 0
-  m_Name: ScrollView
+  m_Name: ScrollView_Vertical
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6865117616971366637}
   - component: {fileID: 5675859988475862154}
   m_Layer: 0
-  m_Name: FramedContainer
+  m_Name: FramedContainer_Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
