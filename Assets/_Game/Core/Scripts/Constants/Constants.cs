@@ -11,7 +11,7 @@ public static class Constants
 
 public static class SceneNames
 {
-    public const string BOOTSTRAP = "Bootstrap";
+    public const string BOOT = "Boot";
 
     public const string ACCOUNT = "Account";
 

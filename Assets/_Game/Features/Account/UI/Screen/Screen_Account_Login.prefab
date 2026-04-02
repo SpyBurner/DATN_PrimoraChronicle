@@ -700,6 +700,9 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 7700115416020346879}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5172975548139413514, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1301073564450998000}
     - targetCorrespondingSourceObject: {fileID: 8629099598833463130, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2235791722276444337}
@@ -709,6 +712,26 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 858145186437614191, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
   m_PrefabInstance: {fileID: 1703578187151454630}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5795651751447466412 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5172975548139413514, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
+  m_PrefabInstance: {fileID: 1703578187151454630}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1301073564450998000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5795651751447466412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff75fa9d3e0943844886d889bbd2bc45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Core::AccountLoginPanel
+  _identifier: 201
+  _layer: 1
+  _isModal: 0
 --- !u!1 &6945934946710789884 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8629099598833463130, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}

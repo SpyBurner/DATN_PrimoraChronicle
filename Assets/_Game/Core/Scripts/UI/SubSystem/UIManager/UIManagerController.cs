@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
 using Zenject;
 
 internal class UIManagerController : IUIManagerController
@@ -9,7 +10,7 @@ internal class UIManagerController : IUIManagerController
     private readonly IUIManagerModel _model;
 
     public void RegisterPanel(IUIPanel panel)
-    {    
+    {
         var type = panel.GetType();
         if (_model.Panels.Value.ContainsKey(type))
         {
@@ -52,6 +53,11 @@ internal class UIManagerController : IUIManagerController
         throw new Exception($"Panel of type {typeof(T)} not found.");
     }
 
+    public GameObject GetPrefab(UIIdentifier uiid)
+    {
+        return _model.PrefabRegistry.GetPrefab(uiid);
+    }
+
     public Task ShowScreen<T>() where T : class, IUIPanel
     {
         if (_model.Panels.Value.TryGetValue(typeof(T), out var panel))
@@ -92,14 +98,14 @@ internal class UIManagerController : IUIManagerController
         throw new Exception("No popups to close.");
     }
 
-    public Task FadeIn()
+    public async Task FadeIn()
     {
-        throw new NotImplementedException();
+        await Task.Delay(500); // Simulate fade in delay
     }
 
-    public Task FadeOut()
+    public async Task FadeOut()
     {
-        throw new NotImplementedException();
+        await Task.Delay(500); // Simulate fade out delay
     }
 }
 

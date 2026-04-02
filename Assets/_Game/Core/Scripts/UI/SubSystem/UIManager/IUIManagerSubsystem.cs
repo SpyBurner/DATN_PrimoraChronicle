@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Events;
 
 public interface IUIManagerSubsystem : ISubsystem
@@ -14,6 +15,7 @@ public interface IUIManagerSubsystem : ISubsystem
     void RegisterPanel(IUIPanel panel);
     void UnregisterPanel(IUIPanel panel);
     T GetPanel<T>() where T : class, IUIPanel;
+    GameObject GetPrefab(UIIdentifier uiid);
     Task ShowScreen<T>() where T : class, IUIPanel;
     Task ShowPopup<T>() where T : class, IUIPanel;
     Task ClosePopup();

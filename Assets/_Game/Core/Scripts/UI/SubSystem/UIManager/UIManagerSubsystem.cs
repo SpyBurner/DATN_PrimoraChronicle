@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
@@ -45,6 +46,8 @@ public class UIManagerSubsystem : IUIManagerSubsystem
     public void UnregisterPanel(IUIPanel panel) => _controller.UnregisterPanel(panel);
 
     public T GetPanel<T>() where T : class, IUIPanel => _controller.GetPanel<T>();
+
+    public GameObject GetPrefab(UIIdentifier uiid) => _controller.GetPrefab(uiid);
 
     public Task ShowScreen<T>() where T : class, IUIPanel => _controller.ShowScreen<T>();
 
