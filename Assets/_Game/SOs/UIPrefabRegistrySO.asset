@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: UIPrefabRegistrySO
   m_EditorClassIdentifier: Core::UIPrefabRegistrySO
   uiPrefabMappings:
-  - UIIdentifier: 0
+  - UIIdentifier: 201
     Prefab: {fileID: 5795651751447466412, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
