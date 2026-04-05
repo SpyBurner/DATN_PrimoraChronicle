@@ -1,15 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Core;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 using Zenject;
 
 internal class UIManagerController : IUIManagerController
 {
     [Inject]
     private readonly IUIManagerModel _model;
+    [Inject]
+    private readonly UIMappingSO _uiMapping;
+
+    private UIRoot _uiRoot;
 
     public void RegisterPanel(IUIPanel panel)
-    {    
+    {
         var type = panel.GetType();
         if (_model.Panels.Value.ContainsKey(type))
         {
@@ -42,6 +49,19 @@ internal class UIManagerController : IUIManagerController
             throw new Exception($"Panel of type {type} is not registered.");
         }
     }
+    public void RegisterUIRoot(UIRoot uIRoot)
+    {
+        if (_uiRoot != null)
+        {
+            UnregisterUIRoot();
+        }
+        _uiRoot = uIRoot;
+    }
+    public void UnregisterUIRoot()
+    {
+        _uiRoot = null;
+    }
+    public UIRoot GetUIRoot() => _uiRoot;
 
     public T GetPanel<T>() where T : class, IUIPanel
     {
@@ -52,22 +72,33 @@ internal class UIManagerController : IUIManagerController
         throw new Exception($"Panel of type {typeof(T)} not found.");
     }
 
-    public Task ShowScreen<T>() where T : class, IUIPanel
+    public async Task ShowScreen<T>() where T : class, IUIPanel
     {
-        if (_model.Panels.Value.TryGetValue(typeof(T), out var panel))
+        var prefab = _uiMapping.GetPrefabByClassType(typeof(T));
+        await ShowView(prefab.gameObject);
+    }
+
+    public async Task ShowDefaultScreenForScene(string sceneName = null)
+    {
+        Debug.Log($"Showing default screen for scene: {sceneName}");
+        sceneName ??= SceneManager.GetActiveScene().name;
+        var prefab = _uiMapping.GetDefaultPrefabBySceneName(sceneName);
+        await ShowView(prefab.gameObject);
+    }
+
+    private async Task ShowView(GameObject prefab)
+    {
+        if (prefab == null)
         {
-            // Hide all panels in the same layer
-            if (_model.PanelsByLayer.Value.TryGetValue(panel.Layer, out var panelsInLayer))
-            {
-                foreach (var p in panelsInLayer)
-                {
-                    p.Hide();
-                }
-            }
-            panel.Show();
-            return Task.CompletedTask;
+            throw new Exception("Prefab cannot be null.");
         }
-        throw new Exception($"Panel of type {typeof(T)} not found.");
+        var uiPanel = prefab.GetComponent<IUIPanel>();
+        Debug.Log($"uiroot is null: {_uiRoot == null}, prefab has UIPanel: {uiPanel != null}");
+        var parent = uiPanel != null ? _uiRoot.GetLayerParent(uiPanel.Layer) : _uiRoot.transform;
+        var result = await GameObject.InstantiateAsync(prefab, parent);
+        var instance = result[0];
+        instance.GetComponent<IUIPanel>()?.Show();
+        await Task.Yield();
     }
 
     public Task ShowPopup<T>() where T : class, IUIPanel
@@ -92,14 +123,15 @@ internal class UIManagerController : IUIManagerController
         throw new Exception("No popups to close.");
     }
 
-    public Task FadeIn()
+    public async Task FadeIn()
     {
-        throw new NotImplementedException();
+        await Task.Yield();
     }
 
-    public Task FadeOut()
+    public async Task FadeOut()
     {
-        throw new NotImplementedException();
+        await Task.Yield();
     }
+
 }
 

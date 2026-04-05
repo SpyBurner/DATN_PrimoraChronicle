@@ -33,6 +33,7 @@ public enum UIIdentifier
 
     // Bootstrap
     BOOTSTRAP_SCENE = 100,
+    LOADING_SCREEN = 101,
 
     // Account
     ACCOUNT_SCENE = 200,

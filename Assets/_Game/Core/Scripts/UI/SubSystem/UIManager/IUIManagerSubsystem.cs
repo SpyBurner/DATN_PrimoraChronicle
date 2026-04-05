@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Core;
 using UnityEngine.Events;
 
 public interface IUIManagerSubsystem : ISubsystem
@@ -13,8 +14,14 @@ public interface IUIManagerSubsystem : ISubsystem
     // Controller Methods (forwarded by the subsystem)
     void RegisterPanel(IUIPanel panel);
     void UnregisterPanel(IUIPanel panel);
+    void RegisterUIRoot(UIRoot uIRoot);
+    void UnregisterUIRoot();
+
+    UIRoot GetUIRoot();
+
     T GetPanel<T>() where T : class, IUIPanel;
     Task ShowScreen<T>() where T : class, IUIPanel;
+    Task ShowDefaultScreenForScene(string sceneName = null);
     Task ShowPopup<T>() where T : class, IUIPanel;
     Task ClosePopup();
     Task FadeIn();

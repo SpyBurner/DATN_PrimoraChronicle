@@ -30,7 +30,7 @@ public class UIPanel : MonoBehaviour, IUIPanel
     {
         gameObject.SetActive(true);
     }
-    
+
     public virtual void Hide()
     {
         gameObject.SetActive(false);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Core;
 using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
@@ -43,10 +44,14 @@ public class UIManagerSubsystem : IUIManagerSubsystem
     public void RegisterPanel(IUIPanel panel) => _controller.RegisterPanel(panel);
 
     public void UnregisterPanel(IUIPanel panel) => _controller.UnregisterPanel(panel);
-
+    public void RegisterUIRoot(UIRoot uIRoot) => _controller.RegisterUIRoot(uIRoot);
+    public void UnregisterUIRoot() => _controller.UnregisterUIRoot();
+    public UIRoot GetUIRoot() => _controller.GetUIRoot();
     public T GetPanel<T>() where T : class, IUIPanel => _controller.GetPanel<T>();
 
     public Task ShowScreen<T>() where T : class, IUIPanel => _controller.ShowScreen<T>();
+
+    public Task ShowDefaultScreenForScene(string sceneName = null) => _controller.ShowDefaultScreenForScene(sceneName);
 
     public Task ShowPopup<T>() where T : class, IUIPanel => _controller.ShowPopup<T>();
 
