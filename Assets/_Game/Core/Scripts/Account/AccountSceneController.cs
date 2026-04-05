@@ -9,11 +9,13 @@ public class AccountSceneController : MonoBehaviour
 
     private async void Start()
     {
-        _debugLogger.Log("[Account] Instantiating login panel...");
+        _debugLogger.Log("[Account] Instantiating account panels...");
 
-        var prefab = _uiManager.GetPrefab(UIIdentifier.ACCOUNT_LOGIN);
         var screenLayer = GameObject.Find("Screen Layer");
-        _container.InstantiatePrefab(prefab, screenLayer != null ? screenLayer.transform : transform);
+        var parent = screenLayer != null ? screenLayer.transform : transform;
+
+        _container.InstantiatePrefab(_uiManager.GetPrefab(UIIdentifier.ACCOUNT_LOGIN), parent);
+        _container.InstantiatePrefab(_uiManager.GetPrefab(UIIdentifier.ACCOUNT_REGISTER), parent);
 
         _debugLogger.Log("[Account] Showing login screen...");
         await _uiManager.ShowScreen<AccountLoginPanel>();

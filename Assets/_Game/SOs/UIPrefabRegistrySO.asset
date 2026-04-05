@@ -15,3 +15,5 @@ MonoBehaviour:
   uiPrefabMappings:
   - UIIdentifier: 201
     Prefab: {fileID: 5795651751447466412, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+  - UIIdentifier: 202
+    Prefab: {fileID: 433550765019209347, guid: b97575d0a5c22ac4bae269ad3ba19dca, type: 3}
