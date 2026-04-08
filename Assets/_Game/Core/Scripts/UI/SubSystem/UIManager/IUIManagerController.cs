@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Core;
+using UnityEngine;
 using Zenject;
 
 public interface IUIManagerController : IController
@@ -17,4 +18,6 @@ public interface IUIManagerController : IController
     Task ClosePopup();
     Task FadeIn();
     Task FadeOut();
+    Task ShowView(GameObject prefab);
+    Task CloseView(IUIPanel panel);
 }

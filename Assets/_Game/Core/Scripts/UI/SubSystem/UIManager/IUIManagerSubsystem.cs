@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Core;
+using UnityEngine;
 using UnityEngine.Events;
 
 public interface IUIManagerSubsystem : ISubsystem
@@ -20,6 +21,8 @@ public interface IUIManagerSubsystem : ISubsystem
     UIRoot GetUIRoot();
 
     T GetPanel<T>() where T : class, IUIPanel;
+    Task ShowView(GameObject prefab);
+    Task CloseView(IUIPanel panel);
     Task ShowScreen<T>() where T : class, IUIPanel;
     Task ShowDefaultScreenForScene(string sceneName = null);
     Task ShowPopup<T>() where T : class, IUIPanel;

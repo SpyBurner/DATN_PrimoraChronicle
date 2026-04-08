@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Core;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
@@ -60,6 +61,8 @@ public class UIManagerSubsystem : IUIManagerSubsystem
     public Task FadeIn() => _controller.FadeIn();
 
     public Task FadeOut() => _controller.FadeOut();
+    public Task ShowView(GameObject prefab) => _controller.ShowView(prefab);
+    public Task CloseView(IUIPanel panel) => _controller.CloseView(panel);
 
     // Local handlers that forward the model state to subscribers via UnityAction events
     private void HandlePanelsChanged()

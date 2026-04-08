@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Core;
@@ -12,6 +12,8 @@ internal class UIManagerController : IUIManagerController
     private readonly IUIManagerModel _model;
     [Inject]
     private readonly UIMappingSO _uiMapping;
+    [Inject]
+    private readonly DiContainer _container;
 
     private UIRoot _uiRoot;
 
@@ -86,7 +88,7 @@ internal class UIManagerController : IUIManagerController
         await ShowView(prefab.gameObject);
     }
 
-    private async Task ShowView(GameObject prefab)
+    public async Task ShowView(GameObject prefab)
     {
         if (prefab == null)
         {
@@ -95,9 +97,14 @@ internal class UIManagerController : IUIManagerController
         var uiPanel = prefab.GetComponent<IUIPanel>();
         Debug.Log($"uiroot is null: {_uiRoot == null}, prefab has UIPanel: {uiPanel != null}");
         var parent = uiPanel != null ? _uiRoot.GetLayerParent(uiPanel.Layer) : _uiRoot.transform;
-        var result = await GameObject.InstantiateAsync(prefab, parent);
-        var instance = result[0];
-        instance.GetComponent<IUIPanel>()?.Show();
+        var instance = _container.InstantiatePrefab(prefab, parent);
+        var panel = instance.GetComponent<IUIPanel>();
+        panel?.Show();
+    }
+    public async Task CloseView(IUIPanel panel)
+    {
+        panel.Hide();
+        GameObject.Destroy(panel as MonoBehaviour);
         await Task.Yield();
     }
 

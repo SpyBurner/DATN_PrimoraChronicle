@@ -17,7 +17,7 @@ namespace Core
             Debug.Log("Bootstrapper starting...");
             await Initialize();
             // Load the initial scene (e.g., Account Scene)
-            await Task.Delay(2000);
+            await Task.Delay(500);
             await _sceneLoader.LoadScene(_nextSceneName);
         }
 

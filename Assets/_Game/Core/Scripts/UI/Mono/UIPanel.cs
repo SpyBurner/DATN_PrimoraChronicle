@@ -12,7 +12,7 @@ public class UIPanel : MonoBehaviour, IUIPanel
     public UIIdentifier Identifier => _identifier;
     public UILayer Layer => _layer;
 
-    protected virtual void Awake()
+    protected virtual void Start()
     {
         _uiManagerSubsystem.RegisterPanel(this);
         if (_isModal)
