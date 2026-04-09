@@ -9,6 +9,7 @@
   <Project Path="Unity.Theme.csproj" />
   <Project Path="Unity.Theme.Tests.Base.csproj" />
   <Project Path="Unity.Theme.Tests.Runtime.csproj" />
+  <Project Path="AccountFeatures.csproj" />
   <Project Path="com.IvanMurzak.Unity.Theme.Installer.csproj" />
   <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="Fusion.Unity.csproj" />
