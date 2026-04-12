@@ -737,7 +737,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 433550765019209347}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2af05e86e56517440a646d34b8b47fe5, type: 3}
+  m_Script: {fileID: 11500000, guid: 31df4fa4439b2064db5ab8372461196a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: AccountFeatures::AccountRegisterPanel
   _identifier: 202

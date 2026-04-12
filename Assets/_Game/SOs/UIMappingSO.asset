@@ -26,3 +26,5 @@ MonoBehaviour:
     uiIdentifier: 101
   - sceneName: Account
     uiIdentifier: 201
+  - sceneName: Lobby
+    uiIdentifier: 301

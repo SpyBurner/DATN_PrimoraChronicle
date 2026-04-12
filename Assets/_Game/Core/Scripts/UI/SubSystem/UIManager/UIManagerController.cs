@@ -14,6 +14,8 @@ internal class UIManagerController : IUIManagerController
     private readonly UIMappingSO _uiMapping;
     [Inject]
     private readonly DiContainer _container;
+    [Inject]
+    private readonly SceneContextRegistry _sceneContextRegistry;
 
     private UIRoot _uiRoot;
 
@@ -93,7 +95,9 @@ internal class UIManagerController : IUIManagerController
         var uiPanel = prefab.GetComponent<IUIPanel>();
         Debug.Log($"uiroot is null: {_uiRoot == null}, prefab has UIPanel: {uiPanel != null}");
         var parent = uiPanel != null ? _uiRoot.GetLayerParent(uiPanel.Layer) : _uiRoot.transform;
-        var instance = _container.InstantiatePrefab(prefab, parent);
+        var activeScene = SceneManager.GetActiveScene();
+        var containerToUse = _sceneContextRegistry.TryGetContainerForScene(activeScene) ?? _container;
+        var instance = containerToUse.InstantiatePrefab(prefab, parent);
         var panel = instance.GetComponent<IUIPanel>();
         panel?.Show();
     }

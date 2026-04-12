@@ -1,11 +1,14 @@
-using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using Zenject;
+using UnityEngine;
 
 public class AccountLoginPanel : UIPanel
 {
-    [Inject] private readonly ISceneLoaderSubsystem _sceneLoader;
+    [Inject] private readonly IAccountLoginSubsystem _accountLogin;
 
+    [SerializeField] private TMP_InputField _emailInput;
+    [SerializeField] private TMP_InputField _passwordInput;
     [SerializeField] private Button _loginButton;
     [SerializeField] private Button _registerButton;
 
@@ -25,12 +28,11 @@ public class AccountLoginPanel : UIPanel
 
     private void OnLogin()
     {
-        _sceneLoader.LoadScene("Lobby");
+        _accountLogin.Login(_emailInput?.text, _passwordInput?.text);
     }
 
     private void OnRegister()
     {
-        _uiManagerSubsystem.CloseView(this);
-        _uiManagerSubsystem.ShowScreen<AccountRegisterPanel>();
+        _accountLogin.NavigateToRegister();
     }
 }
