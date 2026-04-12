@@ -143,8 +143,31 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2377804766919697933, guid: a4beecd6db5ce054f99b0754858c484f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1903659087300078840}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 996578432152912283, guid: a4beecd6db5ce054f99b0754858c484f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 848903139150112754}
   m_SourcePrefab: {fileID: 100100000, guid: a4beecd6db5ce054f99b0754858c484f, type: 3}
+--- !u!1 &978981300051220664 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 996578432152912283, guid: a4beecd6db5ce054f99b0754858c484f, type: 3}
+  m_PrefabInstance: {fileID: 18723050799749411}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &848903139150112754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 978981300051220664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94e49aee695e0174a81ea18b8c368a7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Core::UIPanel
+  _identifier: 101
+  _layer: 1
+  _isModal: 0
 --- !u!224 &2359090526172315438 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2377804766919697933, guid: a4beecd6db5ce054f99b0754858c484f, type: 3}

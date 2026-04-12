@@ -8,6 +8,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 848903139150112754, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
+      propertyPath: _isModal
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 848903139150112754, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
+      propertyPath: _identifier
+      value: 101
+      objectReference: {fileID: 0}
     - target: {fileID: 978981300051220664, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
       propertyPath: m_Name
       value: System_Loading_Transparent Variant

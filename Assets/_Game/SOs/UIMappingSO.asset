@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 583595c2bcb0e3d478f8c95d75aa1a0d, type: 3}
+  m_Name: UIMappingSO
+  m_EditorClassIdentifier: Core::Core.UIMappingSO
+  uiMappings:
+  - uiIdentifier: 201
+    prefab: {fileID: 6708320007973784393, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+  - uiIdentifier: 101
+    prefab: {fileID: 848903139150112754, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
+  defaultUIMappings:
+  - sceneName: Bootstrap
+    uiIdentifier: 101
+  - sceneName: Account
+    uiIdentifier: 201

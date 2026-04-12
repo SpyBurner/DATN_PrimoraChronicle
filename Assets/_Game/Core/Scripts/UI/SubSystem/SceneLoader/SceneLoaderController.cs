@@ -19,7 +19,7 @@ internal class SceneLoaderController : ISceneLoaderController, IInitializable, I
     public void Dispose()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
-    }   
+    }
 
     public async Task LoadScene(string sceneName)
     {
@@ -65,8 +65,10 @@ internal class SceneLoaderController : ISceneLoaderController, IInitializable, I
         return LoadScene(currentScene.name);
     }
 
-    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         _debugLogger.Log($"Scene '{scene.name}' loaded with mode '{mode}'.");
+        await Task.Yield(); // Ensure this runs after all Awake() methods in the new scene
+        await _uiManager.ShowDefaultScreenForScene(scene.name);
     }
 }
