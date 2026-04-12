@@ -13,19 +13,20 @@ namespace Core
 
     public class UIRoot : MonoBehaviour
     {
+        [Inject] private readonly IDebugLogger _debugLogger;
         [Inject] private readonly IUIManagerSubsystem _uiManagerSubsystem;
         [SerializeField] private List<UILayerParentEntry> _layerParents = new();
 
         private void Awake()
         {
-            Debug.Log($"[UIRoot] Awake called. _uiManagerSubsystem is null: {_uiManagerSubsystem == null}");
+            _debugLogger.Log($"[UIRoot] Awake called. _uiManagerSubsystem is null: {_uiManagerSubsystem == null}");
             if (_uiManagerSubsystem == null)
             {
-                Debug.LogError("[UIRoot] _uiManagerSubsystem is null — missing SceneContext in this scene or UIRoot was not in the scene at load time.");
+                _debugLogger.LogError("[UIRoot] _uiManagerSubsystem is null — missing SceneContext in this scene or UIRoot was not in the scene at load time.");
                 return;
             }
+            _debugLogger.Log("[UIRoot] RegisterUIRoot called successfully.");
             _uiManagerSubsystem.RegisterUIRoot(this);
-            Debug.Log("[UIRoot] RegisterUIRoot called successfully.");
         }
 
         private void OnDestroy()
@@ -38,7 +39,7 @@ namespace Core
             foreach (var entry in _layerParents)
                 if (entry.Layer == layer && entry.Parent != null)
                     return entry.Parent;
-            return transform;
+            throw new System.Exception($"No parent found for UILayer {layer}. Please check the UIRoot hierarchy.");
         }
     }
 }
