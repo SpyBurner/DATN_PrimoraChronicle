@@ -46,10 +46,6 @@ internal class UIManagerController : IUIManagerController
                 }
             }
         }
-        else
-        {
-            throw new Exception($"Panel of type {type} is not registered.");
-        }
     }
     public void RegisterUIRoot(UIRoot uIRoot)
     {
@@ -104,8 +100,12 @@ internal class UIManagerController : IUIManagerController
     public async Task CloseView(IUIPanel panel)
     {
         panel.Hide();
-        GameObject.Destroy(panel as MonoBehaviour);
+        GameObject.Destroy((panel as MonoBehaviour).gameObject);
         await Task.Yield();
+        if (_model.Panels.Value.Count == 0)
+        {
+            await ShowDefaultScreenForScene();
+        }
     }
 
     public Task ShowPopup<T>() where T : class, IUIPanel

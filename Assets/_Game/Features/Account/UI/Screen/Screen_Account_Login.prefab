@@ -749,6 +749,7 @@ MonoBehaviour:
   _layer: 1
   _isModal: 0
   _closeButton: {fileID: 6515232520494149043}
+  _loginButton: {fileID: 4760222401053795428}
   _registerButton: {fileID: 1170805798622364500}
 --- !u!114 &6515232520494149043 stripped
 MonoBehaviour:
@@ -1384,6 +1385,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
+--- !u!114 &4760222401053795428 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3602487238759612119, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
+  m_PrefabInstance: {fileID: 8354509374647950003}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!224 &9173520485784240967 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 918675243931769332, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}

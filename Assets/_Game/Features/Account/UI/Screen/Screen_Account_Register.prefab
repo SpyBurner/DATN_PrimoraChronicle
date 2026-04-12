@@ -154,6 +154,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5885515916679181817, guid: c2b094e7dc2bab94a8ddd9519a8353c8, type: 3}
   m_PrefabInstance: {fileID: 2287826632618313963}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6884544490117241033 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4626655386410881058, guid: c2b094e7dc2bab94a8ddd9519a8353c8, type: 3}
+  m_PrefabInstance: {fileID: 2287826632618313963}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_InputField
 --- !u!1001 &6226792252358004527
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -694,7 +705,8 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -48.595
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6708320007973784393, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
     m_RemovedGameObjects:
     - {fileID: 5165748687415069969, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
     - {fileID: 499796308936481350, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
@@ -706,13 +718,86 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8251565132351922805, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5625686120486763794}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5795651751447466412, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5062700046871314874}
   m_SourcePrefab: {fileID: 100100000, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+--- !u!1 &433550765019209347 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5795651751447466412, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+  m_PrefabInstance: {fileID: 6226792252358004527}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5062700046871314874
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433550765019209347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2af05e86e56517440a646d34b8b47fe5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AccountFeatures::AccountRegisterPanel
+  _identifier: 202
+  _layer: 1
+  _isModal: 0
+  _closeButton: {fileID: 864906518092604060}
+  _emailInput: {fileID: 6152356617017719917}
+  _passwordInput: {fileID: 1200331858120002744}
+  _confirmPasswordInput: {fileID: 6884544490117241033}
+  _submitButton: {fileID: 1469782740783016779}
+  _backButton: {fileID: 864906518092604060}
+--- !u!114 &864906518092604060 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6515232520494149043, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+  m_PrefabInstance: {fileID: 6226792252358004527}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &1200331858120002744 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5098758567514063767, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+  m_PrefabInstance: {fileID: 6226792252358004527}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_InputField
+--- !u!114 &1469782740783016779 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4760222401053795428, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+  m_PrefabInstance: {fileID: 6226792252358004527}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!224 &2659780564929867098 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8251565132351922805, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
   m_PrefabInstance: {fileID: 6226792252358004527}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6152356617017719917 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 219424240450499394, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+  m_PrefabInstance: {fileID: 6226792252358004527}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_InputField
 --- !u!1001 &8546841320393707118
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -771,7 +856,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7621692832500509800, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 220.25
       objectReference: {fileID: 0}
     - target: {fileID: 7621692832500509800, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_SizeDelta.y
