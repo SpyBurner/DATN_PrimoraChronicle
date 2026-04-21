@@ -1,4 +1,3 @@
-using UnityEngine;
 using Zenject;
 
 internal class LobbyMainController : ILobbyMainController
@@ -11,31 +10,31 @@ internal class LobbyMainController : ILobbyMainController
 
     public void NavigateToProfile()
     {
-        Debug.Log("Navigate to Profile");
+        _uiManager.ShowScreen<ProfilePanel>();
     }
 
     public void NavigateToBattle()
     {
-        Debug.Log("Navigate to Battle");
+        _uiManager.ShowScreen<BattlePanel>();
     }
 
     public void NavigateToDeck()
     {
-        Debug.Log("Navigate to Deck");
+        _uiManager.ShowScreen<DeckPanel>();
     }
 
     public void NavigateToShop()
     {
-        Debug.Log("Navigate to Shop");
+        _uiManager.ShowScreen<ShopPanel>();
     }
 
     public void NavigateToSettings()
     {
-        Debug.Log("Navigate to Settings");
+        _uiManager.ShowScreen<SettingPanel>();
     }
 
     public void Logout()
     {
-        _sceneLoader.LoadScene("Login");
+        _sceneLoader.LoadScene("Account");
     }
 }

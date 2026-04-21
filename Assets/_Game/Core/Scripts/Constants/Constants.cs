@@ -53,6 +53,7 @@ public enum UIIdentifier
     LOBBY_SHOP = 307,
     LOBBY_CARD_GACHA = 308,
     LOBBY_CHAMPION_UNLOCK = 309,
+    LOBBY_SETTING = 310,
 
     // Gameplay
     GAMEPLAY_SCENE = 400,

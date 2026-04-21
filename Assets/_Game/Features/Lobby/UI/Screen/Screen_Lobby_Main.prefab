@@ -1297,7 +1297,7 @@ MonoBehaviour:
   _identifier: 301
   _layer: 1
   _isModal: 0
-  _closeButton: {fileID: 4504738299614244357}
+  _closeButton: {fileID: 0}
   _profileButton: {fileID: 5724477755799722253}
   _battleButton: {fileID: 3773675805805758251}
   _deckButton: {fileID: 564889033962698838}

@@ -163,10 +163,34 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 3119809659321618301}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6797132209093893444}
     - targetCorrespondingSourceObject: {fileID: 2781302010599176570, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5994847683998873922}
   m_SourcePrefab: {fileID: 100100000, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+--- !u!1 &1070442826774402681 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+  m_PrefabInstance: {fileID: 947490773452997698}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6797132209093893444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1070442826774402681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24bf1e45c3aae94409bc62182259d62a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::MatchHistoryPanel
+  _identifier: 305
+  _layer: 4
+  _isModal: 0
+  _closeButton: {fileID: 8011067317131363051}
 --- !u!1 &3152241184516586808 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2781302010599176570, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
@@ -203,6 +227,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4349510133941036710, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
   m_PrefabInstance: {fileID: 947490773452997698}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8011067317131363051 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7064791642627835561, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+  m_PrefabInstance: {fileID: 947490773452997698}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &3355407412851220986
 PrefabInstance:
   m_ObjectHideFlags: 0

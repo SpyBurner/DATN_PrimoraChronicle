@@ -94,6 +94,14 @@ internal class UIManagerController : IUIManagerController
         }
         var uiPanel = prefab.GetComponent<IUIPanel>();
         Debug.Log($"uiroot is null: {_uiRoot == null}, prefab has UIPanel: {uiPanel != null}");
+
+        // Prevent duplicate panels of the same type
+        if (uiPanel != null && _model.Panels.Value.ContainsKey(uiPanel.GetType()))
+        {
+            Debug.LogWarning($"[UIManager] Panel of type {uiPanel.GetType().Name} is already shown. Skipping duplicate ShowView.");
+            return;
+        }
+
         var parent = uiPanel != null ? _uiRoot.GetLayerParent(uiPanel.Layer) : _uiRoot.transform;
         var activeScene = SceneManager.GetActiveScene();
         var containerToUse = _sceneContextRegistry.TryGetContainerForScene(activeScene) ?? _container;
@@ -106,10 +114,9 @@ internal class UIManagerController : IUIManagerController
         panel.Hide();
         GameObject.Destroy((panel as MonoBehaviour).gameObject);
         await Task.Yield();
-        if (_model.Panels.Value.Count == 0)
-        {
-            await ShowDefaultScreenForScene();
-        }
+        // NOTE: Do not auto-show default screen here — the caller is responsible for
+        // showing the next panel (e.g. via ShowScreen<T>()). The old fallback raced with
+        // Start()-based RegisterPanel and caused duplicate panels to spawn.
     }
 
     public Task ShowPopup<T>() where T : class, IUIPanel

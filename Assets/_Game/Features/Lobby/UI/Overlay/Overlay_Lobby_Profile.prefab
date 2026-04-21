@@ -553,30 +553,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8872453271225201236}
     m_Modifications:
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_text
-      value: 99999999999999999
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_overflowMode
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_TextWrappingMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_HorizontalAlignment
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_VerticalFit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_HorizontalFit
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4294967295
@@ -664,6 +640,30 @@ PrefabInstance:
     - target: {fileID: 8446472286506033395, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_Name
       value: Text_Body (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_text
+      value: 99999999999999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_overflowMode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_TextWrappingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_VerticalFit
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
@@ -790,30 +790,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8872453271225201236}
     m_Modifications:
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_text
-      value: 99999999999999999
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_overflowMode
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_TextWrappingMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_HorizontalAlignment
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_VerticalFit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_HorizontalFit
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4294967295
@@ -901,6 +877,30 @@ PrefabInstance:
     - target: {fileID: 8446472286506033395, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_Name
       value: Text_Body (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_text
+      value: 99999999999999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_overflowMode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_TextWrappingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_VerticalFit
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
@@ -921,30 +921,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8872453271225201236}
     m_Modifications:
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_text
-      value: 99999999999999999
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_overflowMode
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_TextWrappingMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_HorizontalAlignment
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_VerticalFit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_HorizontalFit
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4294967295
@@ -1032,6 +1008,30 @@ PrefabInstance:
     - target: {fileID: 8446472286506033395, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_Name
       value: Text_Body (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_text
+      value: 99999999999999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_overflowMode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_TextWrappingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_VerticalFit
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
@@ -1226,6 +1226,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7361896391925419275, guid: 6d26dc7bc3bfd2e488f1326185849eb5, type: 3}
   m_PrefabInstance: {fileID: 3870019283922717762}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7989093824817964650 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6587610159800560168, guid: 6d26dc7bc3bfd2e488f1326185849eb5, type: 3}
+  m_PrefabInstance: {fileID: 3870019283922717762}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4130102283499268143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &4836433411334508207
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1234,30 +1245,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8872453271225201236}
     m_Modifications:
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_text
-      value: 99999999999999999
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_overflowMode
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_TextWrappingMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_HorizontalAlignment
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_VerticalFit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_HorizontalFit
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4294967295
@@ -1346,6 +1333,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: Text_Body (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_text
+      value: 99999999999999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_overflowMode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_TextWrappingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_VerticalFit
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
     m_RemovedGameObjects: []
@@ -1365,18 +1376,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8872453271225201236}
     m_Modifications:
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_text
-      value: 'LV:'
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_VerticalFit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_HorizontalFit
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_text
       value: XP
@@ -1469,6 +1468,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Text_Body
       objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_text
+      value: 'LV:'
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_VerticalFit
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
     m_RemovedGameObjects: []
@@ -1488,18 +1499,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8872453271225201236}
     m_Modifications:
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_text
-      value: 'Name:'
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_VerticalFit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_HorizontalFit
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_text
       value: LV
@@ -1591,6 +1590,18 @@ PrefabInstance:
     - target: {fileID: 8446472286506033395, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_Name
       value: Text_Body
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_text
+      value: 'Name:'
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_VerticalFit
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
@@ -1723,18 +1734,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8872453271225201236}
     m_Modifications:
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_text
-      value: 'XP:'
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_VerticalFit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_HorizontalFit
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_text
       value: Gold
@@ -1827,6 +1826,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Text_Body
       objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_text
+      value: 'XP:'
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_VerticalFit
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
     m_RemovedGameObjects: []
@@ -1846,18 +1857,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8872453271225201236}
     m_Modifications:
-    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
-      propertyPath: m_text
-      value: 'LV:'
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_VerticalFit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
-      propertyPath: m_HorizontalFit
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_text
       value: XP to LV up
@@ -1949,6 +1948,18 @@ PrefabInstance:
     - target: {fileID: 8446472286506033395, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_Name
       value: Text_Body
+      objectReference: {fileID: 0}
+    - target: {fileID: 8279187971284353575, guid: 2a3b96f252258f34b8e0a2baf8b60bdc, type: 3}
+      propertyPath: m_text
+      value: 'LV:'
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_VerticalFit
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075870234305973230, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
@@ -2126,13 +2137,49 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4349510133941036710, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6025719319547199817}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5617800117767770735}
   m_SourcePrefab: {fileID: 100100000, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+--- !u!114 &1857151360346102647 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7064791642627835561, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+  m_PrefabInstance: {fileID: 8921283158338117086}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!224 &5157276538301807480 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4349510133941036710, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
   m_PrefabInstance: {fileID: 8921283158338117086}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8661002629877043173 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+  m_PrefabInstance: {fileID: 8921283158338117086}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5617800117767770735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8661002629877043173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c2c9c82658f6a244a3b9a40b82fcc08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::ProfilePanel
+  _identifier: 303
+  _layer: 4
+  _isModal: 0
+  _closeButton: {fileID: 1857151360346102647}
+  _matchHistoryButton: {fileID: 7989093824817964650}
 --- !u!1001 &9032621769013208636
 PrefabInstance:
   m_ObjectHideFlags: 0
