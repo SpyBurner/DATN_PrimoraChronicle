@@ -3,6 +3,8 @@ using Zenject;
 
 public interface IAccountLoginSubsystem : ISubsystem
 {
-    Task Login(string email, string password);
+    void SetEmail(string email);
+    void SetPassword(string password);
+    Task Login();
     void NavigateToRegister();
 }

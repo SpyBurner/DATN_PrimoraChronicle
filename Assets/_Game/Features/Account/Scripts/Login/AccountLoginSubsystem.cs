@@ -9,6 +9,8 @@ public class AccountLoginSubsystem : IAccountLoginSubsystem, IInitializable, IDi
     public void Initialize() { }
     public void Dispose() { }
 
-    public Task Login(string email, string password) => _controller.Login(email, password);
+    public void SetEmail(string email) => _controller.SetEmail(email);
+    public void SetPassword(string password) => _controller.SetPassword(password);
+    public Task Login() => _controller.Login();
     public void NavigateToRegister() => _controller.NavigateToRegister();
 }

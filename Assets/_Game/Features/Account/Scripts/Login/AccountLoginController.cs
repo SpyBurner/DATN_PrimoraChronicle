@@ -10,10 +10,11 @@ internal class AccountLoginController : IAccountLoginController
 
     public void Initialize() { }
 
-    public async Task Login(string email, string password)
+    public void SetEmail(string email) => _model.Email = email;
+    public void SetPassword(string password) => _model.Password = password;
+
+    public async Task Login()
     {
-        _model.Email = email;
-        _model.Password = password;
         Debug.Log($"Login: {_model.Email}");
         await _sceneLoader.LoadScene("Lobby");
     }
