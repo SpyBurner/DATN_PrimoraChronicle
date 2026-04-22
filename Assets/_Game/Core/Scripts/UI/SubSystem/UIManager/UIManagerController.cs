@@ -14,6 +14,8 @@ internal class UIManagerController : IUIManagerController
     private readonly UIMappingSO _uiMapping;
     [Inject]
     private readonly DiContainer _container;
+    [Inject]
+    private readonly SceneContextRegistry _sceneContextRegistry;
 
     private UIRoot _uiRoot;
 
@@ -45,10 +47,6 @@ internal class UIManagerController : IUIManagerController
                     _model.PanelsByLayer.Value.Remove(panel.Layer);
                 }
             }
-        }
-        else
-        {
-            throw new Exception($"Panel of type {type} is not registered.");
         }
     }
     public void RegisterUIRoot(UIRoot uIRoot)
@@ -96,16 +94,29 @@ internal class UIManagerController : IUIManagerController
         }
         var uiPanel = prefab.GetComponent<IUIPanel>();
         Debug.Log($"uiroot is null: {_uiRoot == null}, prefab has UIPanel: {uiPanel != null}");
+
+        // Prevent duplicate panels of the same type
+        if (uiPanel != null && _model.Panels.Value.ContainsKey(uiPanel.GetType()))
+        {
+            Debug.LogWarning($"[UIManager] Panel of type {uiPanel.GetType().Name} is already shown. Skipping duplicate ShowView.");
+            return;
+        }
+
         var parent = uiPanel != null ? _uiRoot.GetLayerParent(uiPanel.Layer) : _uiRoot.transform;
-        var instance = _container.InstantiatePrefab(prefab, parent);
+        var activeScene = SceneManager.GetActiveScene();
+        var containerToUse = _sceneContextRegistry.TryGetContainerForScene(activeScene) ?? _container;
+        var instance = containerToUse.InstantiatePrefab(prefab, parent);
         var panel = instance.GetComponent<IUIPanel>();
         panel?.Show();
     }
     public async Task CloseView(IUIPanel panel)
     {
         panel.Hide();
-        GameObject.Destroy(panel as MonoBehaviour);
+        GameObject.Destroy((panel as MonoBehaviour).gameObject);
         await Task.Yield();
+        // NOTE: Do not auto-show default screen here — the caller is responsible for
+        // showing the next panel (e.g. via ShowScreen<T>()). The old fallback raced with
+        // Start()-based RegisterPanel and caused duplicate panels to spawn.
     }
 
     public Task ShowPopup<T>() where T : class, IUIPanel

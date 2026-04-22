@@ -944,6 +944,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 918675243931769332, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
   m_PrefabInstance: {fileID: 5931120064896128711}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7183533088737568784 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3602487238759612119, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
+  m_PrefabInstance: {fileID: 5931120064896128711}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &5971216748387660444
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1200,8 +1211,44 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4349510133941036710, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7888580533584001290}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 21230654861397613}
   m_SourcePrefab: {fileID: 100100000, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+--- !u!114 &4326675468919273068 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7064791642627835561, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+  m_PrefabInstance: {fileID: 6773518272260174021}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!1 &6772443219240149758 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+  m_PrefabInstance: {fileID: 6773518272260174021}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &21230654861397613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6772443219240149758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8a920959b32eba46844be9fdaef48fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::BattlePanel
+  _identifier: 302
+  _layer: 4
+  _isModal: 0
+  _closeButton: {fileID: 4326675468919273068}
+  _startMatchmakingButton: {fileID: 7183533088737568784}
 --- !u!224 &7087767062334608995 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4349510133941036710, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
