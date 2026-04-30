@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Core;
 using Zenject;
 
 public class DeckSubsystem : IDeckSubsystem, IInitializable, IDisposable
@@ -8,5 +10,6 @@ public class DeckSubsystem : IDeckSubsystem, IInitializable, IDisposable
     public void Initialize() { }
     public void Dispose() { }
 
-    public void EditDeck() => _controller.EditDeck();
+    public void EditDeck(DeckSO deckSO) => _controller.EditDeck(deckSO);
+    public IReadOnlyList<DeckSO> LoadDecks() => _controller.LoadDecks();
 }

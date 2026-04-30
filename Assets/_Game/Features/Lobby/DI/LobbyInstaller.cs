@@ -35,6 +35,12 @@ public class LobbyInstaller : MonoInstaller
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<DeckSubsystem>()
             .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<DeckEditModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<DeckEditController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<DeckEditSubsystem>()
+            .AsSingle().NonLazy();
 
         // Shop
         Container.BindInterfacesAndSelfTo<ShopModel>()

@@ -33,6 +33,8 @@ MonoBehaviour:
     prefab: {fileID: 5617800117767770735, guid: fb9bc9f88f997fc49af2f90acdc9b61d, type: 3}
   - uiIdentifier: 305
     prefab: {fileID: 6797132209093893444, guid: 4efa7e8aa095f514db598b03040cc5d7, type: 3}
+  - uiIdentifier: 304
+    prefab: {fileID: 6189690277546376456, guid: fb15c7fc8f056b04782cb6cc0fa616c6, type: 3}
   defaultUIMappings:
   - sceneName: Bootstrap
     uiIdentifier: 101

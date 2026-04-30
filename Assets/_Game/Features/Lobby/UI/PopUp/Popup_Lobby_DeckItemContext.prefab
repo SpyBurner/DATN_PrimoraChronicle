@@ -98,7 +98,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2261661481005297388, guid: 7b7f427fa89180047a889cdcc60b7d07, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 77.87
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2261661481005297388, guid: 7b7f427fa89180047a889cdcc60b7d07, type: 3}
       propertyPath: m_SizeDelta.y
@@ -272,7 +272,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       propertyPath: m_Name
-      value: PopUp_Lobby_DeckItemContext
+      value: Popup_Lobby_DeckItemContext
       objectReference: {fileID: 0}
     - target: {fileID: 6010145286192904194, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       propertyPath: m_AnchorMax.y
@@ -505,7 +505,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8487699280679530514, guid: 6d26dc7bc3bfd2e488f1326185849eb5, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 47.94
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8487699280679530514, guid: 6d26dc7bc3bfd2e488f1326185849eb5, type: 3}
       propertyPath: m_SizeDelta.y
