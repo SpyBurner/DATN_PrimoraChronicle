@@ -18,5 +18,13 @@ public class DeckEditSubsystem : IDeckEditSubsystem, IInitializable, IDisposable
 
     public IReadOnlyList<CardSO> GetChampionCards() => _controller.GetChampionCards();
 
+    public IReadOnlyList<CardSO> GetAvailableCards() => _controller.GetAvailableCards();
+
+    public bool TryAddCardToSelectedDeck(CardSO card) => _controller.TryAddCardToSelectedDeck(card);
+
+    public bool TryRemoveCardFromSelectedDeck(CardSO card) => _controller.TryRemoveCardFromSelectedDeck(card);
+
+    public bool SaveSelectedDeck() => _controller.SaveSelectedDeck();
+
     public void StoreSelectedDeck(DeckSO deckSO) => _controller.StoreSelectedDeck(deckSO);
 }

@@ -5,10 +5,12 @@ internal class DeckEditModel : IDeckEditModel
 {
     private List<CardSO> _deckCards = new();
     private List<CardSO> _championCards = new();
+    private List<CardSO> _availableCards = new();
 
     public DeckSO SelectedDeck { get; private set; }
     public IReadOnlyList<CardSO> DeckCards => _deckCards;
     public IReadOnlyList<CardSO> ChampionCards => _championCards;
+    public IReadOnlyList<CardSO> AvailableCards => _availableCards;
 
     public void Initialize() { }
     public void Dispose() { }
@@ -18,9 +20,10 @@ internal class DeckEditModel : IDeckEditModel
         SelectedDeck = deckSO;
     }
 
-    public void SetRenderData(IEnumerable<CardSO> deckCards, IEnumerable<CardSO> championCards)
+    public void SetRenderData(IEnumerable<CardSO> deckCards, IEnumerable<CardSO> championCards, IEnumerable<CardSO> availableCards)
     {
         _deckCards = deckCards == null ? new List<CardSO>() : new List<CardSO>(deckCards);
         _championCards = championCards == null ? new List<CardSO>() : new List<CardSO>(championCards);
+        _availableCards = availableCards == null ? new List<CardSO>() : new List<CardSO>(availableCards);
     }
 }

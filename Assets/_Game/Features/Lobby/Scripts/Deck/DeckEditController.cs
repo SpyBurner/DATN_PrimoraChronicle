@@ -1,19 +1,18 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core;
-using Zenject;
 using UnityEngine;
+using Zenject;
 
 internal class DeckEditController : IDeckEditController
 {
-    private const string CardResourcesPath = "CardSO";
+    private const int MaxCopiesPerCard = 2;
 
     [Inject] private readonly IDeckEditModel _model;
-
-    private readonly Dictionary<string, CardSO> _cardsById = new();
+    [Inject] private readonly ICardLoadingManagerSubsystem _cardLoadingManager;
 
     public void Initialize()
     {
-        RebuildCardLookup();
         RefreshRenderData();
     }
 
@@ -29,11 +28,6 @@ internal class DeckEditController : IDeckEditController
             return null;
         }
 
-        if (_cardsById.Count == 0)
-        {
-            RebuildCardLookup();
-        }
-
         return ResolveCard<ChampionCardSO>(_model.SelectedDeck.ChampionCardID);
     }
 
@@ -47,6 +41,79 @@ internal class DeckEditController : IDeckEditController
         return _model.ChampionCards;
     }
 
+    public IReadOnlyList<CardSO> GetAvailableCards()
+    {
+        return _model.AvailableCards;
+    }
+
+    public bool TryAddCardToSelectedDeck(CardSO card)
+    {
+        if (_model.SelectedDeck == null || card == null || string.IsNullOrWhiteSpace(card.ID))
+        {
+            return false;
+        }
+
+        List<string> targetCards = GetTargetCardIds(card);
+        if (targetCards == null)
+        {
+            return false;
+        }
+
+        int existingCopies = targetCards.Count(cardId => string.Equals(cardId, card.ID));
+        if (existingCopies >= MaxCopiesPerCard)
+        {
+            return false;
+        }
+
+        targetCards.Add(card.ID);
+        RefreshRenderData();
+        return true;
+    }
+
+    public bool TryRemoveCardFromSelectedDeck(CardSO card)
+    {
+        if (_model.SelectedDeck == null || card == null || string.IsNullOrWhiteSpace(card.ID))
+        {
+            return false;
+        }
+
+        List<string> targetCards = GetTargetCardIds(card);
+        if (targetCards == null)
+        {
+            return false;
+        }
+
+        int existingIndex = targetCards.FindIndex(cardId => string.Equals(cardId, card.ID));
+        if (existingIndex < 0)
+        {
+            return false;
+        }
+
+        targetCards.RemoveAt(existingIndex);
+        RefreshRenderData();
+        return true;
+    }
+
+    public bool SaveSelectedDeck()
+    {
+        if (_model.SelectedDeck == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            _model.SelectedDeck.SaveToJsonFile();
+            RefreshRenderData();
+            return true;
+        }
+        catch (System.Exception exception)
+        {
+            Debug.LogError($"Failed to save selected deck. {exception.Message}");
+            return false;
+        }
+    }
+
     public void StoreSelectedDeck(DeckSO deckSO)
     {
         _model.SetSelectedDeck(deckSO);
@@ -57,13 +124,8 @@ internal class DeckEditController : IDeckEditController
     {
         if (_model.SelectedDeck == null)
         {
-            _model.SetRenderData(null, null);
+            _model.SetRenderData(null, null, GetAvailableSpellAndTroopCards());
             return;
-        }
-
-        if (_cardsById.Count == 0)
-        {
-            RebuildCardLookup();
         }
 
         List<CardSO> deckCards = ResolveCards(_model.SelectedDeck.TroopCardsID);
@@ -77,7 +139,25 @@ internal class DeckEditController : IDeckEditController
             AddChampionCards(championCards, championCard.ChampionSpellCards);
         }
 
-        _model.SetRenderData(deckCards, championCards);
+        _model.SetRenderData(deckCards, championCards, GetAvailableSpellAndTroopCards());
+    }
+
+    private List<CardSO> GetAvailableSpellAndTroopCards()
+    {
+        List<CardSO> availableCards = new();
+        availableCards.AddRange(_cardLoadingManager.GetTroopCardList().Values);
+        availableCards.AddRange(_cardLoadingManager.GetSpellCardList().Values);
+        return availableCards;
+    }
+
+    private List<string> GetTargetCardIds(CardSO card)
+    {
+        return card switch
+        {
+            TroopCardSO => _model.SelectedDeck.TroopCardsID,
+            SpellCardSO => _model.SelectedDeck.SpellCardsID,
+            _ => null,
+        };
     }
 
     private List<CardSO> ResolveCards(IEnumerable<string> cardIds)
@@ -118,26 +198,6 @@ internal class DeckEditController : IDeckEditController
 
     private TCard ResolveCard<TCard>(string cardId) where TCard : CardSO
     {
-        if (string.IsNullOrWhiteSpace(cardId) || !_cardsById.TryGetValue(cardId, out CardSO card))
-        {
-            return null;
-        }
-
-        return card as TCard;
-    }
-
-    private void RebuildCardLookup()
-    {
-        _cardsById.Clear();
-
-        foreach (CardSO card in Resources.LoadAll<CardSO>(CardResourcesPath))
-        {
-            if (card == null || string.IsNullOrWhiteSpace(card.ID) || _cardsById.ContainsKey(card.ID))
-            {
-                continue;
-            }
-
-            _cardsById.Add(card.ID, card);
-        }
+        return _cardLoadingManager.GetCard<TCard>(cardId);
     }
 }

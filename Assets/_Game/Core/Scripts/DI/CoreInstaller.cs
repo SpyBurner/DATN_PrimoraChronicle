@@ -4,6 +4,7 @@ using Zenject;
 internal class CoreInstaller : MonoInstaller
 {
     public UIMappingSO UIMapping;
+
     public override void InstallBindings()
     {
         Container.BindInstance(UIMapping).AsSingle();
@@ -18,6 +19,14 @@ internal class CoreInstaller : MonoInstaller
         Container.BindInterfacesAndSelfTo<UIManagerController>()
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<UIManagerSubsystem>()
+            .AsSingle().NonLazy();
+
+        // CardLoadingManager
+        Container.BindInterfacesAndSelfTo<CardLoadingManagerModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<CardLoadingManagerController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<CardLoadingManagerSubsystem>()
             .AsSingle().NonLazy();
 
         // SceneLoader (use the concrete names you implemented)

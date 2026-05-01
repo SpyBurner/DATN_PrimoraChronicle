@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System;
 using Core;
 using Zenject;
 using UnityEngine;
-using System;
 using UnityEngine.UI;
 
 public class DeckEditPanel : UIPanel
@@ -14,26 +14,30 @@ public class DeckEditPanel : UIPanel
     [SerializeField] private GameObject _deckContainer;
     [SerializeField] private GameObject _cardContainer;
     [SerializeField] private Image _championPortrait;
+    [SerializeField] private Button _saveButton;
 
     protected override void OnEnable()
     {
         base.OnEnable();
+        _saveButton?.onClick.AddListener(OnSave);
         RenderCardDisplays();
     }
 
     protected override void OnDisable()
     {
-        ClearContainer(_deckContainer);
-        ClearContainer(_cardContainer);
-        ClearContainer(_championCardContainer);
+        ClearContainer(_deckContainer, _cardDisplayPrefab);
+        ClearContainer(_cardContainer, _cardDisplayPrefab);
+        ClearContainer(_championCardContainer, _cardDisplayPrefab);
+        _saveButton?.onClick.RemoveListener(OnSave);
         base.OnDisable();
     }
 
     private void RenderCardDisplays()
     {
-        ClearContainer(_deckContainer);
-        ClearContainer(_cardContainer);
-        ClearContainer(_championCardContainer);
+        ClearContainer(_deckContainer, _cardDisplayPrefab);
+        ClearContainer(_cardContainer, _cardDisplayPrefab);
+        ClearContainer(_championCardContainer, _cardDisplayPrefab);
+
 
         ChampionCardSO championCard = _deckEdit.GetChampionCard();
         if (_championPortrait != null)
@@ -46,12 +50,13 @@ public class DeckEditPanel : UIPanel
             return;
         }
 
-        RenderCards(_deckEdit.GetDeckCards(), _deckContainer);
+        RenderCards(_deckEdit.GetDeckCards(), _deckContainer, HandleDeckCardClicked);
         RenderCards(_deckEdit.GetChampionCards(), _championCardContainer);
+        RenderCards(_deckEdit.GetAvailableCards(), _cardContainer, HandleAvailableCardClicked);
         _cardDisplayPrefab.gameObject.SetActive(false);
     }
 
-    private void RenderCards(IEnumerable<CardSO> cards, GameObject container)
+    private void RenderCards(IEnumerable<CardSO> cards, GameObject container, Action<CardSO> onClick = null)
     {
         if (container == null || cards == null)
         {
@@ -65,28 +70,66 @@ public class DeckEditPanel : UIPanel
                 continue;
             }
 
-            CreateCardDisplay(card, container.transform);
+            CreateCardDisplay(card, container.transform, onClick);
         }
     }
 
-    private void CreateCardDisplay(CardSO card, Transform parent)
+    private void CreateCardDisplay(CardSO card, Transform parent, Action<CardSO> onClick = null)
     {
         CardDisplay cardDisplay = Instantiate(_cardDisplayPrefab, parent);
         cardDisplay.gameObject.name = card.name;
         cardDisplay.gameObject.SetActive(true);
         cardDisplay.SetCardInfo(card);
+
+        Button button = cardDisplay.GetComponent<Button>();
+        if (button != null)
+        {
+            button.onClick.RemoveAllListeners();
+
+            if (onClick != null)
+            {
+                button.onClick.AddListener(() => onClick.Invoke(card));
+            }
+        }
     }
 
-    private static void ClearContainer(GameObject container)
+    private void HandleAvailableCardClicked(CardSO card)
     {
-        // if (container == null)
-        // {
-        //     return;
-        // }
+        if (_deckEdit.TryAddCardToSelectedDeck(card))
+        {
+            RenderCardDisplays();
+        }
+    }
 
-        // for (int childIndex = container.transform.childCount - 1; childIndex >= 0; childIndex--)
-        // {
-        //     Destroy(container.transform.GetChild(childIndex).gameObject);
-        // }
+    private void HandleDeckCardClicked(CardSO card)
+    {
+        if (_deckEdit.TryRemoveCardFromSelectedDeck(card))
+        {
+            RenderCardDisplays();
+        }
+    }
+
+    private void OnSave()
+    {
+        _deckEdit.SaveSelectedDeck();
+    }
+
+    private static void ClearContainer(GameObject container, CardDisplay preservedDisplay)
+    {
+        if (container == null)
+        {
+            return;
+        }
+
+        for (int childIndex = container.transform.childCount - 1; childIndex >= 0; childIndex--)
+        {
+            Transform child = container.transform.GetChild(childIndex);
+            if (preservedDisplay != null && child == preservedDisplay.transform)
+            {
+                continue;
+            }
+
+            Destroy(child.gameObject);
+        }
     }
 }
