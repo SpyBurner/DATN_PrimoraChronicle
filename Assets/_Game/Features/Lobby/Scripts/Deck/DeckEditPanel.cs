@@ -16,15 +16,24 @@ public class DeckEditPanel : UIPanel
     [SerializeField] private Image _championPortrait;
     [SerializeField] private Button _saveButton;
 
+    private DeckContainerChangeNotifier _deckContainerChangeNotifier;
+    private bool _isSyncingDeckPlaceholder;
+
     protected override void OnEnable()
     {
         base.OnEnable();
+        ConfigureDeckContainerWatcher();
         _saveButton?.onClick.AddListener(OnSave);
         RenderCardDisplays();
     }
 
     protected override void OnDisable()
     {
+        if (_deckContainerChangeNotifier != null)
+        {
+            _deckContainerChangeNotifier.Changed -= HandleDeckContainerChanged;
+        }
+
         ClearContainer(_deckContainer, _cardDisplayPrefab);
         ClearContainer(_cardContainer, _cardDisplayPrefab);
         ClearContainer(_championCardContainer, _cardDisplayPrefab);
@@ -51,9 +60,90 @@ public class DeckEditPanel : UIPanel
         }
 
         RenderCards(_deckEdit.GetDeckCards(), _deckContainer, HandleDeckCardClicked);
+        SyncDeckPlaceholder();
         RenderCards(_deckEdit.GetChampionCards(), _championCardContainer);
         RenderCards(_deckEdit.GetAvailableCards(), _cardContainer, HandleAvailableCardClicked);
         _cardDisplayPrefab.gameObject.SetActive(false);
+    }
+
+    private void ConfigureDeckContainerWatcher()
+    {
+        if (_deckContainer == null)
+        {
+            return;
+        }
+
+        _deckContainerChangeNotifier = _deckContainer.GetComponent<DeckContainerChangeNotifier>();
+        if (_deckContainerChangeNotifier == null)
+        {
+            _deckContainerChangeNotifier = _deckContainer.AddComponent<DeckContainerChangeNotifier>();
+        }
+
+        _deckContainerChangeNotifier.Changed -= HandleDeckContainerChanged;
+        _deckContainerChangeNotifier.Changed += HandleDeckContainerChanged;
+    }
+
+    private void HandleDeckContainerChanged()
+    {
+        SyncDeckPlaceholder();
+    }
+
+    private void SyncDeckPlaceholder()
+    {
+        if (_isSyncingDeckPlaceholder || _deckContainer == null || _cardDisplayPrefab == null)
+        {
+            return;
+        }
+
+        _isSyncingDeckPlaceholder = true;
+
+        try
+        {
+            bool hasRealCard = false;
+            CardDisplay placeholder = null;
+
+            for (int childIndex = 0; childIndex < _deckContainer.transform.childCount; childIndex++)
+            {
+                Transform child = _deckContainer.transform.GetChild(childIndex);
+                if (child == _cardDisplayPrefab.transform)
+                {
+                    continue;
+                }
+
+                CardDisplay cardDisplay = child.GetComponent<CardDisplay>();
+                if (cardDisplay == null)
+                {
+                    continue;
+                }
+
+                if (string.Equals(child.name, "EmptyCardDisplay", StringComparison.Ordinal))
+                {
+                    placeholder = cardDisplay;
+                    continue;
+                }
+
+                hasRealCard = true;
+            }
+
+            if (hasRealCard)
+            {
+                if (placeholder != null)
+                {
+                    Destroy(placeholder.gameObject);
+                }
+
+                return;
+            }
+
+            if (placeholder == null)
+            {
+                CreateCardDisplay(null, _deckContainer.transform);
+            }
+        }
+        finally
+        {
+            _isSyncingDeckPlaceholder = false;
+        }
     }
 
     private void RenderCards(IEnumerable<CardSO> cards, GameObject container, Action<CardSO> onClick = null)
@@ -77,7 +167,7 @@ public class DeckEditPanel : UIPanel
     private void CreateCardDisplay(CardSO card, Transform parent, Action<CardSO> onClick = null)
     {
         CardDisplay cardDisplay = Instantiate(_cardDisplayPrefab, parent);
-        cardDisplay.gameObject.name = card.name;
+        cardDisplay.gameObject.name = card != null ? card.name : "EmptyCardDisplay";
         cardDisplay.gameObject.SetActive(true);
         cardDisplay.SetCardInfo(card);
 
@@ -85,8 +175,9 @@ public class DeckEditPanel : UIPanel
         if (button != null)
         {
             button.onClick.RemoveAllListeners();
+            button.interactable = card != null && onClick != null;
 
-            if (onClick != null)
+            if (card != null && onClick != null)
             {
                 button.onClick.AddListener(() => onClick.Invoke(card));
             }
@@ -130,6 +221,16 @@ public class DeckEditPanel : UIPanel
             }
 
             Destroy(child.gameObject);
+        }
+    }
+
+    private sealed class DeckContainerChangeNotifier : MonoBehaviour
+    {
+        public event Action Changed;
+
+        private void OnTransformChildrenChanged()
+        {
+            Changed?.Invoke();
         }
     }
 }
