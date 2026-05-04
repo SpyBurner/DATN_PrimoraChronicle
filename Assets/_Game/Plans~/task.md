@@ -62,14 +62,14 @@
 ---
 
 ## BATCH 6 — Phase E: Gameplay Scene Subsystems
-- [ ] E1: Create GameplayInstaller MonoInstaller
-- [ ] E2: Create GameStateSubsystem (7 files, NetworkBehaviour model)
-- [ ] E3: Create HandSubsystem (7 files)
-- [ ] E4: Create FusePhaseSubsystem (7 files)
-- [ ] E5: Create BoardSubsystem (7 files, NetworkBehaviour model)
-- [ ] E6: Create CombatSubsystem (7 files)
-- [ ] E7: Create DrawPhaseSubsystem (7 files)
-- [ ] E8: Create MatchResultSubsystem (7 files)
+- [x] E1: Create GameplayInstaller MonoInstaller
+- [x] E2: Create GameStateSubsystem (7 files, NetworkBehaviour model)
+- [x] E3: Create HandSubsystem (7 files)
+- [x] E4: Create FusePhaseSubsystem (7 files)
+- [x] E5: Create BoardSubsystem (7 files, NetworkBehaviour model)
+- [x] E6: Create CombatSubsystem (7 files)
+- [x] E7: Create DrawPhaseSubsystem (7 files)
+- [x] E8: Create MatchResultSubsystem (7 files)
 - **Commit:** `feat: Gameplay scene subsystems skeleton`
 
 ---
@@ -81,3 +81,4 @@
 
 ## Excluded
 - feat_deck_edit_adaptation_plan.md → handled by another member. DeckEdit binding already exists in LobbyInstaller — do not remove.
+
