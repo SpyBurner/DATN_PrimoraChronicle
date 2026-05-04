@@ -1,6 +1,4 @@
-using Zenject;
-
-public interface ISettingController : IInitializable
+public interface ISettingController : IController
 {
     void ApplySettings();
 }

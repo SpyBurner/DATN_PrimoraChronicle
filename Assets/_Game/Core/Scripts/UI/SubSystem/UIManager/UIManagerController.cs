@@ -19,6 +19,9 @@ internal class UIManagerController : IUIManagerController
 
     private UIRoot _uiRoot;
 
+    public void Initialize() { }
+    public void Dispose() { }
+
     public void RegisterPanel(IUIPanel panel)
     {
         var type = panel.GetType();

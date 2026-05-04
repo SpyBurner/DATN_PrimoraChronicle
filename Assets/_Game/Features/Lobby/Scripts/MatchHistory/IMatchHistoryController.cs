@@ -1,5 +1,3 @@
-using Zenject;
-
-public interface IMatchHistoryController : IInitializable
+public interface IMatchHistoryController : IController
 {
 }

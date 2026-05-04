@@ -7,6 +7,7 @@ internal class LobbyMainController : ILobbyMainController
     [Inject] private readonly IUIManagerSubsystem _uiManager;
 
     public void Initialize() { }
+    public void Dispose() { }
 
     public void NavigateToProfile()
     {

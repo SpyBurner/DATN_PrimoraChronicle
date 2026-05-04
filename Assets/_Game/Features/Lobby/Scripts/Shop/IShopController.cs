@@ -1,6 +1,4 @@
-using Zenject;
-
-public interface IShopController : IInitializable
+public interface IShopController : IController
 {
     void Purchase();
 }

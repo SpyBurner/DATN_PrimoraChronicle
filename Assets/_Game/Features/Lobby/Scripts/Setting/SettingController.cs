@@ -6,6 +6,7 @@ internal class SettingController : ISettingController
     [Inject] private readonly ISettingModel _model;
 
     public void Initialize() { }
+    public void Dispose() { }
 
     public void ApplySettings()
     {

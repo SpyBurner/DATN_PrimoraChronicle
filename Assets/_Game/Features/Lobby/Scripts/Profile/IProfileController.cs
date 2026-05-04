@@ -1,6 +1,4 @@
-using Zenject;
-
-public interface IProfileController : IInitializable
+public interface IProfileController : IController
 {
     void NavigateToMatchHistory();
 }

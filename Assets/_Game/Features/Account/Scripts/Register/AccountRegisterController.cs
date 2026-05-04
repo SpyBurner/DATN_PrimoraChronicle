@@ -6,9 +6,9 @@ internal class AccountRegisterController : IAccountRegisterController
 {
     [Inject] private readonly IAccountRegisterModel _model;
     [Inject] private readonly ISceneLoaderSubsystem _sceneLoader;
-    [Inject] private readonly IUIManagerSubsystem _uiManager;
 
     public void Initialize() { }
+    public void Dispose() { }
 
     public async Task Register(string email, string password, string confirmPassword)
     {
@@ -23,11 +23,5 @@ internal class AccountRegisterController : IAccountRegisterController
         _model.ConfirmPassword = confirmPassword;
         Debug.Log($"Register: {_model.Email}");
         await _sceneLoader.LoadScene("Lobby");
-    }
-
-    public void NavigateToLogin()
-    {
-        _uiManager.CloseView(_uiManager.GetPanel<AccountRegisterPanel>());
-        _uiManager.ShowScreen<AccountLoginPanel>();
     }
 }

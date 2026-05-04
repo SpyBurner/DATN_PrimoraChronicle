@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using Core;
-using Zenject;
 
-public interface IDeckController : IInitializable
+public interface IDeckController : IController
 {
     void EditDeck(DeckSO deckSO);
     IReadOnlyList<DeckSO> LoadDecks();

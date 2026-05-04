@@ -1,6 +1,4 @@
-using Zenject;
-
-public interface IBattleController : IInitializable
+public interface IBattleController : IController
 {
     void StartMatchmaking();
 }

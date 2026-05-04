@@ -12,6 +12,7 @@ internal class DeckController : IDeckController
     [Inject] private readonly IUIManagerSubsystem _uiManager;
 
     public void Initialize() { }
+    public void Dispose() { }
 
     public void EditDeck(DeckSO deckSO)
     {

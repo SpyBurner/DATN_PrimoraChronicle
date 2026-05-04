@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using Zenject;
 
-public interface IController
+public interface IController : IInitializable, IDisposable
 {
 }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
@@ -13,11 +13,15 @@ public class UIPanel : MonoBehaviour, IUIPanel
 
     [SerializeField] private Button _closeButton;
 
+    private bool _isRegistered;
+
     public UIIdentifier Identifier => _identifier;
     public UILayer Layer => _layer;
 
-    protected virtual void Start()
+    protected virtual void Awake()
     {
+        if (_isRegistered) return;
+        _isRegistered = true;
         _uiManagerSubsystem.RegisterPanel(this);
         if (_isModal)
         {
@@ -37,6 +41,7 @@ public class UIPanel : MonoBehaviour, IUIPanel
 
     protected virtual void OnDestroy()
     {
+        _isRegistered = false;
         _uiManagerSubsystem.UnregisterPanel(this);
     }
 

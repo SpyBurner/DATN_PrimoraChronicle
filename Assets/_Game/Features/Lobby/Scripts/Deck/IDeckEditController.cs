@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using Core;
-using Zenject;
 
-public interface IDeckEditController : IInitializable
+public interface IDeckEditController : IController
 {
     DeckSO GetSelectedDeck();
     ChampionCardSO GetChampionCard();

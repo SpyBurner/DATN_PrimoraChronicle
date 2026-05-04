@@ -6,6 +6,7 @@ internal class ProfileController : IProfileController
     [Inject] private readonly IUIManagerSubsystem _uiManager;
 
     public void Initialize() { }
+    public void Dispose() { }
 
     public void NavigateToMatchHistory()
     {

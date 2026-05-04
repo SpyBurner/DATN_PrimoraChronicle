@@ -16,6 +16,8 @@ internal class DeckEditController : IDeckEditController
         RefreshRenderData();
     }
 
+    public void Dispose() { }
+
     public DeckSO GetSelectedDeck()
     {
         return _model.SelectedDeck;

@@ -1,6 +1,4 @@
-using Zenject;
-
-public interface ILobbyMainController : IInitializable
+public interface ILobbyMainController : IController
 {
     void NavigateToProfile();
     void NavigateToBattle();
