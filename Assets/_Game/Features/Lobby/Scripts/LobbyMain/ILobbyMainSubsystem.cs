@@ -1,9 +1,12 @@
+using System.Threading.Tasks;
+using UnityEngine.Events;
+
 public interface ILobbyMainSubsystem : ISubsystem
 {
-    void NavigateToProfile();
-    void NavigateToBattle();
-    void NavigateToDeck();
-    void NavigateToShop();
-    void NavigateToSettings();
-    void Logout();
+    event UnityAction<string> UsernameChanged;
+    event UnityAction<int> LevelChanged;
+    event UnityAction<int> GoldChanged;
+    event UnityAction<string> AvatarUrlChanged;
+
+    Task Logout();
 }

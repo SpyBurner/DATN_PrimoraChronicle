@@ -1,4 +1,7 @@
+using System.Threading.Tasks;
+
 public interface IBattleController : IController
 {
-    void StartMatchmaking();
+    Task InitializeBattleSetup();
+    void SetIsReady(bool isReady);
 }

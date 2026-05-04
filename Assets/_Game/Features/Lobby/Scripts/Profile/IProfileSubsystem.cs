@@ -1,4 +1,14 @@
+using System.Threading.Tasks;
+using UnityEngine.Events;
+
 public interface IProfileSubsystem : ISubsystem
 {
-    void NavigateToMatchHistory();
+    event UnityAction<string> UsernameChanged;
+    event UnityAction<int> LevelChanged;
+    event UnityAction<int> XpChanged;
+    event UnityAction<int> XpToNextLevelChanged;
+    event UnityAction<int> GoldChanged;
+    event UnityAction<string> AvatarUrlChanged;
+
+    Task Initialize();
 }

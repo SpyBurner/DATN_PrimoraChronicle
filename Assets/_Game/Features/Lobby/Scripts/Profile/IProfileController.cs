@@ -1,4 +1,6 @@
+using System.Threading.Tasks;
+
 public interface IProfileController : IController
 {
-    void NavigateToMatchHistory();
+    Task Initialize();
 }
