@@ -1,43 +1,69 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Core;
 using UnityEngine;
 using Zenject;
 
 internal class DeckController : IDeckController
 {
+    [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IDeckModel _model;
-    [Inject] private readonly IDeckEditSubsystem _deckEdit;
-    [Inject] private readonly IUIManagerSubsystem _uiManager;
+    [Inject] private readonly IHttpServiceSubsystem _httpService;
 
     public void Initialize() { }
     public void Dispose() { }
 
-    public void EditDeck(DeckSO deckSO)
+    public async Task LoadDecks()
     {
-        _deckEdit.StoreSelectedDeck(deckSO);
-        _uiManager.CloseView(_uiManager.GetPanel<DeckPanel>());
-        _uiManager.ShowScreen<DeckEditPanel>();
+        try
+        {
+            _debugLogger.Log("Deck: Loading decks from server");
+            var response = await _httpService.Get<DecksListResponse>("https://api.example.com/user/decks");
+
+            if (response != null && response.decks != null)
+            {
+                List<DeckSO> decks = new();
+                foreach (var deckData in response.decks)
+                {
+                    DeckSO deck = ScriptableObject.CreateInstance<DeckSO>();
+                    // Populate deck from deckData (simplified)
+                    decks.Add(deck);
+                }
+                _model.SetDecks(decks);
+                _debugLogger.Log($"Deck: Loaded {decks.Count} decks");
+            }
+            else
+            {
+                _debugLogger.LogError("Deck: Failed to load decks");
+            }
+        }
+        catch (Exception ex)
+        {
+            _debugLogger.LogError($"Deck: LoadDecks failed: {ex.Message}");
+        }
     }
 
-    public IReadOnlyList<DeckSO> LoadDecks()
+    public void SelectDeck(DeckSO deckSO)
     {
-        List<DeckSO> loadedDecks = new();
-        string deckDirectoryPath = DeckSO.GetDeckListDirectoryPath();
+        _debugLogger.Log($"Deck: Selected deck {deckSO.Name}");
+    }
+}
 
-        if (Directory.Exists(deckDirectoryPath))
-        {
-            string[] deckFilePaths = Directory.GetFiles(deckDirectoryPath, "*.json");
-            Array.Sort(deckFilePaths, StringComparer.OrdinalIgnoreCase);
+[System.Serializable]
+internal class DeckData
+{
+    public string id;
+    public string name;
+    public string[] cards;
+}
 
-            foreach (string deckFilePath in deckFilePaths)
-            {
-                try
-                {
-                    string deckJson = File.ReadAllText(deckFilePath);
-                    DeckSO deck = ScriptableObject.CreateInstance<DeckSO>();
-                    bool migratedLegacyStructure = deck.LoadFromJson(deckJson);
+[System.Serializable]
+internal class DecksListResponse
+{
+    public DeckData[] decks;
+}
 
                     if (migratedLegacyStructure)
                     {

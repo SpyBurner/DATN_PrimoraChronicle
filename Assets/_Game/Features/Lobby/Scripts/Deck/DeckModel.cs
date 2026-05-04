@@ -1,24 +1,26 @@
 using System.Collections.Generic;
 using Core;
+using UnityObservables;
 
 internal class DeckModel : IDeckModel
 {
-    private readonly List<DeckSO> _decks = new();
+    private Observable<List<DeckSO>> _decks = new(new List<DeckSO>());
+    private Observable<int> _deckCount = new(0);
 
-    public IReadOnlyList<DeckSO> Decks => _decks;
+    public Observable<List<DeckSO>> Decks { get => _decks; }
+    public Observable<int> DeckCount { get => _deckCount; }
 
     public void Initialize() { }
-    public void Dispose() { }
 
-    public void SetDecks(IReadOnlyList<DeckSO> decks)
+    public void Dispose()
     {
-        _decks.Clear();
+        _decks.Value.Clear();
+        _deckCount.Value = 0;
+    }
 
-        if (decks == null)
-        {
-            return;
-        }
-
-        _decks.AddRange(decks);
+    internal void SetDecks(List<DeckSO> decks)
+    {
+        _decks.Value = new List<DeckSO>(decks);
+        _deckCount.Value = decks?.Count ?? 0;
     }
 }

@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Core;
+using UnityEngine.Events;
 
 public interface IDeckSubsystem : ISubsystem
 {
-    void EditDeck(DeckSO deckSO);
-    IReadOnlyList<DeckSO> LoadDecks();
+    event UnityAction<int> DeckCountChanged;
+
+    Task LoadDecks();
+    void SelectDeck(DeckSO deckSO);
 }

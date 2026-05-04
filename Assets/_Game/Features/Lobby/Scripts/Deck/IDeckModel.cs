@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using Core;
+using UnityObservables;
 
 public interface IDeckModel : IModel
 {
-    IReadOnlyList<DeckSO> Decks { get; }
-    void SetDecks(IReadOnlyList<DeckSO> decks);
+    Observable<List<DeckSO>> Decks { get; }
+    Observable<int> DeckCount { get; }
 }
+

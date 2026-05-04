@@ -65,5 +65,29 @@ public class LobbyInstaller : MonoInstaller
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<MatchHistorySubsystem>()
             .AsSingle().NonLazy();
+
+        // MatchMaking
+        Container.BindInterfacesAndSelfTo<MatchMakingModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<MatchMakingController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<MatchMakingSubsystem>()
+            .AsSingle().NonLazy();
+
+        // DeckBuild
+        Container.BindInterfacesAndSelfTo<DeckBuildModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<DeckBuildController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<DeckBuildSubsystem>()
+            .AsSingle().NonLazy();
+
+        // CardDetail
+        Container.BindInterfacesAndSelfTo<CardDetailModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<CardDetailController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<CardDetailSubsystem>()
+            .AsSingle().NonLazy();
     }
 }
