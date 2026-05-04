@@ -55,6 +55,12 @@ public enum UIIdentifier
     LOBBY_CHAMPION_UNLOCK = 309,
     LOBBY_SETTING = 310,
 
+    // Popups
+    POPUP_CONFIRMATION = 311,
+    POPUP_TEXT_INPUT = 312,
+    POPUP_DECK_ITEM_CONTEXT = 313,
+    POPUP_SHOP_ITEM_CONTEXT = 314,
+
     // Gameplay
     GAMEPLAY_SCENE = 400,
 

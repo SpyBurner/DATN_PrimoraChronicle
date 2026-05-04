@@ -36,5 +36,29 @@ internal class CoreInstaller : MonoInstaller
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<SceneLoaderSubsystem>()
             .AsSingle().NonLazy();
+
+        // HttpService
+        Container.BindInterfacesAndSelfTo<HttpServiceModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<HttpServiceController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<HttpServiceSubsystem>()
+            .AsSingle().NonLazy();
+
+        // AuthSession
+        Container.BindInterfacesAndSelfTo<AuthSessionModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<AuthSessionController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<AuthSessionSubsystem>()
+            .AsSingle().NonLazy();
+
+        // AudioManager
+        Container.BindInterfacesAndSelfTo<AudioManagerModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<AudioManagerController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<AudioManagerSubsystem>()
+            .AsSingle().NonLazy();
     }
 }
