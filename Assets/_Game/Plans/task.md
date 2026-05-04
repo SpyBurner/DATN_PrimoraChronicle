@@ -1,0 +1,45 @@
+# Unity Architecture Implementation Tasks
+
+- [ ] **Phase A: Foundation Fixes**
+  - [ ] A1. Remove `using UnityEditor` from `Bootstrapper.cs`
+  - [ ] A2. Add `: IController` to `ISceneLoaderController`
+  - [ ] A3. Add `IDisposable` to all controller interfaces. Clean up concrete classes.
+  - [ ] A4. Move `RegisterPanel` from `Start()` to `OnEnable()` with guard in `UIPanel.cs`.
+  - [ ] A5. Normalize UIManager API (rename `ShowScreen<T>` to `Show<T>`, etc.).
+  - [ ] A6. Fix SceneLoader/UIRoot race condition (UIRoot triggers default screen).
+- [ ] **Phase B: Global Subsystems**
+  - [ ] B1. Create `HttpService` subsystem (abstracts HTTP calls).
+  - [ ] B2. Create `AuthSession` subsystem.
+  - [ ] B3. Create `AudioManager` subsystem.
+  - [ ] B4. Update `CoreInstaller` and `.asmdef`.
+- [ ] **Phase C: Account Scene**
+  - [ ] C1. Refactor `AccountLogin` subsystem (Observable models, `HttpService` usage).
+  - [ ] C2. Refactor `AccountRegister` subsystem.
+  - [ ] C3. Update Account Views (move navigation to UI).
+- [ ] **Phase D: Lobby Scene**
+  - [ ] D1. Refactor `LobbyMain` subsystem.
+  - [ ] D2. Expand `Profile` subsystem.
+  - [ ] D3. Expand `BattleSetup` subsystem.
+  - [ ] D4. Create `MatchMaking` subsystem.
+  - [ ] D5. Expand `DeckList` subsystem.
+  - [ ] D6. Create `DeckBuild` subsystem (GameObjectContext).
+  - [ ] D7. Expand `Shop` subsystem.
+  - [ ] D8. Expand `Setting` subsystem.
+  - [ ] D9. Expand `MatchHistory` subsystem.
+  - [ ] D10. Create `CardDetail` subsystem (GameObjectContext).
+  - [ ] D11. Create Popups (`Confirmation`, `TextInput`, etc.).
+  - [ ] D12. Update `LobbyInstaller` and `UIMappingSO`.
+- [ ] **Phase E: Gameplay Scene**
+  - [ ] E1. Create `GameplayInstaller`.
+  - [ ] E2. Create `GameState` subsystem (NetworkBehaviour).
+  - [ ] E3. Create `Hand` subsystem.
+  - [ ] E4. Create `FusePhase` subsystem.
+  - [ ] E5. Create `Board` subsystem.
+  - [ ] E6. Create `Combat` subsystem.
+  - [ ] E7. Create `DrawPhase` subsystem.
+  - [ ] E8. Create `MatchResult` subsystem.
+  - [ ] E9. Update Gameplay Views and wiring.
+- [ ] **Phase F: Photon Fusion Integration**
+  - [ ] F1. NetworkRunner management in Lobby.
+  - [ ] F2. Networked properties for Gameplay models.
+  - [ ] F3. Bridge ChangeDetector to Observable events.
