@@ -4,13 +4,30 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Zenject;
 using System.Text;
+using Core.Config;
 
 internal class HttpServiceController : IHttpServiceController
 {
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IHttpServiceModel _model;
+    
+    // Config can be optionally injected if bound in CoreInstaller, otherwise fallback
+    [InjectOptional] private readonly ServerConfig _serverConfig;
 
     private string _authToken;
+    
+    private string GetBaseUrl()
+    {
+        return _serverConfig != null ? _serverConfig.ApiBaseUrl : "http://localhost:8000";
+    }
+    
+    private string FormatUrl(string url)
+    {
+        if (url.StartsWith("http://") || url.StartsWith("https://"))
+            return url;
+            
+        return _serverConfig != null ? _serverConfig.GetFullUrl(url) : $"{GetBaseUrl()}/{url.TrimStart('/')}";
+    }
 
     public void Initialize()
     {
@@ -58,12 +75,13 @@ internal class HttpServiceController : IHttpServiceController
 
     public async Task<string> Get(string url)
     {
+        string formattedUrl = FormatUrl(url);
         _model.IsRequesting.Value = true;
         _model.RequestQueueCount.Value++;
 
         try
         {
-            using (UnityWebRequest request = UnityWebRequest.Get(url))
+            using (UnityWebRequest request = UnityWebRequest.Get(formattedUrl))
             {
                 AddAuthHeader(request);
                 var operation = request.SendWebRequest();
@@ -75,11 +93,11 @@ internal class HttpServiceController : IHttpServiceController
 
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    _debugLogger.LogError($"HttpService GET failed: {url} - {request.error}");
+                    _debugLogger.LogError($"HttpService GET failed: {formattedUrl} - {request.error}");
                     throw new Exception($"HTTP GET failed: {request.error}");
                 }
 
-                _debugLogger.Log($"HttpService GET success: {url}");
+                _debugLogger.Log($"HttpService GET success: {formattedUrl}");
                 return request.downloadHandler.text;
             }
         }
@@ -95,6 +113,7 @@ internal class HttpServiceController : IHttpServiceController
 
     public async Task<string> Post(string url, object payload)
     {
+        string formattedUrl = FormatUrl(url);
         _model.IsRequesting.Value = true;
         _model.RequestQueueCount.Value++;
 
@@ -103,7 +122,7 @@ internal class HttpServiceController : IHttpServiceController
             string jsonPayload = JsonUtility.ToJson(payload);
             byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonPayload);
 
-            using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
+            using (UnityWebRequest request = new UnityWebRequest(formattedUrl, "POST"))
             {
                 request.uploadHandler = new UploadHandlerRaw(bodyRaw);
                 request.downloadHandler = new DownloadHandlerBuffer();
@@ -119,11 +138,11 @@ internal class HttpServiceController : IHttpServiceController
 
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    _debugLogger.LogError($"HttpService POST failed: {url} - {request.error}");
+                    _debugLogger.LogError($"HttpService POST failed: {formattedUrl} - {request.error}");
                     throw new Exception($"HTTP POST failed: {request.error}");
                 }
 
-                _debugLogger.Log($"HttpService POST success: {url}");
+                _debugLogger.Log($"HttpService POST success: {formattedUrl}");
                 return request.downloadHandler.text;
             }
         }

@@ -20,7 +20,7 @@ internal class DeckController : IDeckController
         try
         {
             _debugLogger.Log("Deck: Loading decks from server");
-            var response = await _httpService.Get<DecksListResponse>("https://api.example.com/user/decks");
+            var response = await _httpService.Get<DecksListResponse>("/api/decks");
 
             if (response != null && response.decks != null)
             {

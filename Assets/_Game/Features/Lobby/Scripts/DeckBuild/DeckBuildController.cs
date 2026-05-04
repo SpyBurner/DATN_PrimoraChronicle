@@ -17,7 +17,7 @@ internal class DeckBuildController : IDeckBuildController
         try
         {
             _debugLogger.Log($"DeckBuild: Loading deck {deckId}");
-            var response = await _httpService.Get<DeckLoadResponse>($"https://api.example.com/deck/{deckId}");
+            var response = await _httpService.Get<DeckLoadResponse>($"/api/decks/{deckId}");
 
             if (response != null)
             {
@@ -51,7 +51,7 @@ internal class DeckBuildController : IDeckBuildController
         {
             _debugLogger.Log($"DeckBuild: Saving deck {deckName}");
             var payload = new { deckName, cards = _model.DeckCards.Value };
-            await _httpService.Post("https://api.example.com/deck/save", payload);
+            await _httpService.Post("/api/decks", payload);
             _debugLogger.Log("DeckBuild: Deck saved successfully");
         }
         catch (Exception ex)

@@ -37,7 +37,7 @@ internal class AccountLoginController : IAccountLoginController
             _debugLogger.Log($"Attempting login for {email}");
 
             var payload = new { email, password };
-            var response = await _httpService.Post<LoginResponse>("https://api.example.com/auth/login", payload);
+            var response = await _httpService.Post<LoginResponse>("/api/auth/login", payload);
 
             if (response != null && !string.IsNullOrEmpty(response.token))
             {

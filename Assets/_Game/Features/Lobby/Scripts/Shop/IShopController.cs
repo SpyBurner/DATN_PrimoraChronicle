@@ -1,4 +1,7 @@
+using System.Threading.Tasks;
+
 public interface IShopController : IController
 {
-    void Purchase();
+    Task LoadItems();
+    Task PurchaseItem(string itemId);
 }

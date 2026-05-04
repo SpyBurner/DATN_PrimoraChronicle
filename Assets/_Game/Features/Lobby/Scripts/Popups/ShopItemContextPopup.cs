@@ -1,0 +1,40 @@
+using System;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class ShopItemContextPopup : UIPanel
+{
+    [SerializeField] private TMP_Text _itemNameText;
+    [SerializeField] private TMP_Text _itemPriceText;
+    [SerializeField] private Button _purchaseButton;
+    [SerializeField] private Button _closeButton;
+
+    private Action _onPurchase;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        _purchaseButton?.onClick.AddListener(OnPurchaseClicked);
+        _closeButton?.onClick.AddListener(Close);
+    }
+
+    public void Setup(string itemName, int price, Action onPurchase)
+    {
+        if (_itemNameText != null) _itemNameText.text = itemName;
+        if (_itemPriceText != null) _itemPriceText.text = $"Cost: {price} Gold";
+        
+        _onPurchase = onPurchase;
+    }
+
+    private void OnPurchaseClicked()
+    {
+        _onPurchase?.Invoke();
+        Close();
+    }
+
+    private void Close()
+    {
+        gameObject.SetActive(false);
+    }
+}

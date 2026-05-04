@@ -48,15 +48,15 @@
 ---
 
 ## BATCH 5 — Phase D2: Lobby New Subsystems (MatchMaking, DeckBuild, CardDetail, Popups)
-- [ ] D10: Create MatchMakingSubsystem (7 files)
-- [ ] D11: Create DeckBuildSubsystem (7 files + DeckBuildInstaller)
-- [ ] D12: Create CardDetailSubsystem (7 files + CardDetailInstaller)
-- [ ] D13: Expand DeckSubsystem (DeckList full model/controller)
-- [ ] D14: Expand ShopSubsystem (full model/controller)
-- [ ] D15: Expand SettingSubsystem (Observable volumes + PlayerPrefs)
-- [ ] D16: Expand MatchHistorySubsystem (full model/controller)
-- [ ] D17: Create popup views: ConfirmationPopup, TextInputPopup, DeckItemContextPopup, ShopItemContextPopup
-- [ ] D18: Update LobbyInstaller with MatchMaking binding
+- [x] D10: Create MatchMakingSubsystem (7 files)
+- [x] D11: Create DeckBuildSubsystem (7 files + DeckBuildInstaller)
+- [x] D12: Create CardDetailSubsystem (7 files + CardDetailInstaller)
+- [x] D13: Expand DeckSubsystem (DeckList full model/controller)
+- [x] D14: Expand ShopSubsystem (full model/controller)
+- [x] D15: Expand SettingSubsystem (Observable volumes + PlayerPrefs)
+- [x] D16: Expand MatchHistorySubsystem (full model/controller)
+- [x] D17: Create popup views: ConfirmationPopup, TextInputPopup, DeckItemContextPopup, ShopItemContextPopup
+- [x] D18: Update LobbyInstaller with MatchMaking binding
 - **Commit:** `feat: Lobby new subsystems — MatchMaking, DeckBuild, CardDetail, Popups`
 
 ---

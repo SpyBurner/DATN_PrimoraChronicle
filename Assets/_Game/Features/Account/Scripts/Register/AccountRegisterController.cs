@@ -46,7 +46,7 @@ internal class AccountRegisterController : IAccountRegisterController
             _debugLogger.Log($"Attempting registration for {email}");
 
             var payload = new { email, password };
-            var response = await _httpService.Post<RegisterResponse>("https://api.example.com/auth/register", payload);
+            var response = await _httpService.Post<RegisterResponse>("/api/auth/register", payload);
 
             if (response != null && !string.IsNullOrEmpty(response.token))
             {

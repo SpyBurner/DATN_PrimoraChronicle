@@ -16,7 +16,7 @@ internal class BattleController : IBattleController
         try
         {
             _debugLogger.Log("Battle: Initializing battle setup");
-            var setup = await _httpService.Get<BattleSetupResponse>("https://api.example.com/battle/setup");
+            var setup = await _httpService.Get<BattleSetupResponse>("/api/battle/setup");
 
             if (setup != null)
             {

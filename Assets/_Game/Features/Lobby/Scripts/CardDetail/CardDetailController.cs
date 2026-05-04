@@ -16,7 +16,7 @@ internal class CardDetailController : ICardDetailController
         try
         {
             _debugLogger.Log($"CardDetail: Loading card {cardId}");
-            var response = await _httpService.Get<CardDetailResponse>($"https://api.example.com/card/{cardId}");
+            var response = await _httpService.Get<CardDetailResponse>($"/api/collection/cards/{cardId}");
 
             if (response != null)
             {

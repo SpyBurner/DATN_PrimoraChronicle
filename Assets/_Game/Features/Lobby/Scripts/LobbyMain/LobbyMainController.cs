@@ -14,7 +14,8 @@ internal class LobbyMainController : ILobbyMainController
         try
         {
             _debugLogger.Log("LobbyMain: Initializing — fetching user profile");
-            var profile = await _httpService.Get<UserProfileResponse>("https://api.example.com/user/profile");
+            // Adjust to the right endpoint based on FastAPI definition, likely /api/users/me later
+            var profile = await _httpService.Get<UserProfileResponse>("/api/users/me");
 
             if (profile != null)
             {

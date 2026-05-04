@@ -13,7 +13,9 @@ internal class ProfileController : IProfileController
         try
         {
             _debugLogger.Log("Profile: Initializing — fetching profile details");
-            var profile = await _httpService.Get<ProfileDetailResponse>("https://api.example.com/user/profile/detail");
+            // Getting auth user profile. Just mapping to /api/users/me endpoint. Note it requires a ?user_id= query param normally,
+            // but we can adjust backend to just use JWT token to deduce user_id, or we inject AuthSession to get UserId here.
+            var profile = await _httpService.Get<ProfileDetailResponse>("/api/users/me");
 
             if (profile != null)
             {

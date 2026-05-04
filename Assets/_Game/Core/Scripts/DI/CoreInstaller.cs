@@ -1,13 +1,20 @@
 ﻿using Core;
+using Core.Config;
 using Zenject;
 
 internal class CoreInstaller : MonoInstaller
 {
     public UIMappingSO UIMapping;
+    public ServerConfig ServerConfig;
 
     public override void InstallBindings()
     {
         Container.BindInstance(UIMapping).AsSingle();
+        
+        if (ServerConfig != null)
+        {
+            Container.BindInstance(ServerConfig).AsSingle().NonLazy();
+        }
 
         // Bind Helpers - concrete implementation must exist (e.g. DebugLogger)
         Container.BindInterfacesAndSelfTo<DebugLogger>()
