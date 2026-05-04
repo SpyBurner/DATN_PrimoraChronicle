@@ -1,15 +1,13 @@
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Table
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID as pgUUID
 import uuid
 from datetime import datetime
 from .database import Base
 
-def generate_uuid():
-    return str(uuid.uuid4())
-
 class BaseModel(Base):
     __abstract__ = True
-    ID = Column(String, primary_key=True, default=generate_uuid)
+    ID = Column(pgUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     createdDateTime = Column(DateTime, default=datetime.utcnow)
     updatedDateTime = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     isDeleted = Column(Boolean, default=False)
@@ -27,27 +25,28 @@ class User(BaseModel):
 
 class Card(BaseModel):
     __tablename__ = "cards"
+    StringID = Column(String, unique=True, index=True)
     card_copies = relationship("CardCopy", back_populates="card")
 
 class CardCopy(BaseModel):
     __tablename__ = "card_copies"
-    userID = Column(String, ForeignKey("users.ID"))
-    cardID = Column(String, ForeignKey("cards.ID"))
+    userID = Column(pgUUID(as_uuid=True), ForeignKey("users.ID"))
+    cardID = Column(pgUUID(as_uuid=True), ForeignKey("cards.ID"))
     
     owner = relationship("User", back_populates="card_copies")
     card = relationship("Card", back_populates="card_copies")
 
 deck_cardcopy_association = Table(
     'deck_consists_of_cardcopy', Base.metadata,
-    Column('deckID', String, ForeignKey('decks.ID')),
-    Column('cardCopyID', String, ForeignKey('card_copies.ID'))
+    Column('deckID', pgUUID(as_uuid=True), ForeignKey('decks.ID')),
+    Column('cardCopyID', pgUUID(as_uuid=True), ForeignKey('card_copies.ID'))
 )
 
 class Deck(BaseModel):
     __tablename__ = "decks"
     name = Column(String)
     description = Column(String)
-    userID = Column(String, ForeignKey("users.ID"))
+    userID = Column(pgUUID(as_uuid=True), ForeignKey("users.ID"))
     
     owner = relationship("User", back_populates="decks")
     card_copies = relationship("CardCopy", secondary=deck_cardcopy_association)
@@ -61,7 +60,7 @@ class ActionLog(BaseModel):
 class Match(BaseModel):
     __tablename__ = "matches"
     endDateTime = Column(DateTime)
-    actionLogID = Column(String, ForeignKey("action_logs.ID"))
+    actionLogID = Column(pgUUID(as_uuid=True), ForeignKey("action_logs.ID"))
     
     action_log = relationship("ActionLog", back_populates="match")
     participants = relationship("MatchParticipant", back_populates="match")
@@ -71,10 +70,10 @@ class MatchParticipant(BaseModel):
     isWinner = Column(Boolean)
     goldReceived = Column(Integer)
     xpReceived = Column(Integer)
-    deckID = Column(String, ForeignKey("decks.ID"))
-    userID = Column(String, ForeignKey("users.ID"))
-    championCardID = Column(String, ForeignKey("cards.ID"))
-    matchID = Column(String, ForeignKey("matches.ID"))
+    deckID = Column(pgUUID(as_uuid=True), ForeignKey("decks.ID"))
+    userID = Column(pgUUID(as_uuid=True), ForeignKey("users.ID"))
+    championCardID = Column(pgUUID(as_uuid=True), ForeignKey("cards.ID"))
+    matchID = Column(pgUUID(as_uuid=True), ForeignKey("matches.ID"))
     
     user = relationship("User", back_populates="match_participations")
     match = relationship("Match", back_populates="participants")
@@ -82,8 +81,8 @@ class MatchParticipant(BaseModel):
 
 champion_has_card_association = Table(
     'champion_has_card', Base.metadata,
-    Column('championCardID', String, ForeignKey('cards.ID')),
-    Column('cardID', String, ForeignKey('cards.ID'))
+    Column('championCardID', pgUUID(as_uuid=True), ForeignKey('cards.ID')),
+    Column('cardID', pgUUID(as_uuid=True), ForeignKey('cards.ID'))
 )
 
 class SystemConfig(BaseModel):

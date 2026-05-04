@@ -27,11 +27,16 @@ def seed_db():
     db.add(cfg)
     
     # Based on Unity Client ChampionCardSO, SpellCardSO, TroopCardSO files
-    card_ids = ["Lich", "Reject", "Duhallan"] + [f"card-{i}" for i in range(1, 48)]
-    for cid in card_ids:
-        db.add(models.Card(ID=cid))
+    string_ids = ["Lich", "Reject", "Duhallan"] + [f"card-{i}" for i in range(1, 48)]
+    db_cards = []
+    for sid in string_ids:
+        c = models.Card(StringID=sid)
+        db.add(c)
+        db_cards.append(c)
         
     db.commit()
+    for c in db_cards:
+        db.refresh(c)
 
     users = []
     for i in range(1, 3):
@@ -46,7 +51,7 @@ def seed_db():
     for u in users:
         copies = []
         for _ in range(50):
-            cc = models.CardCopy(userID=u.ID, cardID=random.choice(card_ids))
+            cc = models.CardCopy(userID=u.ID, cardID=random.choice(db_cards).ID)
             db.add(cc)
             copies.append(cc)
         db.commit()
@@ -63,6 +68,9 @@ def seed_db():
             deck.card_copies.extend(random_copies)
         db.commit()
     
+    lich_card = next((c for c in db_cards if c.StringID == "Lich"), db_cards[0])
+    reject_card = next((c for c in db_cards if c.StringID == "Reject"), db_cards[1])
+
     # 10 match histories (5 matches played between player1 and player2)
     for i in range(5):
         log = models.ActionLog()
@@ -87,7 +95,7 @@ def seed_db():
             xpReceived=100 if i%2==0 else 20,
             deckID=users[0].decks[0].ID,
             userID=users[0].ID,
-            championCardID="Lich",
+            championCardID=lich_card.ID,
             matchID=m.ID
         )
         p2 = models.MatchParticipant(
@@ -96,7 +104,7 @@ def seed_db():
             xpReceived=100 if i%2!=0 else 20,
             deckID=users[1].decks[0].ID,
             userID=users[1].ID,
-            championCardID="Reject",
+            championCardID=reject_card.ID,
             matchID=m.ID
         )
         db.add(p1)

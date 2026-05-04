@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
+from uuid import UUID
 
 class UserBase(BaseModel):
     username: str
@@ -9,7 +10,7 @@ class UserCreate(UserBase):
     password: str
 
 class UserResponse(UserBase):
-    ID: str
+    ID: UUID
     xpTotal: int
     gold: int
     model_config = ConfigDict(from_attributes=True)
@@ -19,31 +20,32 @@ class LoginRequest(BaseModel):
     password: str
 
 class CardCopyResponse(BaseModel):
-    ID: str
-    cardID: str
+    ID: UUID
+    cardID: UUID
+    StringID: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 class DeckCreate(BaseModel):
     name: str
     description: str
-    cardCopyIDs: List[str]
+    cardCopyIDs: List[UUID]
 
 class DeckResponse(BaseModel):
-    ID: str
+    ID: UUID
     name: str
     description: str
-    cardCopyIDs: List[str]
+    cardCopyIDs: List[UUID]
     model_config = ConfigDict(from_attributes=True)
 
 class MatchResultSubmit(BaseModel):
-    winnerUserID: str
-    loserUserID: str
-    winnerDeckID: str
-    loserDeckID: str
+    winnerUserID: UUID
+    loserUserID: UUID
+    winnerDeckID: UUID
+    loserDeckID: UUID
     actionLogData: dict
 
 class MatchHistoryResponse(BaseModel):
-    matchID: str
+    matchID: UUID
     endDateTime: datetime
     isWinner: bool
     goldReceived: int

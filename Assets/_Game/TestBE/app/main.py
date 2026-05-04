@@ -77,7 +77,19 @@ def create_deck(user_id: str, deck_data: schemas.DeckCreate, db: Session = Depen
     card_ids = [c.ID for c in deck.card_copies]
     return schemas.DeckResponse(ID=deck.ID, name=deck.name, description=deck.description, cardCopyIDs=card_ids)
 
-@app.post("/api/matches/result", tags=["Matches"])
+@app.post(
+    "/api/matches/result",
+    tags=["Matches"],
+    summary="Submit Match Result & Upload ActionLog",
+    description="""
+    Submits match results, calculates XP/Gold, and creates match records.
+    
+    **BUCKET FILE STORAGE STRATEGY SIMULATION:**
+    This Python endpoint explicitly simulates an `IStorageService` bucket upload by writing the JSON ActionLog data to a local `/logs/` folder and returning a local static URL (`FileBucketUrl`).
+    
+    The actual ASP.NET Backend must orchestrate a real Cloud Bucket File Storage strategy (e.g., AWS S3, Azure Blob Storage, or MinIO) to handle uploading these payload files instead of local disks.
+    """
+)
 def submit_match_result(data: schemas.MatchResultSubmit, db: Session = Depends(get_db)):
     log = models.ActionLog()
     db.add(log)

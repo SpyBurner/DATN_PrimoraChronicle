@@ -9,7 +9,7 @@ Based on the system analysis documentation (`6. PhanTichThietKeHeThong.tex`), th
 ```mermaid
 erDiagram
     User {
-        string ID PK
+        guid ID PK
         string username
         string passwordHash
         int xpTotal
@@ -19,66 +19,67 @@ erDiagram
         bool isDeleted
     }
     Card {
-        string ID PK
+        guid ID PK
+        string StringID
         datetime createdDateTime
         datetime updatedDateTime
         bool isDeleted
     }
     CardCopy {
-        string ID PK
-        string userID FK
-        string cardID FK
+        guid ID PK
+        guid userID FK
+        guid cardID FK
         datetime createdDateTime
         datetime updatedDateTime
         bool isDeleted
     }
     Deck {
-        string ID PK
+        guid ID PK
         string name
         string description
-        string userID FK
+        guid userID FK
         datetime createdDateTime
         datetime updatedDateTime
         bool isDeleted
     }
     DeckConsistsOfCardCopy {
-        string deckID FK
-        string cardCopyID FK
+        guid deckID FK
+        guid cardCopyID FK
     }
     Match {
-        string ID PK
+        guid ID PK
         datetime endDateTime
-        string actionLogID FK
+        guid actionLogID FK
         datetime createdDateTime
         datetime updatedDateTime
         bool isDeleted
     }
     MatchParticipant {
-        string ID PK
+        guid ID PK
         bool isWinner
         int goldReceived
         int xpReceived
-        string deckID FK
-        string userID FK
-        string championCardID FK
-        string matchID FK
+        guid deckID FK
+        guid userID FK
+        guid championCardID FK
+        guid matchID FK
         datetime createdDateTime
         datetime updatedDateTime
         bool isDeleted
     }
     ActionLog {
-        string ID PK
+        guid ID PK
         string fileBucketURL
         datetime createdDateTime
         datetime updatedDateTime
         bool isDeleted
     }
     ChampionHasCard {
-        string championCardID FK
-        string cardID FK
+        guid championCardID FK
+        guid cardID FK
     }
     SystemConfig {
-        string ID PK
+        guid ID PK
         float dailyDealDiscountRate
         int championCardBasePrice
         int commonCardBasePrice
@@ -105,7 +106,7 @@ erDiagram
 ```
 
 > [!NOTE]
-> `Card` table is intentionally simplified on the backend. All heavy gameplay attributes (HP, Damage, Patterns) are stored purely on the Unity Client via `ScriptableObject`. The backend only uses `Card` IDs for economy and deck validation.
+> `Card` table is intentionally simplified on the backend. All heavy gameplay attributes (HP, Damage, Patterns) are stored purely on the Unity Client via `ScriptableObject`. The backend only uses `Card` `StringID`s for economy and deck validation. `ID` is an auto-generated GUID for database referential integrity.
 
 ---
 
@@ -126,24 +127,24 @@ Handles user registration, login, and fetching basic profile stats (Gold, XP).
   * **Returns:** `{"token": "JWT_TOKEN", "user": {...}}`
 * `GET /api/users/me`
   * **Desc:** Gets current authenticated user's details (XP, Gold).
-  * **Returns:** `{"ID": "u-123", "username": "player1", "xpTotal": 500, "gold": 1200}`
+  * **Returns:** `{"ID": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "username": "player1", "xpTotal": 500, "gold": 1200}`
 
 ### 2.2 Collections (Cards)
 Queries the player's card collection.
 
 * `GET /api/collection/card-copies`
   * **Desc:** Gets all card copies owned by the user.
-  * **Returns:** `[{"ID": "cc-1", "cardID": "card-lich", "createdDateTime": "..."}, ...]`
+  * **Returns:** `[{"ID": "123e4567-e89b-12d3-a456-426614174000", "cardID": "987e6543-e21b-12d3-a456-426614174111", "StringID": "Lich", "createdDateTime": "..."}, ...]`
 
 ### 2.3 Decks
 CRUD operations for building and managing decks.
 
 * `GET /api/decks`
   * **Desc:** Gets all decks created by the user, including the array of `cardCopyID`s inside them.
-  * **Returns:** `[{"ID": "d-1", "name": "Aggro Undead", "description": "...", "championCardID": "card-lich", "cardCopyIDs": ["cc-1", "cc-2"]}]`
+  * **Returns:** `[{"ID": "d1234567-e89b-12d3-a456-426614174000", "name": "Aggro Undead", "description": "...", "championCardID": "987e6543-e21b-12d3-a456-426614174111", "cardCopyIDs": ["123e4567-e89b-12d3-a456-426614174000", "..."]}]`
 * `POST /api/decks`
   * **Desc:** Creates a new deck.
-  * **Body:** `{"name": "New Deck", "description": "...", "championCardID": "card-lich", "cardCopyIDs": ["cc-1", "cc-2"]}`
+  * **Body:** `{"name": "New Deck", "description": "...", "championCardID": "987e6543-e21b-12d3-a456-426614174111", "cardCopyIDs": ["123e4567-e89b-12d3-a456-426614174000", "..."]}`
 * `PUT /api/decks/{id}`
   * **Desc:** Updates an existing deck (name, cards). Validates that the user owns the `cardCopyIDs`.
 * `DELETE /api/decks/{id}`
@@ -154,10 +155,10 @@ Operations handling match results and replay logs.
 
 * `GET /api/matches`
   * **Desc:** Retrieves the match history for the current user.
-  * **Returns:** `[{"matchID": "m-1", "endDateTime": "...", "isWinner": true, "goldReceived": 50, "xpReceived": 100, "actionLogURL": "/static/logs/m-1.json"}]`
+  * **Returns:** `[{"matchID": "m1234567-e89b-12d3-a456-426614174000", "endDateTime": "...", "isWinner": true, "goldReceived": 50, "xpReceived": 100, "actionLogURL": "/static/logs/m-1.json"}]`
 * `POST /api/matches/result` (Heavy Operation)
-  * **Desc:** Submits the result of a match from the dedicated game server or authority client. This endpoint calculates XP/Gold gains based on `SystemConfig`, updates the `User` table, creates `Match` and `MatchParticipant` records, and saves the `ActionLog` to the bucket (mocked locally).
-  * **Body:** `{"winnerUserID": "u-123", "loserUserID": "u-456", "winnerDeckID": "d-1", "loserDeckID": "d-2", "actionLogData": {...}}`
+  * **Desc:** Submits the result of a match from the dedicated game server or authority client. This endpoint calculates XP/Gold gains based on `SystemConfig`, updates the `User` table, and creates `Match` and `MatchParticipant` records. **CRITICAL:** Creates an `ActionLog` and delegates the storage of the JSON log data to a dedicated Bucket File Storage service (e.g., AWS S3, MinIO, or a custom blob storage abstraction). The ASP.NET BE Agent must design, orchestrate, and implement a storage strategy (e.g., via an `IStorageService` interface) to handle uploading these files and generating the accessible `FileBucketUrl`. (Note: The Python TestBE simply mocks this by writing to a local static `logs/` directory).
+  * **Body:** `{"winnerUserID": "3fa85f64...", "loserUserID": "3fa85f65...", "winnerDeckID": "d1234567...", "loserDeckID": "d1234568...", "actionLogData": {...}}`
 
 ### 2.5 System Config
 * `GET /api/config`
