@@ -6,11 +6,13 @@ using UnityEngine;
 public class AccountLoginPanel : UIPanel
 {
     [Inject] private readonly IAccountLoginSubsystem _accountLogin;
+    [Inject] private readonly IUIManagerSubsystem _uiManager;
 
     [SerializeField] private TMP_InputField _emailInput;
     [SerializeField] private TMP_InputField _passwordInput;
     [SerializeField] private Button _loginButton;
     [SerializeField] private Button _registerButton;
+    [SerializeField] private TextMeshProUGUI _errorText;
 
     protected override void OnEnable()
     {
@@ -19,6 +21,9 @@ public class AccountLoginPanel : UIPanel
         _passwordInput?.onValueChanged.AddListener(OnPasswordChanged);
         _loginButton?.onClick.AddListener(OnLogin);
         _registerButton?.onClick.AddListener(OnRegister);
+        
+        _accountLogin.ErrorMessageChanged += OnErrorMessageChanged;
+        _accountLogin.IsSubmittingChanged += OnIsSubmittingChanged;
     }
 
     protected override void OnDisable()
@@ -28,6 +33,9 @@ public class AccountLoginPanel : UIPanel
         _passwordInput?.onValueChanged.RemoveListener(OnPasswordChanged);
         _loginButton?.onClick.RemoveListener(OnLogin);
         _registerButton?.onClick.RemoveListener(OnRegister);
+        
+        _accountLogin.ErrorMessageChanged -= OnErrorMessageChanged;
+        _accountLogin.IsSubmittingChanged -= OnIsSubmittingChanged;
     }
 
     private void OnEmailChanged(string value) => _accountLogin.SetEmail(value);
@@ -35,5 +43,25 @@ public class AccountLoginPanel : UIPanel
 
     private void OnLogin() => _accountLogin.Login();
 
-    private void OnRegister() => _accountLogin.NavigateToRegister();
+    private void OnRegister()
+    {
+        _uiManager.ShowScreen<AccountRegisterPanel>();
+    }
+
+    private void OnErrorMessageChanged(string errorMessage)
+    {
+        if (_errorText != null)
+        {
+            _errorText.text = errorMessage;
+            _errorText.enabled = !string.IsNullOrEmpty(errorMessage);
+        }
+    }
+
+    private void OnIsSubmittingChanged(bool isSubmitting)
+    {
+        if (_loginButton != null)
+        {
+            _loginButton.interactable = !isSubmitting;
+        }
+    }
 }

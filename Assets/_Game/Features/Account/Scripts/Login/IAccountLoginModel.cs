@@ -1,5 +1,9 @@
+using UnityObservables;
+
 public interface IAccountLoginModel : IModel
 {
-    string Email { get; set; }
-    string Password { get; set; }
+    Observable<string> Email { get; }
+    Observable<string> Password { get; }
+    Observable<string> ErrorMessage { get; }
+    Observable<bool> IsSubmitting { get; }
 }

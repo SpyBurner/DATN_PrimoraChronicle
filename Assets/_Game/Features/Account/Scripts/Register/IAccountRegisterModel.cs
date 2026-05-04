@@ -1,6 +1,10 @@
+using UnityObservables;
+
 public interface IAccountRegisterModel : IModel
 {
-    string Email { get; set; }
-    string Password { get; set; }
-    string ConfirmPassword { get; set; }
+    Observable<string> Email { get; }
+    Observable<string> Password { get; }
+    Observable<string> ConfirmPassword { get; }
+    Observable<string> ErrorMessage { get; }
+    Observable<bool> IsSubmitting { get; }
 }
