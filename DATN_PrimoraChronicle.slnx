@@ -8,6 +8,7 @@
   <Project Path="Unity.Theme.Tests.Editor.csproj" />
   <Project Path="Zenject-ReflectionBaking-Editor.csproj" />
   <Project Path="MCPForUnity.Editor.csproj" />
+  <Project Path="Core.Tests.Editor.csproj" />
   <Project Path="Zenject-Editor.csproj" />
   <Project Path="Unity.Theme.csproj" />
   <Project Path="LobbyFeatures.csproj" />

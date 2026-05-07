@@ -86,7 +86,10 @@ internal class UIManagerController : IUIManagerController
         Debug.Log($"Showing default screen for scene: {sceneName}");
         sceneName ??= SceneManager.GetActiveScene().name;
         var prefab = _uiMapping.GetDefaultPrefabBySceneName(sceneName);
-        await Show(prefab.gameObject);
+        if (prefab != null)
+        {
+            await Show(prefab.gameObject);
+        }
     }
 
     public async Task Show(GameObject prefab)
