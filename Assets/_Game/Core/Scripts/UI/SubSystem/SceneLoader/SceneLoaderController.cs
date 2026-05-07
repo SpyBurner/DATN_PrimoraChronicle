@@ -65,10 +65,8 @@ internal class SceneLoaderController : ISceneLoaderController
         return LoadScene(currentScene.name);
     }
 
-    async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        _debugLogger.Log($"Scene '{scene.name}' loaded with mode '{mode}'.");
-        await Task.Yield(); // Ensure this runs after all Awake() methods in the new scene
-        await _uiManager.ShowDefaultScreenForScene(scene.name);
+        _debugLogger.Log($"Scene '{scene.name}' loaded with mode '{mode}'. Default screen will be handled by UIRoot/UIManager.");
     }
 }
