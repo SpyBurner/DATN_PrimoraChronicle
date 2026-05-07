@@ -20,12 +20,12 @@ public class LobbyInstaller : MonoInstaller
         Container.BindInterfacesAndSelfTo<ProfileSubsystem>()
             .AsSingle().NonLazy();
 
-        // Battle
-        Container.BindInterfacesAndSelfTo<BattleModel>()
+        // BattleSetup
+        Container.BindInterfacesAndSelfTo<BattleSetupModel>()
             .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<BattleController>()
+        Container.BindInterfacesAndSelfTo<BattleSetupController>()
             .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<BattleSubsystem>()
+        Container.BindInterfacesAndSelfTo<BattleSetupSubsystem>()
             .AsSingle().NonLazy();
 
         // Deck
@@ -66,22 +66,6 @@ public class LobbyInstaller : MonoInstaller
         Container.BindInterfacesAndSelfTo<MatchMakingController>()
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<MatchMakingSubsystem>()
-            .AsSingle().NonLazy();
-
-        // DeckBuild
-        Container.BindInterfacesAndSelfTo<DeckBuildModel>()
-            .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<DeckBuildController>()
-            .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<DeckBuildSubsystem>()
-            .AsSingle().NonLazy();
-
-        // CardDetail
-        Container.BindInterfacesAndSelfTo<CardDetailModel>()
-            .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<CardDetailController>()
-            .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<CardDetailSubsystem>()
             .AsSingle().NonLazy();
     }
 }
