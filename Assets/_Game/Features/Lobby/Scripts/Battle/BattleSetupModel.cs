@@ -1,3 +1,12 @@
+using UnityObservables;
+
+internal class BattleSetupModel : IBattleSetupModel
+{
+    private Observable<bool> _isOffline = new(false);
+    private Observable<int> _botCount = new(0);
+    private Observable<int> _playerCount = new(2);
+    private Observable<string> _errorMessage = new(string.Empty);
+
     public Observable<bool> IsOffline { get => _isOffline; }
     public Observable<int> BotCount { get => _botCount; }
     public Observable<int> PlayerCount { get => _playerCount; }

@@ -1,3 +1,15 @@
+using System.Threading.Tasks;
+using Zenject;
+
+public class BattleSetupController : IBattleSetupController
+{
+    [Inject] private readonly IBattleSetupModel _model;
+    [Inject] private readonly IDebugLogger _debugLogger;
+
+    public void Initialize() { }
+    public void Dispose() { }
+
+    public void SetOffline(bool isOffline) => _model.SetOffline(isOffline);
     public void SetBotCount(int count) => _model.SetBotCount(count);
     public void SetPlayerCount(int count) => _model.SetPlayerCount(count);
 
