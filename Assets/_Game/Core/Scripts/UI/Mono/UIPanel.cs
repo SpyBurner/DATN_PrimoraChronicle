@@ -9,7 +9,6 @@ public class UIPanel : MonoBehaviour, IUIPanel
     [Header("Meta data")]
     [SerializeField] protected UIIdentifier _identifier;
     [SerializeField] protected UILayer _layer;
-    [SerializeField] protected bool _isModal;
 
     [SerializeField] private Button _closeButton;
 
@@ -23,10 +22,6 @@ public class UIPanel : MonoBehaviour, IUIPanel
         if (_isRegistered) return;
         _isRegistered = true;
         _uiManagerSubsystem.RegisterPanel(this);
-        if (_isModal)
-        {
-            gameObject.SetActive(false);
-        }
     }
 
     protected virtual void OnEnable()

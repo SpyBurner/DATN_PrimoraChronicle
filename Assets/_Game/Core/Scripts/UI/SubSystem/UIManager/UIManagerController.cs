@@ -147,12 +147,35 @@ internal class UIManagerController : IUIManagerController
 
     public async Task FadeIn()
     {
-        await Task.Yield();
+        if (_model.Panels.Value.TryGetValue(typeof(LoadingScreenBlackPanel), out var panel))
+        {
+            await CloseView(panel);
+        }
+        else
+        {
+            // Fallback for generic UIPanel if the specialized class isn't used yet
+            foreach (var p in _model.Panels.Value.Values)
+            {
+                if (p.Identifier == UIIdentifier.LOADING_SCREEN)
+                {
+                    await CloseView(p);
+                    break;
+                }
+            }
+        }
     }
 
     public async Task FadeOut()
     {
-        await Task.Yield();
+        var prefab = _uiMapping.GetPrefabByUIID(UIIdentifier.LOADING_SCREEN);
+        if (prefab != null)
+        {
+            await ShowView(prefab.gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("[UIManager] No prefab found for LOADING_SCREEN identifier.");
+        }
     }
 
 }

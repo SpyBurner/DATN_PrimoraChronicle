@@ -1935,17 +1935,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
---- !u!114 &2267036516806954645 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6228804979508583882, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
-  m_PrefabInstance: {fileID: 5262184121216865119}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!224 &3458409966831849719 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7420160981918794664, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
@@ -2149,7 +2138,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 654259758298662848}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b55723df60ccae644b51aa3e29585d9c, type: 3}
+  m_Script: {fileID: 11500000, guid: 98b19ea53c5b67b48b7e045e8b654112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: LobbyFeatures::DeckEditPanel
   _identifier: 304
@@ -2157,11 +2146,11 @@ MonoBehaviour:
   _isModal: 0
   _closeButton: {fileID: 220938281464658911}
   _cardDisplayPrefab: {fileID: 5047790633237659390}
-  _championCardContainer: {fileID: 8198257236290436442}
-  _deckContainer: {fileID: 9191484528729135062}
-  _cardContainer: {fileID: 2261024068549738601}
-  _championPortrait: {fileID: 2267036516806954645}
-  _saveButton: {fileID: 7273423225697571273}
+  _championCardContainer: {fileID: 0}
+  _deckContainer: {fileID: 0}
+  _cardContainer: {fileID: 0}
+  _championPortrait: {fileID: 0}
+  _saveButton: {fileID: 0}
 --- !u!1 &4115942954679863440 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8629099598833463130, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
@@ -2538,17 +2527,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 918675243931769332, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
   m_PrefabInstance: {fileID: 6129109842824228638}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7273423225697571273 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3602487238759612119, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
-  m_PrefabInstance: {fileID: 6129109842824228638}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3710833358118182796}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &6167008761516889128
 PrefabInstance:
   m_ObjectHideFlags: 0

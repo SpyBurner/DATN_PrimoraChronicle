@@ -8,19 +8,23 @@ namespace Core.Config
         [Header("API Settings")]
         [Tooltip("Base URL of the Backend API (e.g. http://localhost:8000)")]
         public string ApiBaseUrl = "http://localhost:8000";
+        [Tooltip("Base URL of the Backend API (e.g. http://localhost:8000)")]
+        public string TestApiBaseUrl = "http://localhost:8000";
 
         [Tooltip("Toggle on to use mock data instead of real API calls if disconnected")]
         public bool UseMockServer = false;
         
         public string GetFullUrl(string endpoint)
         {
+            var api = UseMockServer ? TestApiBaseUrl : ApiBaseUrl;
+
             if (string.IsNullOrEmpty(endpoint))
-                return ApiBaseUrl;
+                return api;
                 
             if (endpoint.StartsWith("/"))
-                return ApiBaseUrl + endpoint;
+                return api + endpoint;
                 
-            return ApiBaseUrl + "/" + endpoint;
+            return api + "/" + endpoint;
         }
     }
 }

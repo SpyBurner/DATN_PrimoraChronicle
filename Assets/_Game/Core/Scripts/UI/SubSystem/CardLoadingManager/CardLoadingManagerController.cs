@@ -85,11 +85,11 @@ internal class CardLoadingManagerController : ICardLoadingManagerController
 
     void IInitializable.Initialize()
     {
-        throw new NotImplementedException();
+        
     }
 
     void IDisposable.Dispose()
     {
-        throw new NotImplementedException();
+        
     }
 }

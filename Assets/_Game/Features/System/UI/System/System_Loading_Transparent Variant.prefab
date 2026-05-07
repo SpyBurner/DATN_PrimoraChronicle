@@ -104,8 +104,34 @@ PrefabInstance:
       propertyPath: m_Color.a
       value: 0.5019608
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 848903139150112754, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
+    - {fileID: -7274689697689511306, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 978981300051220664, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -8749804401353297674}
   m_SourcePrefab: {fileID: 100100000, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
+--- !u!1 &6555876326440542333 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 978981300051220664, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
+  m_PrefabInstance: {fileID: 6299740412020799685}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-8749804401353297674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6555876326440542333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c07ed4b82e5295a4a993f39e01e90cc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Core::LoadingScreenTransparentPanel
+  _identifier: 101
+  _layer: 5
+  _isModal: 0
+  _closeButton: {fileID: 0}
