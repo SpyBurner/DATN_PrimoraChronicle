@@ -17,6 +17,6 @@ internal class ShopModel : IShopModel
         _userGold.Value = 0;
     }
 
-    internal void SetItems(List<ShopItemData> items) => _items.Value = new List<ShopItemData>(items);
-    internal void SetUserGold(int gold) => _userGold.Value = gold;
+    public void SetItems(List<ShopItemData> items) => _items.Value = new List<ShopItemData>(items);
+    public void SetUserGold(int gold) => _userGold.Value = gold;
 }

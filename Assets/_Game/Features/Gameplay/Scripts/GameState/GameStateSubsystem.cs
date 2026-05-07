@@ -2,7 +2,7 @@ using System;
 using UnityEngine.Events;
 using Zenject;
 
-public class GameStateSubsystem : IGameStateSubsystem, IInitializable, IDisposable
+public class GameStateSubsystem : IGameStateSubsystem
 {
     [Inject] private readonly IGameStateController _controller;
     [Inject] private readonly IGameStateModel _model;

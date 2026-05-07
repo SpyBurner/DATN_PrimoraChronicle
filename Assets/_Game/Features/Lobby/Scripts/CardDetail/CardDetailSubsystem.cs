@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class CardDetailSubsystem : ICardDetailSubsystem, IInitializable, IDisposable
+public class CardDetailSubsystem : ICardDetailSubsystem
 {
     [Inject] private readonly ICardDetailController _controller;
     [Inject] private readonly ICardDetailModel _model;

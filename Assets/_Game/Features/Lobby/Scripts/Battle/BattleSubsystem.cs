@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class BattleSubsystem : IBattleSubsystem, IInitializable, IDisposable
+public class BattleSubsystem : IBattleSubsystem
 {
     [Inject] private readonly IBattleController _controller;
     [Inject] private readonly IBattleModel _model;

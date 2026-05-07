@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class LobbyMainSubsystem : ILobbyMainSubsystem, IInitializable, IDisposable
+public class LobbyMainSubsystem : ILobbyMainSubsystem
 {
     [Inject] private readonly ILobbyMainController _controller;
     [Inject] private readonly ILobbyMainModel _model;
@@ -27,8 +27,6 @@ public class LobbyMainSubsystem : ILobbyMainSubsystem, IInitializable, IDisposab
 
         if (_model?.AvatarUrl != null)
             _model.AvatarUrl.OnChanged += HandleAvatarUrlChanged;
-
-        _controller.Initialize();
     }
 
     public void Dispose()

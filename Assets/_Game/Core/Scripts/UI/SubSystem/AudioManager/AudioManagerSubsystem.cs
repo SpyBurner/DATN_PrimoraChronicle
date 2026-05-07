@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class AudioManagerSubsystem : IAudioManagerSubsystem, IInitializable, IDisposable
+public class AudioManagerSubsystem : IAudioManagerSubsystem
 {
     [Inject] private readonly IAudioManagerController _controller;
     [Inject] private readonly IAudioManagerModel _model;

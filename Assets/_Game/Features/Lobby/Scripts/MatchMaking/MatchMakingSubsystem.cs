@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class MatchMakingSubsystem : IMatchMakingSubsystem, IInitializable, IDisposable
+public class MatchMakingSubsystem : IMatchMakingSubsystem
 {
     [Inject] private readonly IMatchMakingController _controller;
     [Inject] private readonly IMatchMakingModel _model;

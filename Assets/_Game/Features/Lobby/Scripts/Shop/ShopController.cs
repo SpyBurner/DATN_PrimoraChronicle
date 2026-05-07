@@ -9,7 +9,6 @@ internal class ShopController : IShopController
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IShopModel _model;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
-    [Inject] private readonly ILobbyMainSubsystem _lobbyMain; // To update user's gold globally
 
     public void Initialize() { }
     public void Dispose() { }
@@ -44,8 +43,6 @@ internal class ShopController : IShopController
             if (response != null && response.success)
             {
                 _model.SetUserGold(response.remainingGold);
-                // Try to update global gold if available
-                _lobbyMain?.Initialize(); // Hacky way for now, better if LobbyModel provides gold globally
                 _debugLogger.Log($"Shop: Purchase successful. Remaining gold: {response.remainingGold}");
             }
         }

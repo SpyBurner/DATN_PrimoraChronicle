@@ -6,7 +6,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class SceneLoaderSubsystem : ISceneLoaderSubsystem, IInitializable, IDisposable
+public class SceneLoaderSubsystem : ISceneLoaderSubsystem
 {
     [Inject] private readonly ISceneLoaderController _controller;
     [Inject] private readonly ISceneLoaderModel _sceneModel;

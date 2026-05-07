@@ -19,7 +19,7 @@ internal class MatchMakingModel : IMatchMakingModel
         _queuePosition.Value = 0;
     }
 
-    internal void SetIsSearching(bool isSearching) => _isSearching.Value = isSearching;
-    internal void SetStatus(string status) => _status.Value = status;
-    internal void SetQueuePosition(int position) => _queuePosition.Value = position;
+    public void SetIsSearching(bool isSearching) => _isSearching.Value = isSearching;
+    public void SetStatus(string status) => _status.Value = status;
+    public void SetQueuePosition(int position) => _queuePosition.Value = position;
 }

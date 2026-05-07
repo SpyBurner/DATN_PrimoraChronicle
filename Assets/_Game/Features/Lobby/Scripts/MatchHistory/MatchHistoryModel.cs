@@ -14,5 +14,5 @@ internal class MatchHistoryModel : IMatchHistoryModel
         _matchHistory.Value.Clear();
     }
 
-    internal void SetMatchHistory(List<MatchHistoryData> history) => _matchHistory.Value = new List<MatchHistoryData>(history);
+    public void SetMatchHistory(List<MatchHistoryData> history) => _matchHistory.Value = new List<MatchHistoryData>(history);
 }

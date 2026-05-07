@@ -9,4 +9,12 @@ public interface IBattleModel : IModel
     Observable<int> PlayerMaxHP { get; }
     Observable<int> OpponentMaxHP { get; }
     Observable<bool> IsReady { get; }
+
+    void SetOpponentName(string name);
+    void SetOpponentLevel(int level);
+    void SetPlayerHP(int hp);
+    void SetOpponentHP(int hp);
+    void SetPlayerMaxHP(int maxHP);
+    void SetOpponentMaxHP(int maxHP);
+    void SetIsReady(bool isReady);
 }

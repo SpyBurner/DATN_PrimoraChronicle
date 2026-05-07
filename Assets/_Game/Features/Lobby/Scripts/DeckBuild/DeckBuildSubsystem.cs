@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class DeckBuildSubsystem : IDeckBuildSubsystem, IInitializable, IDisposable
+public class DeckBuildSubsystem : IDeckBuildSubsystem
 {
     [Inject] private readonly IDeckBuildController _controller;
     [Inject] private readonly IDeckBuildModel _model;

@@ -2,7 +2,7 @@ using System;
 using UnityEngine.Events;
 using Zenject;
 
-public class SettingSubsystem : ISettingSubsystem, IInitializable, IDisposable
+public class SettingSubsystem : ISettingSubsystem
 {
     [Inject] private readonly ISettingController _controller;
     [Inject] private readonly ISettingModel _model;

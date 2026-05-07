@@ -8,14 +8,12 @@ internal class ProfileController : IProfileController
     [Inject] private readonly IProfileModel _model;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
 
-    public void Initialize()
+    public async void Initialize()
     {
         try
         {
             _debugLogger.Log("Profile: Initializing — fetching profile details");
-            // Getting auth user profile. Just mapping to /api/users/me endpoint. Note it requires a ?user_id= query param normally,
-            // but we can adjust backend to just use JWT token to deduce user_id, or we inject AuthSession to get UserId here.
-            var profile = _httpService.Get<ProfileDetailResponse>("/api/users/me").Result;
+            var profile = await _httpService.Get<ProfileDetailResponse>("/api/users/me");
 
             if (profile != null)
             {

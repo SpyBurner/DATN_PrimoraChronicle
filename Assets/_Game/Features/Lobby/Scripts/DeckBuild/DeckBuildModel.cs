@@ -20,21 +20,21 @@ internal class DeckBuildModel : IDeckBuildModel
         _isValid.Value = false;
     }
 
-    internal void SetDeckCards(List<string> cards)
+    public void SetDeckCards(List<string> cards)
     {
         _deckCards.Value = new List<string>(cards);
         UpdateDeckSize();
         ValidateDeck();
     }
 
-    internal void AddCard(string cardId)
+    public void AddCard(string cardId)
     {
         _deckCards.Value.Add(cardId);
         UpdateDeckSize();
         ValidateDeck();
     }
 
-    internal void RemoveCard(string cardId)
+    public void RemoveCard(string cardId)
     {
         _deckCards.Value.Remove(cardId);
         UpdateDeckSize();

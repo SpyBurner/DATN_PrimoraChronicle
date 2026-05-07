@@ -5,6 +5,7 @@ using Zenject;
 public class BattlePanel : UIPanel
 {
     [Inject] private readonly IBattleSubsystem _battle;
+    [Inject] private readonly IUIManagerSubsystem _uiManager;
 
     [SerializeField] private Button _startMatchmakingButton;
 
@@ -20,5 +21,7 @@ public class BattlePanel : UIPanel
         _startMatchmakingButton?.onClick.RemoveListener(OnStartMatchmaking);
     }
 
-    private void OnStartMatchmaking() => _battle.StartMatchmaking();
+    // D2: Navigation in View via UIManager — IBattleSubsystem has no StartMatchmaking
+    private void OnStartMatchmaking() => _uiManager.ShowScreen<MatchMakingPanel>();
 }
+

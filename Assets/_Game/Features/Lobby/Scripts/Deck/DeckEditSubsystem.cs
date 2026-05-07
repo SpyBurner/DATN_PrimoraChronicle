@@ -3,7 +3,7 @@ using System;
 using Core;
 using Zenject;
 
-public class DeckEditSubsystem : IDeckEditSubsystem, IInitializable, IDisposable
+public class DeckEditSubsystem : IDeckEditSubsystem
 {
     [Inject] private readonly IDeckEditController _controller;
 

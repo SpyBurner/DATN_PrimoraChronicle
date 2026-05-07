@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class HttpServiceSubsystem : IHttpServiceSubsystem, IInitializable, IDisposable
+public class HttpServiceSubsystem : IHttpServiceSubsystem
 {
     [Inject] private readonly IHttpServiceController _controller;
     [Inject] private readonly IHttpServiceModel _model;

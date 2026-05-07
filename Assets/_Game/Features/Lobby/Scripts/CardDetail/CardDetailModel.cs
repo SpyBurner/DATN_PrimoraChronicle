@@ -25,9 +25,9 @@ internal class CardDetailModel : ICardDetailModel
         _cardImageUrl.Value = string.Empty;
     }
 
-    internal void SetCardName(string name) => _cardName.Value = name;
-    internal void SetCardDescription(string desc) => _cardDescription.Value = desc;
-    internal void SetCardCost(int cost) => _cardCost.Value = cost;
-    internal void SetCardPower(int power) => _cardPower.Value = power;
-    internal void SetCardImageUrl(string url) => _cardImageUrl.Value = url;
+    public void SetCardName(string name) => _cardName.Value = name;
+    public void SetCardDescription(string desc) => _cardDescription.Value = desc;
+    public void SetCardCost(int cost) => _cardCost.Value = cost;
+    public void SetCardPower(int power) => _cardPower.Value = power;
+    public void SetCardImageUrl(string url) => _cardImageUrl.Value = url;
 }

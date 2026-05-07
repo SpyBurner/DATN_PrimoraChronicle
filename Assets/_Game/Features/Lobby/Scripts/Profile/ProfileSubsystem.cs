@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class ProfileSubsystem : IProfileSubsystem, IInitializable, IDisposable
+public class ProfileSubsystem : IProfileSubsystem
 {
     [Inject] private readonly IProfileController _controller;
     [Inject] private readonly IProfileModel _model;
@@ -36,7 +36,7 @@ public class ProfileSubsystem : IProfileSubsystem, IInitializable, IDisposable
         if (_model?.AvatarUrl != null)
             _model.AvatarUrl.OnChanged += HandleAvatarUrlChanged;
 
-        _controller.Initialize().ConfigureAwait(false);
+        _controller.Initialize();
     }
 
     public void Dispose()

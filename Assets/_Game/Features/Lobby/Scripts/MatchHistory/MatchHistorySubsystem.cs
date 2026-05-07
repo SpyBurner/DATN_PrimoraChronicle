@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine.Events;
 using Zenject;
 
-public class MatchHistorySubsystem : IMatchHistorySubsystem, IInitializable, IDisposable
+public class MatchHistorySubsystem : IMatchHistorySubsystem
 {
     [Inject] private readonly IMatchHistoryController _controller;
     [Inject] private readonly IMatchHistoryModel _model;

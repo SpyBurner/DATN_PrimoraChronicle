@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class AccountRegisterSubsystem : IAccountRegisterSubsystem, IInitializable, IDisposable
+public class AccountRegisterSubsystem : IAccountRegisterSubsystem
 {
     [Inject] private readonly IAccountRegisterController _controller;
     [Inject] private readonly IAccountRegisterModel _model;

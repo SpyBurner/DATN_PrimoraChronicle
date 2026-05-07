@@ -31,11 +31,11 @@ internal class BattleModel : IBattleModel
         _isReady.Value = false;
     }
 
-    internal void SetOpponentName(string name) => _opponentName.Value = name;
-    internal void SetOpponentLevel(int level) => _opponentLevel.Value = level;
-    internal void SetPlayerHP(int hp) => _playerHP.Value = hp;
-    internal void SetOpponentHP(int hp) => _opponentHP.Value = hp;
-    internal void SetPlayerMaxHP(int maxHP) => _playerMaxHP.Value = maxHP;
-    internal void SetOpponentMaxHP(int maxHP) => _opponentMaxHP.Value = maxHP;
-    internal void SetIsReady(bool isReady) => _isReady.Value = isReady;
+    public void SetOpponentName(string name) => _opponentName.Value = name;
+    public void SetOpponentLevel(int level) => _opponentLevel.Value = level;
+    public void SetPlayerHP(int hp) => _playerHP.Value = hp;
+    public void SetOpponentHP(int hp) => _opponentHP.Value = hp;
+    public void SetPlayerMaxHP(int maxHP) => _playerMaxHP.Value = maxHP;
+    public void SetOpponentMaxHP(int maxHP) => _opponentMaxHP.Value = maxHP;
+    public void SetIsReady(bool isReady) => _isReady.Value = isReady;
 }

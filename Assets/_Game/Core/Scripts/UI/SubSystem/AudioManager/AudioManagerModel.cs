@@ -22,17 +22,17 @@ internal class AudioManagerModel : IAudioManagerModel
         _sfxVolume.Value = 1f;
     }
 
-    internal void SetMasterVolume(float volume)
+    public void SetMasterVolume(float volume)
     {
         _masterVolume.Value = Mathf.Clamp01(volume);
     }
 
-    internal void SetMusicVolume(float volume)
+    public void SetMusicVolume(float volume)
     {
         _musicVolume.Value = Mathf.Clamp01(volume);
     }
 
-    internal void SetSFXVolume(float volume)
+    public void SetSFXVolume(float volume)
     {
         _sfxVolume.Value = Mathf.Clamp01(volume);
     }

@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class AccountLoginSubsystem : IAccountLoginSubsystem, IInitializable, IDisposable
+public class AccountLoginSubsystem : IAccountLoginSubsystem
 {
     [Inject] private readonly IAccountLoginController _controller;
     [Inject] private readonly IAccountLoginModel _model;

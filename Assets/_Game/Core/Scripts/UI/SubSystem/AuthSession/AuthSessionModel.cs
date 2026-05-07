@@ -21,13 +21,13 @@ internal class AuthSessionModel : IAuthSessionModel
         _isLoggedIn.Value = false;
     }
 
-    internal void SetCurrentUserId(string userId)
+    public void SetCurrentUserId(string userId)
     {
         _currentUserId.Value = userId;
         UpdateIsLoggedIn();
     }
 
-    internal void SetAuthToken(string token)
+    public void SetAuthToken(string token)
     {
         _authToken.Value = token;
         UpdateIsLoggedIn();

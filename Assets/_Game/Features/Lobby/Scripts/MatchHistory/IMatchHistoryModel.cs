@@ -4,6 +4,8 @@ using UnityObservables;
 public interface IMatchHistoryModel : IModel
 {
     Observable<List<MatchHistoryData>> MatchHistory { get; }
+
+    void SetMatchHistory(List<MatchHistoryData> history);
 }
 
 [System.Serializable]

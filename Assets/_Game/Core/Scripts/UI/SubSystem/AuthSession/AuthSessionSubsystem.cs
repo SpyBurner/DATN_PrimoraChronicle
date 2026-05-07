@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityObservables;
 using Zenject;
 
-public class AuthSessionSubsystem : IAuthSessionSubsystem, IInitializable, IDisposable
+public class AuthSessionSubsystem : IAuthSessionSubsystem
 {
     [Inject] private readonly IAuthSessionController _controller;
     [Inject] private readonly IAuthSessionModel _model;

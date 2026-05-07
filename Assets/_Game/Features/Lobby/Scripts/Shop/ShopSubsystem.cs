@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine.Events;
 using Zenject;
 
-public class ShopSubsystem : IShopSubsystem, IInitializable, IDisposable
+public class ShopSubsystem : IShopSubsystem
 {
     [Inject] private readonly IShopController _controller;
     [Inject] private readonly IShopModel _model;

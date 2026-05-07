@@ -5,4 +5,7 @@ public interface IAuthSessionModel : IModel
     Observable<string> CurrentUserId { get; }
     Observable<string> AuthToken { get; }
     Observable<bool> IsLoggedIn { get; }
+
+    void SetCurrentUserId(string userId);
+    void SetAuthToken(string token);
 }

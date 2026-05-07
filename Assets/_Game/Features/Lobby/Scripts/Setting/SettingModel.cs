@@ -19,7 +19,7 @@ internal class SettingModel : ISettingModel
         _sfxVolume.Value = 1f;
     }
 
-    internal void SetMasterVolume(float value) => _masterVolume.Value = value;
-    internal void SetMusicVolume(float value) => _musicVolume.Value = value;
-    internal void SetSFXVolume(float value) => _sfxVolume.Value = value;
+    public void SetMasterVolume(float value) => _masterVolume.Value = value;
+    public void SetMusicVolume(float value) => _musicVolume.Value = value;
+    public void SetSFXVolume(float value) => _sfxVolume.Value = value;
 }
