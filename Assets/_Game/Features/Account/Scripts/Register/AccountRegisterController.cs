@@ -45,7 +45,7 @@ internal class AccountRegisterController : IAccountRegisterController
 
             _debugLogger.Log($"Attempting registration for {username}");
 
-            var payload = new { username, password };
+            var payload = new RegisterRequest { username = username, password = password };
             var response = await _httpService.Post<RegisterResponse>("/api/auth/register", payload);
 
             if (response != null && response.user != null && !string.IsNullOrEmpty(response.token))
@@ -76,12 +76,4 @@ internal class RegisterResponse
 {
     public string token;
     public UserDataResponse user;
-}
-
-[System.Serializable]
-internal class UserDataResponse
-{
-    public string ID;
-    public string username;
-    public int gold;
 }

@@ -36,7 +36,7 @@ internal class AccountLoginController : IAccountLoginController
 
             _debugLogger.Log($"Attempting login for {username}");
 
-            var payload = new { username, password };
+            var payload = new LoginRequest { username = username, password = password };
             var response = await _httpService.Post<LoginResponse>("/api/auth/login", payload);
 
             if (response != null && response.user != null && !string.IsNullOrEmpty(response.token))
@@ -67,12 +67,4 @@ internal class LoginResponse
 {
     public string token;
     public UserDataResponse user;
-}
-
-[System.Serializable]
-internal class UserDataResponse
-{
-    public string ID;
-    public string username;
-    public int gold;
 }
