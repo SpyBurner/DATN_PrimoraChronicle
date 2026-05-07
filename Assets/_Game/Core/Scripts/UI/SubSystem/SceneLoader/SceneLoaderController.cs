@@ -49,6 +49,9 @@ internal class SceneLoaderController : ISceneLoaderController
 
         await _uiManager.FadeIn();
         _debugLogger.Log($"Fade in completed for scene '{sceneName}'.");
+        
+        // Show the default screen for the newly loaded scene
+        await _uiManager.ShowDefaultScreenForScene(sceneName);
 
         _sceneModel.IsLoading.Value = false;
     }

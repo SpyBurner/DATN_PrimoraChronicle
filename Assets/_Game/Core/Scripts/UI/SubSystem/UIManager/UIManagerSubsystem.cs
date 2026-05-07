@@ -18,6 +18,8 @@ public class UIManagerSubsystem : IUIManagerSubsystem
     public event UnityAction<Stack<IUIPanel>> PopupStackChanged;
     public event UnityAction<Core.UIRoot> UIRootChanged;
 
+    public int TotalPanelCount => _model.Panels.Value.Count;
+
     public void Initialize()
     {
         if (_model?.Panels != null)

@@ -11,6 +11,8 @@ public interface IUIManagerSubsystem : ISubsystem
     event UnityAction<Dictionary<Type, IUIPanel>> PanelsChanged;
     event UnityAction<Dictionary<UILayer, List<IUIPanel>>> PanelsByLayerChanged;
     event UnityAction<Stack<IUIPanel>> PopupStackChanged;
+    
+    int TotalPanelCount { get; }
 
     // Controller Methods (forwarded by the subsystem)
     void RegisterPanel(IUIPanel panel);
