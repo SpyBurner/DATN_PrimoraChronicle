@@ -2093,7 +2093,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 209321908109194314, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 112.43
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 209321908109194314, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_SizeDelta.y
@@ -2353,7 +2353,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7531524333353265785, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 95.99
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7531524333353265785, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_SizeDelta.y
@@ -2433,6 +2433,9 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 7153686112397000868}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3078792261778253874, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8425724367367256914}
     - targetCorrespondingSourceObject: {fileID: 4844142296856957363, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7329693678078529822}
@@ -2468,6 +2471,23 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &4680123707133263148 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3078792261778253874, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
+  m_PrefabInstance: {fileID: 7658708204776084766}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8425724367367256914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4680123707133263148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a598d2cfd84dfca49a78c8a9d3f342f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::FusePhasePanel
 --- !u!224 &7566369642628346788 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 236464900097255098, guid: 7548995a51ea8a744ab32d010080e261, type: 3}

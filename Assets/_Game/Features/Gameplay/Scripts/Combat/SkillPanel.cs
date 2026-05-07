@@ -1,7 +1,7 @@
 using UnityEngine;
 using Zenject;
 
-public class CombatPanel : UIPanel {
+public class SkillPanel : UIPanel {
     private ICombatSubsystem _subsystem;
     
     [Inject]

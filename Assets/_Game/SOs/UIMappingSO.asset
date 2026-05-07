@@ -13,34 +13,48 @@ MonoBehaviour:
   m_Name: UIMappingSO
   m_EditorClassIdentifier: Core::Core.UIMappingSO
   uiMappings:
-  - uiIdentifier: 0
+  - uiIdentifier: 101
     prefab: {fileID: -7274689697689511306, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 201
     prefab: {fileID: 6708320007973784393, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 202
     prefab: {fileID: 1503075636362382675, guid: b97575d0a5c22ac4bae269ad3ba19dca, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 301
     prefab: {fileID: 1840333271973002858, guid: 07d890ad82b51494b84091357b4a6393, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 302
     prefab: {fileID: 21230654861397613, guid: 26d1dee23d7aca94eb18aeb53f061c3b, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 303
     prefab: {fileID: 5617800117767770735, guid: fb9bc9f88f997fc49af2f90acdc9b61d, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 304
     prefab: {fileID: 6189690277546376456, guid: fb15c7fc8f056b04782cb6cc0fa616c6, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 305
     prefab: {fileID: 6797132209093893444, guid: 4efa7e8aa095f514db598b03040cc5d7, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 307
     prefab: {fileID: 7497318532152428630, guid: 61fc7be53be2e614a999f8d034f05683, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 310
     prefab: {fileID: 4287784747580142325, guid: 935afdcf71233c742aa02d94eea992f1, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 311
     prefab: {fileID: 9194880326295905227, guid: 78bd59977c42630438a1be59a722d08c, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 312
     prefab: {fileID: 6879062836873825666, guid: 967a28ac1fb602d4f97ed9c889186223, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 313
     prefab: {fileID: 8753662783953122124, guid: 1268ad7c583c1f34ba7e571a44f6ffdb, type: 3}
-  - uiIdentifier: 0
+  - uiIdentifier: 314
     prefab: {fileID: 4781143001471685162, guid: be153f6e47a1d9d4e848368bc4e16a5d, type: 3}
+  - uiIdentifier: 401
+    prefab: {fileID: -7274689697689511306, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
+  - uiIdentifier: 405
+    prefab: {fileID: 8425724367367256914, guid: 39726b424158d8b4fb66edf6d001babe, type: 3}
+  - uiIdentifier: 406
+    prefab: {fileID: 3194670556817313285, guid: e00780277f975494a974b97ce203b5f3, type: 3}
+  - uiIdentifier: 407
+    prefab: {fileID: 3886531493491737893, guid: b859069d30ca7894d80a1496a75f1dfa, type: 3}
+  - uiIdentifier: 408
+    prefab: {fileID: 2027220541957821685, guid: b7a731f24d776854198c617c0a876a3e, type: 3}
+  - uiIdentifier: 409
+    prefab: {fileID: 1127744188329199886, guid: eb573543d317282439c4d9f67a21be10, type: 3}
+  - uiIdentifier: 410
+    prefab: {fileID: 7312268226743733065, guid: d8816f1ea124e5b418b767756f155986, type: 3}
   defaultUIMappings:
   - sceneName: Bootstrap
     uiIdentifier: 101
@@ -48,3 +62,5 @@ MonoBehaviour:
     uiIdentifier: 201
   - sceneName: Lobby
     uiIdentifier: 301
+  - sceneName: Gameplay
+    uiIdentifier: 401

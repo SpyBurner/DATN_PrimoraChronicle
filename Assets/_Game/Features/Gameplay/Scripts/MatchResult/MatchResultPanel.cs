@@ -1,7 +1,7 @@
 using UnityEngine;
 using Zenject;
 
-public class MatchResultPanel : MonoBehaviour {
+public class MatchResultPanel : UIPanel {
     private IMatchResultSubsystem _subsystem;
     
     [Inject]

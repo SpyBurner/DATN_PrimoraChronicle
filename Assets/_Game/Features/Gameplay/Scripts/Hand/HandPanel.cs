@@ -1,7 +1,7 @@
 using UnityEngine;
 using Zenject;
 
-public class HandPanel : MonoBehaviour {
+public class HandPanel : UIPanel {
     private IHandSubsystem _subsystem;
     
     [Inject]

@@ -1,7 +1,7 @@
 using UnityEngine;
 using Zenject;
 
-public class DrawPhasePanel : MonoBehaviour {
+public class DrawPhasePanel : UIPanel {
     private IDrawPhaseSubsystem _subsystem;
     
     [Inject]

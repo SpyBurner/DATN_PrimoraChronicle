@@ -1,7 +1,7 @@
 using UnityEngine;
 using Zenject;
 
-public class CombatPanel : UIPanel {
+public class TurnOrderPanel : UIPanel {
     private ICombatSubsystem _subsystem;
     
     [Inject]
