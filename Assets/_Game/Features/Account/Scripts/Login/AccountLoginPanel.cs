@@ -2,6 +2,7 @@ using UnityEngine.UI;
 using TMPro;
 using Zenject;
 using UnityEngine;
+using System.Xml;
 
 public class AccountLoginPanel : UIPanel
 {
@@ -46,6 +47,14 @@ public class AccountLoginPanel : UIPanel
     private void OnRegister()
     {
         _uiManager.Show<AccountRegisterPanel>();
+    }
+    override protected void OnClose()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     private void OnErrorMessageChanged(string errorMessage)
