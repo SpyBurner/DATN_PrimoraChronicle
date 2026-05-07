@@ -14,6 +14,9 @@ public class CardDetailSubsystem : ICardDetailSubsystem
     public event UnityAction<int> CardCostChanged;
     public event UnityAction<int> CardPowerChanged;
     public event UnityAction<string> CardImageUrlChanged;
+    public event UnityAction<string> SkillNameChanged;
+    public event UnityAction<string> SkillDescriptionChanged;
+    public event UnityAction<string> SkillPatternChanged;
 
     public void Initialize()
     {
@@ -31,6 +34,15 @@ public class CardDetailSubsystem : ICardDetailSubsystem
 
         if (_model?.CardImageUrl != null)
             _model.CardImageUrl.OnChanged += HandleCardImageUrlChanged;
+
+        if (_model?.SkillName != null)
+            _model.SkillName.OnChanged += HandleSkillNameChanged;
+
+        if (_model?.SkillDescription != null)
+            _model.SkillDescription.OnChanged += HandleSkillDescriptionChanged;
+
+        if (_model?.SkillPattern != null)
+            _model.SkillPattern.OnChanged += HandleSkillPatternChanged;
     }
 
     public void Dispose()
@@ -49,6 +61,15 @@ public class CardDetailSubsystem : ICardDetailSubsystem
 
         if (_model?.CardImageUrl != null)
             _model.CardImageUrl.OnChanged -= HandleCardImageUrlChanged;
+
+        if (_model?.SkillName != null)
+            _model.SkillName.OnChanged -= HandleSkillNameChanged;
+
+        if (_model?.SkillDescription != null)
+            _model.SkillDescription.OnChanged -= HandleSkillDescriptionChanged;
+
+        if (_model?.SkillPattern != null)
+            _model.SkillPattern.OnChanged -= HandleSkillPatternChanged;
     }
 
     public Task LoadCard(string cardId) => _controller.LoadCard(cardId);
@@ -76,5 +97,20 @@ public class CardDetailSubsystem : ICardDetailSubsystem
     private void HandleCardImageUrlChanged()
     {
         try { CardImageUrlChanged?.Invoke(_model.CardImageUrl.Value); } catch { }
+    }
+
+    private void HandleSkillNameChanged()
+    {
+        try { SkillNameChanged?.Invoke(_model.SkillName.Value); } catch { }
+    }
+
+    private void HandleSkillDescriptionChanged()
+    {
+        try { SkillDescriptionChanged?.Invoke(_model.SkillDescription.Value); } catch { }
+    }
+
+    private void HandleSkillPatternChanged()
+    {
+        try { SkillPatternChanged?.Invoke(_model.SkillPattern.Value); } catch { }
     }
 }
