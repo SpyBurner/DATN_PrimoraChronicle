@@ -3,6 +3,6 @@ using UnityObservables;
 
 public interface IBoardModel : IModel
 {
-    // Simplified grid: cell index to unit ID
-    ObservableDictionary<int, string> GridOccupancy { get; }
+    Observable<Dictionary<int, string>> GridOccupancy { get; }
+    void RequestPlaceUnit(int cellIndex, string unitId);
 }

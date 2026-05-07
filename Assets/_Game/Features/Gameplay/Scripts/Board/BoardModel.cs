@@ -8,8 +8,8 @@ public class BoardModel : NetworkBehaviour, IBoardModel
 
     [Networked, Capacity(25)] public NetworkDictionary<int, NetworkString<_16>> NetworkedGrid { get; }
 
-    private ObservableDictionary<int, string> _gridOccupancy = new();
-    public ObservableDictionary<int, string> GridOccupancy => _gridOccupancy;
+    private Observable<Dictionary<int, string>> _gridOccupancy = new(new Dictionary<int, string>());
+    public Observable<Dictionary<int, string>> GridOccupancy => _gridOccupancy;
 
     public void Initialize() { }
     public void Dispose() { }
@@ -34,11 +34,12 @@ public class BoardModel : NetworkBehaviour, IBoardModel
 
     private void SyncGrid()
     {
-        _gridOccupancy.Clear();
+        var dict = new Dictionary<int, string>();
         foreach (var pair in NetworkedGrid)
         {
-            _gridOccupancy[pair.Key] = pair.Value.ToString();
+            dict[pair.Key] = pair.Value.ToString();
         }
+        _gridOccupancy.Value = dict;
     }
 
     public void RequestPlaceUnit(int cellIndex, string unitId)
