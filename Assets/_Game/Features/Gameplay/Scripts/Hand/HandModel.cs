@@ -37,6 +37,11 @@ public class HandModel : NetworkBehaviour, IHandModel
         }
     }
 
+    public void RequestPlayCard(string cardId)
+    {
+        RPC_PlayCard(cardId);
+    }
+
     private void SyncCards()
     {
         var list = new List<string>();
@@ -49,5 +54,18 @@ public class HandModel : NetworkBehaviour, IHandModel
             }
         }
         _cards.Value = list;
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_PlayCard(string cardId)
+    {
+        for (int i = 0; i < NetworkedCards.Length; i++)
+        {
+            if (NetworkedCards[i].ToString() == cardId)
+            {
+                NetworkedCards.Set(i, default);
+                break;
+            }
+        }
     }
 }
