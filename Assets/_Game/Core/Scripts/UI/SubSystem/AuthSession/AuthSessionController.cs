@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Zenject;
+using UnityEngine; 
 
 internal class AuthSessionController : IAuthSessionController
 {

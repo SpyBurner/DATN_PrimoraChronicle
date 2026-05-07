@@ -13,9 +13,9 @@ public class ConfirmationPopup : UIPanel
     private Action _onConfirm;
     private Action _onCancel;
 
-    public override void Initialize()
+    protected override void OnEnable()
     {
-        base.Initialize();
+        base.OnEnable();
         _confirmButton?.onClick.AddListener(OnConfirmClicked);
         _cancelButton?.onClick.AddListener(OnCancelClicked);
     }

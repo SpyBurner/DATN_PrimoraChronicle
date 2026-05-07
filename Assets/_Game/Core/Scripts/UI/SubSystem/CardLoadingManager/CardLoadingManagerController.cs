@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core;
 using UnityEngine;
@@ -80,5 +81,15 @@ internal class CardLoadingManagerController : ICardLoadingManagerController
     public T GetCard<T>(string cardId) where T : CardSO
     {
         return TryGetCard(cardId, out CardSO card) ? card as T : null;
+    }
+
+    void IInitializable.Initialize()
+    {
+        throw new NotImplementedException();
+    }
+
+    void IDisposable.Dispose()
+    {
+        throw new NotImplementedException();
     }
 }

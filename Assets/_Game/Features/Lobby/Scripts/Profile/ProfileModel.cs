@@ -28,10 +28,10 @@ internal class ProfileModel : IProfileModel
         _avatarUrl.Value = string.Empty;
     }
 
-    internal void SetUsername(string username) => _username.Value = username;
-    internal void SetLevel(int level) => _level.Value = level;
-    internal void SetXp(int xp) => _xp.Value = xp;
-    internal void SetXpToNextLevel(int xpToNextLevel) => _xpToNextLevel.Value = xpToNextLevel;
-    internal void SetGold(int gold) => _gold.Value = gold;
-    internal void SetAvatarUrl(string url) => _avatarUrl.Value = url;
+    public void SetUsername(string username) => _username.Value = username;
+    public void SetLevel(int level) => _level.Value = level;
+    public void SetXp(int xp) => _xp.Value = xp;
+    public void SetXpToNextLevel(int xpToNextLevel) => _xpToNextLevel.Value = xpToNextLevel;
+    public void SetGold(int gold) => _gold.Value = gold;
+    public void SetAvatarUrl(string url) => _avatarUrl.Value = url;
 }

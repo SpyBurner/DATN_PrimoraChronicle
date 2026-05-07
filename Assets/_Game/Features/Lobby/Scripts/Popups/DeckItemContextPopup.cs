@@ -15,9 +15,9 @@ public class DeckItemContextPopup : UIPanel
     private Action _onSelect;
     private Action _onDelete;
 
-    public override void Initialize()
+    protected override void OnEnable()
     {
-        base.Initialize();
+        base.OnEnable();
         _editButton?.onClick.AddListener(OnEditClicked);
         _selectButton?.onClick.AddListener(OnSelectClicked);
         _deleteButton?.onClick.AddListener(OnDeleteClicked);

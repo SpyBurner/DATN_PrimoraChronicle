@@ -12,9 +12,9 @@ public class ShopItemContextPopup : UIPanel
 
     private Action _onPurchase;
 
-    public override void Initialize()
+    protected override void OnEnable()
     {
-        base.Initialize();
+        base.OnEnable();
         _purchaseButton?.onClick.AddListener(OnPurchaseClicked);
         _closeButton?.onClick.AddListener(Close);
     }

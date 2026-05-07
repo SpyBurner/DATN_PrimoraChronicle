@@ -89,7 +89,7 @@ internal class UIManagerController : IUIManagerController
         await ShowView(prefab.gameObject);
     }
 
-    public async Task ShowView(GameObject prefab)
+    public Task ShowView(GameObject prefab)
     {
         if (prefab == null)
         {
@@ -102,7 +102,7 @@ internal class UIManagerController : IUIManagerController
         if (uiPanel != null && _model.Panels.Value.ContainsKey(uiPanel.GetType()))
         {
             Debug.LogWarning($"[UIManager] Panel of type {uiPanel.GetType().Name} is already shown. Skipping duplicate ShowView.");
-            return;
+            return Task.CompletedTask;
         }
 
         var parent = uiPanel != null ? _uiRoot.GetLayerParent(uiPanel.Layer) : _uiRoot.transform;
@@ -111,6 +111,7 @@ internal class UIManagerController : IUIManagerController
         var instance = containerToUse.InstantiatePrefab(prefab, parent);
         var panel = instance.GetComponent<IUIPanel>();
         panel?.Show();
+        return Task.CompletedTask;
     }
     public async Task CloseView(IUIPanel panel)
     {

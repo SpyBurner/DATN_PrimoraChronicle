@@ -1,3 +1,4 @@
+using log4net.Core;
 using UnityObservables;
 
 public interface IProfileModel : IModel
@@ -8,4 +9,11 @@ public interface IProfileModel : IModel
     Observable<int> XpToNextLevel { get; }
     Observable<int> Gold { get; }
     Observable<string> AvatarUrl { get; }
+
+    public void SetUsername(string username);
+    public void SetLevel(int level);
+    public void SetXp(int xp);
+    public void SetXpToNextLevel(int xpToNextLevel);
+    public void SetGold(int gold);
+    public void SetAvatarUrl(string url);
 }

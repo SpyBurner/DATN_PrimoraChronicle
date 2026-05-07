@@ -47,7 +47,7 @@ internal class DeckController : IDeckController
 
     public void SelectDeck(DeckSO deckSO)
     {
-        _debugLogger.Log($"Deck: Selected deck {deckSO.Name}");
+        //_debugLogger.Log($"Deck: Selected deck {deckSO.Name}");
     }
 }
 
@@ -65,21 +65,3 @@ internal class DecksListResponse
     public DeckData[] decks;
 }
 
-                    if (migratedLegacyStructure)
-                    {
-                        File.WriteAllText(deckFilePath, deck.ToJson());
-                    }
-
-                    loadedDecks.Add(deck);
-                }
-                catch (Exception exception)
-                {
-                    Debug.LogError($"Failed to load deck from '{deckFilePath}'. {exception.Message}");
-                }
-            }
-        }
-
-        _model.SetDecks(loadedDecks);
-        return _model.Decks;
-    }
-}

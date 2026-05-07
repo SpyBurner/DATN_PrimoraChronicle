@@ -18,7 +18,7 @@ internal class DeckModel : IDeckModel
         _deckCount.Value = 0;
     }
 
-    internal void SetDecks(List<DeckSO> decks)
+    public void SetDecks(List<DeckSO> decks)
     {
         _decks.Value = new List<DeckSO>(decks);
         _deckCount.Value = decks?.Count ?? 0;
