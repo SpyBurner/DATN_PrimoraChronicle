@@ -8,8 +8,7 @@ internal class AccountRegisterController : IAccountRegisterController
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IAccountRegisterModel _model;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
-    [Inject] private readonly IAuthSessionSubsystem _authSession;
-    [Inject] private readonly ISceneLoaderSubsystem _sceneLoader;
+    [Inject] private readonly IUIManagerSubsystem _uiManager;
 
     public void Initialize() { }
     public void Dispose() { }
@@ -46,14 +45,14 @@ internal class AccountRegisterController : IAccountRegisterController
             _debugLogger.Log($"Attempting registration for {username}");
 
             var payload = new RegisterRequest { username = username, password = password };
-            _debugLogger.Log($"Attempting registration payload: username={payload.username}, password length={payload.password?.Length ?? 0}");
             var response = await _httpService.Post<RegisterResponse, RegisterRequest>("/api/auth/register", payload);
 
-            if (response != null && response.user != null && !string.IsNullOrEmpty(response.token))
+            if (response != null && response.user != null)
             {
-                await _authSession.StoreSession(response.user.ID, response.token);
-                _debugLogger.Log($"Registration successful for {response.user.username}. Loading Lobby scene.");
-                await _sceneLoader.LoadScene("Lobby");
+                _debugLogger.Log($"Registration successful for {response.user.username}. Returning to Login.");
+                
+                // Instead of loading Lobby, we go back to Login as requested.
+                _uiManager.Show<AccountLoginPanel>();
             }
             else
             {
@@ -70,11 +69,4 @@ internal class AccountRegisterController : IAccountRegisterController
             _model.SetIsSubmitting(false);
         }
     }
-}
-
-[System.Serializable]
-internal class RegisterResponse
-{
-    public string token;
-    public UserDataResponse user;
 }

@@ -17,10 +17,24 @@ public class LoginRequest
 }
 
 [System.Serializable]
+public class LoginResponse
+{
+    public string token;
+    public UserDataResponse user;
+}
+
+[System.Serializable]
 public class RegisterRequest
 {
     public string username;
     public string password;
+}
+
+[System.Serializable]
+public class RegisterResponse
+{
+    public UserDataResponse user;
+    public string token; // Optional, some APIs return it upon registration
 }
 
 [System.Serializable]

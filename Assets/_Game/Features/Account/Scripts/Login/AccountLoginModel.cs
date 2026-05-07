@@ -1,6 +1,6 @@
 using UnityObservables;
 
-internal class AccountLoginModel : IAccountLoginModel
+public class AccountLoginModel : IAccountLoginModel
 {
     private Observable<string> _email = new(string.Empty);
     private Observable<string> _password = new(string.Empty);

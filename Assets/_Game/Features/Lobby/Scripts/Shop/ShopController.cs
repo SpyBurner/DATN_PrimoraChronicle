@@ -38,6 +38,8 @@ internal class ShopController : IShopController
         {
             _debugLogger.Log($"Shop: Purchasing item {itemId}...");
             var payload = new PurchaseRequest { itemId = itemId };
+            
+            // Explicitly using the two-generic Post version to avoid conversion errors with anonymous types
             var response = await _httpService.Post<PurchaseResponse, PurchaseRequest>("/api/shop/purchase", payload);
 
             if (response != null && response.success)

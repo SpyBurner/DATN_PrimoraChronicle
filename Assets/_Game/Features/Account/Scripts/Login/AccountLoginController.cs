@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Zenject;
 
-internal class AccountLoginController : IAccountLoginController
+public class AccountLoginController : IAccountLoginController
 {
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IAccountLoginModel _model;
@@ -60,11 +60,4 @@ internal class AccountLoginController : IAccountLoginController
             _model.SetIsSubmitting(false);
         }
     }
-}
-
-[System.Serializable]
-internal class LoginResponse
-{
-    public string token;
-    public UserDataResponse user;
 }

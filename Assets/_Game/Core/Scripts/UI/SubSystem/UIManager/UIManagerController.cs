@@ -8,14 +8,10 @@ using Zenject;
 
 internal class UIManagerController : IUIManagerController
 {
-    [Inject]
-    private readonly IUIManagerModel _model;
-    [Inject]
-    private readonly UIMappingSO _uiMapping;
-    [Inject]
-    private readonly DiContainer _container;
-    [Inject]
-    private readonly SceneContextRegistry _sceneContextRegistry;
+    [Inject] private readonly IUIManagerModel _model;
+    [Inject] private readonly UIMappingSO _uiMapping;
+    [Inject] private readonly DiContainer _container;
+    [Inject] private readonly SceneContextRegistry _sceneContextRegistry;
 
     private bool _isInternalOperation = false;
 
@@ -35,6 +31,8 @@ internal class UIManagerController : IUIManagerController
             _model.PanelsByLayer.Value[panel.Layer] = new List<IUIPanel>();
         }
         _model.PanelsByLayer.Value[panel.Layer].Add(panel);
+        
+        Debug.Log($"[UIManager] Registered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
     }
 
     public void UnregisterPanel(IUIPanel panel)
@@ -50,8 +48,10 @@ internal class UIManagerController : IUIManagerController
                     _model.PanelsByLayer.Value.Remove(panel.Layer);
                 }
             }
+            Debug.Log($"[UIManager] Unregistered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
         }
     }
+
     public void RegisterUIRoot(UIRoot uIRoot)
     {
         if (_model.UIRoot.Value != null)
@@ -60,10 +60,12 @@ internal class UIManagerController : IUIManagerController
         }
         _model.UIRoot.Value = uIRoot;
     }
+
     public void UnregisterUIRoot()
     {
         _model.UIRoot.Value = null;
     }
+
     public UIRoot GetUIRoot() => _model.UIRoot.Value;
 
     public T GetPanel<T>() where T : class, IUIPanel
@@ -78,17 +80,26 @@ internal class UIManagerController : IUIManagerController
     public async Task Show<T>() where T : class, IUIPanel
     {
         var prefab = _uiMapping.GetPrefabByClassType(typeof(T));
+        if (prefab == null)
+        {
+            Debug.LogError($"[UIManager] No prefab found in UIMappingSO for class type {typeof(T).Name}");
+            return;
+        }
         await Show(prefab.gameObject);
     }
 
     public async Task ShowDefaultScreenForScene(string sceneName = null)
     {
-        Debug.Log($"Showing default screen for scene: {sceneName}");
         sceneName ??= SceneManager.GetActiveScene().name;
+        Debug.Log($"[UIManager] Showing default screen for scene: {sceneName}");
         var prefab = _uiMapping.GetDefaultPrefabBySceneName(sceneName);
         if (prefab != null)
         {
             await Show(prefab.gameObject);
+        }
+        else
+        {
+            Debug.LogWarning($"[UIManager] No default UI mapping found for scene '{sceneName}'");
         }
     }
 
@@ -104,11 +115,10 @@ internal class UIManagerController : IUIManagerController
         {
             var uiPanel = prefab.GetComponent<IUIPanel>();
             var uiRoot = _model.UIRoot.Value;
-            Debug.Log($"uiroot is null: {uiRoot == null}, prefab has UIPanel: {uiPanel != null}");
 
             if (uiRoot == null)
             {
-                Debug.LogError("[UIManager] Cannot ShowView because UIRoot is null.");
+                Debug.LogError("[UIManager] Cannot ShowView because UIRoot is null in current scene.");
                 return;
             }
 
@@ -120,11 +130,10 @@ internal class UIManagerController : IUIManagerController
                 return;
             }
 
-            // Destroy existing panels in the same layer (if not POPUP or HUD)
+            // Close existing panels in the same layer (if not POPUP or HUD)
             if (uiPanel != null && uiPanel.Layer != UILayer.POPUP && uiPanel.Layer != UILayer.HUD &&
                 _model.PanelsByLayer.Value.TryGetValue(uiPanel.Layer, out var existingPanels))
             {
-                // Create a copy of the list to avoid modification during iteration
                 var panelsToClose = new List<IUIPanel>(existingPanels);
                 foreach (var panel in panelsToClose)
                 {
@@ -139,12 +148,14 @@ internal class UIManagerController : IUIManagerController
             Debug.Log($"[UIManager] Instantiating prefab '{prefab.name}' for scene '{activeScene.name}' (Container: {(containerToUse == _container ? "Global" : "Scene")})");
             
             var instance = containerToUse.InstantiatePrefab(prefab, parent);
-            var panelInstance = instance.GetComponent<IUIPanel>();
+            instance.SetActive(true); // Ensure instance is active
             
+            var panelInstance = instance.GetComponent<IUIPanel>();
             if (panelInstance != null)
             {
                 Debug.Log($"[UIManager] Calling Show() on panel '{panelInstance.GetType().Name}'");
                 panelInstance.Show();
+                Debug.Log($"[UIManager] {panelInstance.GetType().Name} state: activeSelf={instance.activeSelf}, activeInHierarchy={instance.activeInHierarchy}");
             }
             else
             {
@@ -156,8 +167,12 @@ internal class UIManagerController : IUIManagerController
             _isInternalOperation = false;
         }
     }
+
     public async Task Close(IUIPanel panel)
     {
+        if (panel == null) return;
+        
+        var typeName = panel.GetType().Name;
         panel.Hide();
         var go = (panel as MonoBehaviour).gameObject;
         
@@ -170,16 +185,12 @@ internal class UIManagerController : IUIManagerController
         // If this wasn't part of an internal transition and no UI is left, show default
         if (!_isInternalOperation && _model.Panels.Value.Count == 0)
         {
-            Debug.Log("[UIManager] No UI panels left. Showing default screen.");
+            Debug.Log($"[UIManager] Last panel '{typeName}' closed and no UI panels left. Showing default screen for current scene.");
             await ShowDefaultScreenForScene();
         }
     }
 
-    public Task ShowPopup<T>() where T : class, IUIPanel
-    {
-        // For now, let's just use Show<T>(). The layer logic handles placement.
-        return Show<T>();
-    }
+    public Task ShowPopup<T>() where T : class, IUIPanel => Show<T>();
 
     public Task ClosePopup()
     {
@@ -203,8 +214,7 @@ internal class UIManagerController : IUIManagerController
             }
             else
             {
-                // Fallback for generic UIPanel if the specialized class isn't used yet
-                foreach (var p in _model.Panels.Value.Values)
+                foreach (var p in new List<IUIPanel>(_model.Panels.Value.Values))
                 {
                     if (p.Identifier == UIIdentifier.LOADING_SCREEN)
                     {
@@ -240,6 +250,4 @@ internal class UIManagerController : IUIManagerController
             _isInternalOperation = false;
         }
     }
-
 }
-

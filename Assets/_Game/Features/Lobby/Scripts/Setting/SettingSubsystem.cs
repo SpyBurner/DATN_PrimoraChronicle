@@ -7,6 +7,10 @@ public class SettingSubsystem : ISettingSubsystem
     [Inject] private readonly ISettingController _controller;
     [Inject] private readonly ISettingModel _model;
 
+    public float MasterVolume => _model.MasterVolume.Value;
+    public float MusicVolume => _model.MusicVolume.Value;
+    public float SFXVolume => _model.SFXVolume.Value;
+
     public event UnityAction<float> MasterVolumeChanged;
     public event UnityAction<float> MusicVolumeChanged;
     public event UnityAction<float> SFXVolumeChanged;

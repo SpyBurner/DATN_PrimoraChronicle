@@ -206,7 +206,7 @@ GameObject:
   m_Component:
   - component: {fileID: 191442640}
   - component: {fileID: 191442641}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: UIRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -266,7 +266,7 @@ GameObject:
   - component: {fileID: 211258216}
   - component: {fileID: 211258215}
   - component: {fileID: 211258218}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Overlay Layer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -517,7 +517,7 @@ GameObject:
   - component: {fileID: 809274989}
   - component: {fileID: 809274988}
   - component: {fileID: 809274991}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Popup Layer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -759,7 +759,7 @@ GameObject:
   - component: {fileID: 1625424797}
   - component: {fileID: 1625424796}
   - component: {fileID: 1625424799}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Screen Layer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -872,7 +872,7 @@ GameObject:
   - component: {fileID: 1673410051}
   - component: {fileID: 1673410050}
   - component: {fileID: 1673410049}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: System Layer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
