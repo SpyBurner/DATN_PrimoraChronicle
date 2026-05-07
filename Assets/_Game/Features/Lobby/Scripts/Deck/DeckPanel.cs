@@ -1,34 +1,38 @@
 using System;
 using System.Collections.Generic;
-using Core;
 using UnityEngine;
 using Zenject;
 
 public class DeckPanel : UIPanel
 {
     [Inject] private readonly IDeckSubsystem _deck;
+    [Inject] private readonly IUIManagerSubsystem _uiManager;
+    [Inject] private readonly IDeckBuildSubsystem _deckBuild;
 
     [SerializeField] private GameObject[] _deckSlot = new GameObject[8];
     [SerializeField] private DeckButton _deckButtonPrefab;
 
     private readonly List<DeckButton> _spawnedDeckButtons = new();
 
-
     protected override void OnEnable()
     {
         base.OnEnable();
-        RenderDecks(_deck.LoadDecks());
+        _deck.DecksChanged += RenderDecks;
+        _deck.LoadDecks();
     }
 
     protected override void OnDisable()
     {
+        _deck.DecksChanged -= RenderDecks;
         ClearDeckButtons();
         base.OnDisable();
     }
 
-    private void RenderDecks(IReadOnlyList<DeckSO> loadedDecks)
+    private void RenderDecks(IReadOnlyList<DeckSummaryData> loadedDecks)
     {
         ClearDeckButtons();
+
+        if (loadedDecks == null) return;
 
         int deckCount = Mathf.Min(_deckSlot.Length, loadedDecks.Count);
 
@@ -39,12 +43,18 @@ public class DeckPanel : UIPanel
                 continue;
             }
 
-            DeckSO deckSO = loadedDecks[index];
+            DeckSummaryData deck = loadedDecks[index];
             DeckButton deckButton = Instantiate(_deckButtonPrefab, _deckSlot[index].transform);
-            deckButton.Initialize(deckSO, () => _deck.EditDeck(deckSO));
-            deckButton.gameObject.name = string.IsNullOrWhiteSpace(loadedDecks[index].DeckName)
+            
+            deckButton.Initialize(deck, () => 
+            {
+                _deckBuild.LoadDeck(deck.id);
+                _uiManager.ShowScreen<DeckBuildPanel>();
+            });
+            
+            deckButton.gameObject.name = string.IsNullOrWhiteSpace(deck.name)
                 ? $"DeckButton_{index}"
-                : loadedDecks[index].DeckName;
+                : deck.name;
             deckButton.gameObject.SetActive(true);
             _spawnedDeckButtons.Add(deckButton);
         }

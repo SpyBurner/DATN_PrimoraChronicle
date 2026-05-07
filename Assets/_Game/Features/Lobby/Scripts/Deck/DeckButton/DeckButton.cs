@@ -1,5 +1,4 @@
 using System;
-using Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,10 +8,10 @@ public class DeckButton : MonoBehaviour
     [SerializeField] private TMP_Text _deckNameText;
     [SerializeField] private Button _button;
 
-    public void Initialize(DeckSO deckSO, Action onClick)
+    public void Initialize(DeckSummaryData deck, Action onClick)
     {
         _button = gameObject.GetComponent<Button>();
-        _deckNameText.text = string.IsNullOrEmpty(deckSO.DeckName) ? "Untitled Deck" : deckSO.DeckName;
+        _deckNameText.text = string.IsNullOrEmpty(deck.name) ? "Untitled Deck" : deck.name;
         _button.onClick.RemoveAllListeners();
 
         if (onClick != null)

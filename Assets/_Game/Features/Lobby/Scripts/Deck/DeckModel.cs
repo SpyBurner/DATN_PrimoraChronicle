@@ -1,13 +1,12 @@
 using System.Collections.Generic;
-using Core;
 using UnityObservables;
 
 internal class DeckModel : IDeckModel
 {
-    private Observable<List<DeckSO>> _decks = new(new List<DeckSO>());
+    private Observable<List<DeckSummaryData>> _decks = new(new List<DeckSummaryData>());
     private Observable<int> _deckCount = new(0);
 
-    public Observable<List<DeckSO>> Decks { get => _decks; }
+    public Observable<List<DeckSummaryData>> Decks { get => _decks; }
     public Observable<int> DeckCount { get => _deckCount; }
 
     public void Initialize() { }
@@ -18,9 +17,9 @@ internal class DeckModel : IDeckModel
         _deckCount.Value = 0;
     }
 
-    public void SetDecks(List<DeckSO> decks)
+    public void SetDecks(List<DeckSummaryData> decks)
     {
-        _decks.Value = new List<DeckSO>(decks);
+        _decks.Value = new List<DeckSummaryData>(decks);
         _deckCount.Value = decks?.Count ?? 0;
     }
 }

@@ -53,14 +53,53 @@ def get_card_copies(user_id: str, db: Session = Depends(get_db)):
     copies = db.query(models.CardCopy).filter(models.CardCopy.userID == user_id).all()
     return copies
 
-@app.get("/api/decks", response_model=List[schemas.DeckResponse], tags=["Decks"])
+@app.get("/api/decks", response_model=schemas.DeckSummaryListResponse, tags=["Decks"])
 def get_decks(user_id: str, db: Session = Depends(get_db)):
     decks = db.query(models.Deck).filter(models.Deck.userID == user_id).all()
-    result = []
-    for d in decks:
-        card_ids = [c.ID for c in d.card_copies]
-        result.append(schemas.DeckResponse(ID=d.ID, name=d.name, description=d.description, cardCopyIDs=card_ids))
-    return result
+    result = [schemas.DeckSummary(id=d.ID, name=d.name) for d in decks]
+    return {"decks": result}
+
+@app.get("/api/decks/{deck_id}", response_model=schemas.DeckDetail, tags=["Decks"])
+def get_deck_detail(deck_id: str, db: Session = Depends(get_db)):
+    deck = db.query(models.Deck).filter(models.Deck.ID == deck_id).first()
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    
+    # Resolve card StringIDs
+    card_ids = []
+    for copy in deck.card_copies:
+        if copy.card and copy.card.StringID:
+            card_ids.append(copy.card.StringID)
+            
+    return schemas.DeckDetail(id=deck.ID, name=deck.name, cardIds=card_ids)
+
+@app.post("/api/decks/save", response_model=dict, tags=["Decks"])
+def save_deck(deck_data: schemas.DeckSaveRequest, db: Session = Depends(get_db)):
+    deck = db.query(models.Deck).filter(models.Deck.ID == deck_data.id).first()
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    
+    deck.name = deck_data.name
+    
+    # Clear current cards
+    deck.card_copies = []
+    
+    # Add new cards by resolving StringID to Card, then finding or creating a CardCopy for the user
+    for s_id in deck_data.cardIds:
+        card = db.query(models.Card).filter(models.Card.StringID == s_id).first()
+        if card:
+            # For simplicity in test BE, we find or create a card copy for this user
+            copy = db.query(models.CardCopy).filter(models.CardCopy.cardID == card.ID, models.CardCopy.userID == deck.userID).first()
+            if not copy:
+                copy = models.CardCopy(cardID=card.ID, userID=deck.userID)
+                db.add(copy)
+                db.commit()
+                db.refresh(copy)
+            
+            deck.card_copies.append(copy)
+    
+    db.commit()
+    return {"status": "success"}
 
 @app.post("/api/decks", response_model=schemas.DeckResponse, tags=["Decks"])
 def create_deck(user_id: str, deck_data: schemas.DeckCreate, db: Session = Depends(get_db)):

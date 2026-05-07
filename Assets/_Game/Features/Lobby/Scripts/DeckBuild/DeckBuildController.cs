@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Core;
 using Zenject;
 
 internal class DeckBuildController : IDeckBuildController
@@ -8,6 +10,7 @@ internal class DeckBuildController : IDeckBuildController
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IDeckBuildModel _model;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
+    [Inject] private readonly ICardLoadingManagerSubsystem _cardLoadingManager;
 
     public void Initialize() { }
     public void Dispose() { }
@@ -17,12 +20,36 @@ internal class DeckBuildController : IDeckBuildController
         try
         {
             _debugLogger.Log($"DeckBuild: Loading deck {deckId}");
-            var response = await _httpService.Get<DeckLoadResponse>($"/api/decks/{deckId}");
+            var response = await _httpService.Get<DeckDetailData>($"/api/decks/{deckId}");
 
             if (response != null)
             {
-                _model.SetDeckCards(new List<string>(response.cards));
-                _debugLogger.Log($"DeckBuild: Loaded deck with {response.cards.Length} cards");
+                _model.SetCurrentDeck(response.id, response.name);
+                
+                List<CardSO> deckCards = new();
+                List<CardSO> championCards = new();
+
+                foreach (var cardId in response.cardIds)
+                {
+                    if (_cardLoadingManager.TryGetCard(cardId, out var card))
+                    {
+                        if (card is ChampionCardSO championCard)
+                        {
+                            championCards.Add(championCard);
+                        }
+                        else
+                        {
+                            deckCards.Add(card);
+                        }
+                    }
+                    else
+                    {
+                        _debugLogger.LogWarning($"DeckBuild: Could not resolve card ID {cardId}");
+                    }
+                }
+
+                _model.SetRenderData(deckCards, championCards, GetAvailableCards());
+                _debugLogger.Log($"DeckBuild: Loaded deck '{response.name}' with {deckCards.Count} cards and {championCards.Count} champions");
             }
             else
             {
@@ -35,23 +62,64 @@ internal class DeckBuildController : IDeckBuildController
         }
     }
 
-    public void AddCardToDeck(string cardId)
+    public void AddCardToDeck(CardSO card)
     {
-        _model.AddCard(cardId);
+        if (card == null) return;
+
+        var deckCards = new List<CardSO>(_model.DeckCards.Value);
+        var championCards = new List<CardSO>(_model.ChampionCards.Value);
+
+        if (card is ChampionCardSO championCard)
+        {
+            championCards.Add(championCard);
+        }
+        else
+        {
+            deckCards.Add(card);
+        }
+
+        _model.SetRenderData(deckCards, championCards, _model.AvailableCards.Value);
     }
 
-    public void RemoveCardFromDeck(string cardId)
+    public void RemoveCardFromDeck(CardSO card)
     {
-        _model.RemoveCard(cardId);
+        if (card == null) return;
+
+        var deckCards = new List<CardSO>(_model.DeckCards.Value);
+        var championCards = new List<CardSO>(_model.ChampionCards.Value);
+
+        if (card is ChampionCardSO)
+        {
+            championCards.Remove(card);
+        }
+        else
+        {
+            deckCards.Remove(card);
+        }
+
+        _model.SetRenderData(deckCards, championCards, _model.AvailableCards.Value);
     }
 
-    public async Task SaveDeck(string deckName)
+    public async Task SaveDeck()
     {
         try
         {
-            _debugLogger.Log($"DeckBuild: Saving deck {deckName}");
-            var payload = new { deckName, cards = _model.DeckCards.Value };
-            await _httpService.Post("/api/decks", payload);
+            string deckId = _model.CurrentDeckId.Value;
+            string deckName = _model.CurrentDeckName.Value;
+            
+            _debugLogger.Log($"DeckBuild: Saving deck {deckName} ({deckId})");
+
+            List<string> cardIds = _model.DeckCards.Value.Select(c => c.ID).ToList();
+            cardIds.AddRange(_model.ChampionCards.Value.Select(c => c.ID));
+
+            var payload = new 
+            { 
+                id = deckId,
+                name = deckName, 
+                cardIds = cardIds 
+            };
+
+            await _httpService.Post($"/api/decks/save", payload);
             _debugLogger.Log("DeckBuild: Deck saved successfully");
         }
         catch (Exception ex)
@@ -59,10 +127,13 @@ internal class DeckBuildController : IDeckBuildController
             _debugLogger.LogError($"DeckBuild: SaveDeck failed: {ex.Message}");
         }
     }
-}
 
-[System.Serializable]
-internal class DeckLoadResponse
-{
-    public string[] cards;
+    private List<CardSO> GetAvailableCards()
+    {
+        var allCards = _cardLoadingManager.GetCardsById().Values;
+        // Return all non-champion cards as available for building? 
+        // Or all cards including champions? 
+        // For now, return everything.
+        return allCards.ToList();
+    }
 }

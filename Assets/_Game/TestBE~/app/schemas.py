@@ -15,6 +15,12 @@ class UserResponse(UserBase):
     gold: int
     model_config = ConfigDict(from_attributes=True)
 
+class UserBriefResponse(BaseModel):
+    ID: UUID
+    username: str
+    gold: int
+    xpTotal: Optional[int] = None
+
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -24,6 +30,23 @@ class CardCopyResponse(BaseModel):
     cardID: UUID
     StringID: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
+
+class DeckSummary(BaseModel):
+    id: UUID
+    name: str
+
+class DeckSummaryListResponse(BaseModel):
+    decks: List[DeckSummary]
+
+class DeckDetail(BaseModel):
+    id: UUID
+    name: str
+    cardIds: List[str]
+
+class DeckSaveRequest(BaseModel):
+    id: UUID
+    name: str
+    cardIds: List[str]
 
 class DeckCreate(BaseModel):
     name: str
