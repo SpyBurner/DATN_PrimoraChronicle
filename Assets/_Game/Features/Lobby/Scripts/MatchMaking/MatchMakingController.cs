@@ -20,7 +20,7 @@ internal class MatchMakingController : IMatchMakingController
             _model.SetIsSearching(true);
             _model.SetStatus("Searching for opponent...");
 
-            var response = await _httpService.Post<MatchMakingResponse>("/api/matchmaking/start", new { });
+            var response = await _httpService.Post<MatchMakingResponse, EmptyRequest>("/api/matchmaking/start", new EmptyRequest());
 
             if (response != null)
             {
@@ -53,7 +53,7 @@ internal class MatchMakingController : IMatchMakingController
         try
         {
             _debugLogger.Log("MatchMaking: Canceling matchmaking");
-            await _httpService.Post("/api/matchmaking/cancel", new { });
+            await _httpService.Post<EmptyRequest>("/api/matchmaking/cancel", new EmptyRequest());
             _model.SetIsSearching(false);
             _model.SetStatus(string.Empty);
             _model.SetQueuePosition(0);

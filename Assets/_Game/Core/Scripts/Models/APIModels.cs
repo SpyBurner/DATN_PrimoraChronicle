@@ -19,3 +19,14 @@ public class RegisterRequest
     public string username;
     public string password;
 }
+
+[System.Serializable]
+public class EmptyRequest { }
+
+[System.Serializable]
+public class SaveDeckRequest
+{
+    public string id;
+    public string name;
+    public List<string> cardIds;
+}

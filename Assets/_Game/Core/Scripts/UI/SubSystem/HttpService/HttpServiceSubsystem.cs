@@ -32,11 +32,11 @@ public class HttpServiceSubsystem : IHttpServiceSubsystem
 
     public Task<T> Get<T>(string url) => _controller.Get<T>(url);
 
-    public Task<T> Post<T>(string url, object payload) => _controller.Post<T>(url, payload);
+    public Task<T> Post<T, TRequest>(string url, TRequest payload) where TRequest : class => _controller.Post<T, TRequest>(url, payload);
 
     public Task<string> Get(string url) => _controller.Get(url);
 
-    public Task<string> Post(string url, object payload) => _controller.Post(url, payload);
+    public Task<string> Post<TRequest>(string url, TRequest payload) where TRequest : class => _controller.Post<TRequest>(url, payload);
 
     public void SetAuthToken(string token) => _controller.SetAuthToken(token);
 

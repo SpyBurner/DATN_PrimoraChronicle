@@ -46,7 +46,8 @@ internal class AccountRegisterController : IAccountRegisterController
             _debugLogger.Log($"Attempting registration for {username}");
 
             var payload = new RegisterRequest { username = username, password = password };
-            var response = await _httpService.Post<RegisterResponse>("/api/auth/register", payload);
+            _debugLogger.Log($"Attempting registration payload: username={payload.username}, password length={payload.password?.Length ?? 0}");
+            var response = await _httpService.Post<RegisterResponse, RegisterRequest>("/api/auth/register", payload);
 
             if (response != null && response.user != null && !string.IsNullOrEmpty(response.token))
             {

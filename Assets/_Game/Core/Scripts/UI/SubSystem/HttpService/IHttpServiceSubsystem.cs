@@ -8,8 +8,8 @@ public interface IHttpServiceSubsystem : ISubsystem
     event UnityAction<bool> IsRequestingChanged;
 
     Task<T> Get<T>(string url);
-    Task<T> Post<T>(string url, object payload);
+    Task<T> Post<T, TRequest>(string url, TRequest payload) where TRequest : class;
     Task<string> Get(string url);
-    Task<string> Post(string url, object payload);
+    Task<string> Post<TRequest>(string url, TRequest payload) where TRequest : class;
     void SetAuthToken(string token);
 }

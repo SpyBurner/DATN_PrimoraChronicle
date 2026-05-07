@@ -59,9 +59,9 @@ internal class HttpServiceController : IHttpServiceController
         }
     }
 
-    public async Task<T> Post<T>(string url, object payload)
+    public async Task<T> Post<T, TRequest>(string url, TRequest payload) where TRequest : class
     {
-        string response = await Post(url, payload);
+        string response = await Post<TRequest>(url, payload);
         try
         {
             return JsonUtility.FromJson<T>(response);
@@ -112,7 +112,7 @@ internal class HttpServiceController : IHttpServiceController
         }
     }
 
-    public async Task<string> Post(string url, object payload)
+    public async Task<string> Post<TRequest>(string url, TRequest payload) where TRequest : class
     {
         string formattedUrl = FormatUrl(url);
         _model.IsRequesting.Value = true;
@@ -121,6 +121,7 @@ internal class HttpServiceController : IHttpServiceController
         try
         {
             string jsonPayload = JsonUtility.ToJson(payload);
+            _debugLogger.Log($"HttpService: POST payload: {jsonPayload}");
             byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonPayload);
 
             using (UnityWebRequest request = new UnityWebRequest(formattedUrl, "POST"))

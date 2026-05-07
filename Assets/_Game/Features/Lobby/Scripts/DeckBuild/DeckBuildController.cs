@@ -112,14 +112,14 @@ internal class DeckBuildController : IDeckBuildController
             List<string> cardIds = _model.DeckCards.Value.Select(c => c.ID).ToList();
             cardIds.AddRange(_model.ChampionCards.Value.Select(c => c.ID));
 
-            var payload = new 
+            var payload = new SaveDeckRequest
             { 
                 id = deckId,
                 name = deckName, 
                 cardIds = cardIds 
             };
-
-            await _httpService.Post($"/api/decks/save", payload);
+            
+            await _httpService.Post<SaveDeckRequest>($"/api/decks/save", payload);
             _debugLogger.Log("DeckBuild: Deck saved successfully");
         }
         catch (Exception ex)
