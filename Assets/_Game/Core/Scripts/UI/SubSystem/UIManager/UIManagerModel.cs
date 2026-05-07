@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Core;
 using UnityObservables;
@@ -9,10 +9,12 @@ internal class UIManagerModel : IUIManagerModel
     private Observable<Dictionary<Type, IUIPanel>> _panels = new(new());
     private Observable<Dictionary<UILayer, List<IUIPanel>>> _panelsByLayer = new(new());
     private Observable<Stack<IUIPanel>> _popupStack = new(new());
+    private Observable<Core.UIRoot> _uiRoot = new(null);
 
     public Observable<Dictionary<Type, IUIPanel>> Panels { get => _panels; }
     public Observable<Dictionary<UILayer, List<IUIPanel>>> PanelsByLayer { get => _panelsByLayer; }
     public Observable<Stack<IUIPanel>> PopupStack { get => _popupStack; }
+    public Observable<Core.UIRoot> UIRoot { get => _uiRoot; }
 
     // Zenject will call this when bound with BindInterfacesAndSelfTo<UIManagerModel>().AsSingle()
     public void Initialize()

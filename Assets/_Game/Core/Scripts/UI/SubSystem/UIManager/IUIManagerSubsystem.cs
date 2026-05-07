@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Core;
@@ -21,11 +21,10 @@ public interface IUIManagerSubsystem : ISubsystem
     UIRoot GetUIRoot();
 
     T GetPanel<T>() where T : class, IUIPanel;
-    Task ShowView(GameObject prefab);
-    Task CloseView(IUIPanel panel);
-    Task ShowScreen<T>() where T : class, IUIPanel;
+    Task Show<T>() where T : class, IUIPanel;
+    Task Show(GameObject prefab);
     Task ShowDefaultScreenForScene(string sceneName = null);
-    Task ShowPopup<T>() where T : class, IUIPanel;
+    Task Close(IUIPanel panel);
     Task ClosePopup();
     Task FadeIn();
     Task FadeOut();
