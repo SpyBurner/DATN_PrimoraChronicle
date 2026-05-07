@@ -107,9 +107,10 @@ internal class UIManagerController : IUIManagerController
         }
 
         // Prevent duplicate panels of the same type
-        if (uiPanel != null && _model.Panels.Value.ContainsKey(uiPanel.GetType()))
+        if (uiPanel != null && _model.Panels.Value.TryGetValue(uiPanel.GetType(), out var existingPanel))
         {
-            Debug.LogWarning($"[UIManager] Panel of type {uiPanel.GetType().Name} is already shown. Skipping duplicate ShowView.");
+            Debug.LogWarning($"[UIManager] Panel of type {uiPanel.GetType().Name} is already registered. Ensuring it is shown.");
+            existingPanel.Show();
             return;
         }
 

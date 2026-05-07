@@ -127,6 +127,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
+--- !u!114 &1395619035596688833 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
+  m_PrefabInstance: {fileID: 1338359977765190637}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!224 &8887711413370247045 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7621692832500509800, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
@@ -925,7 +936,7 @@ MonoBehaviour:
   _confirmPasswordInput: {fileID: 6884544490117241033}
   _submitButton: {fileID: 1469782740783016779}
   _backButton: {fileID: 864906518092604060}
-  _errorText: {fileID: 0}
+  _errorText: {fileID: 1395619035596688833}
 --- !u!114 &864906518092604060 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6515232520494149043, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}

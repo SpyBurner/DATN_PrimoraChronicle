@@ -18,7 +18,7 @@ MonoBehaviour:
   - uiIdentifier: 201
     prefab: {fileID: 6708320007973784393, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
   - uiIdentifier: 202
-    prefab: {fileID: 1503075636362382675, guid: b97575d0a5c22ac4bae269ad3ba19dca, type: 3}
+    prefab: {fileID: 5062700046871314874, guid: b97575d0a5c22ac4bae269ad3ba19dca, type: 3}
   - uiIdentifier: 301
     prefab: {fileID: 1840333271973002858, guid: 07d890ad82b51494b84091357b4a6393, type: 3}
   - uiIdentifier: 302
@@ -46,15 +46,15 @@ MonoBehaviour:
   - uiIdentifier: 405
     prefab: {fileID: 8425724367367256914, guid: 39726b424158d8b4fb66edf6d001babe, type: 3}
   - uiIdentifier: 406
-    prefab: {fileID: 3194670556817313285, guid: e00780277f975494a974b97ce203b5f3, type: 3}
+    prefab: {fileID: 7312268226743733065, guid: cd26d509491f6f74497815132e2ae13e, type: 3}
   - uiIdentifier: 407
-    prefab: {fileID: 3886531493491737893, guid: b859069d30ca7894d80a1496a75f1dfa, type: 3}
+    prefab: {fileID: 3194670556817313285, guid: 8dafc1d3a82d2d048a48240dd03926bf, type: 3}
   - uiIdentifier: 408
-    prefab: {fileID: 2027220541957821685, guid: b7a731f24d776854198c617c0a876a3e, type: 3}
+    prefab: {fileID: 3886531493491737893, guid: 8add4c211d5514847b455c6c454a9958, type: 3}
   - uiIdentifier: 409
-    prefab: {fileID: 1127744188329199886, guid: eb573543d317282439c4d9f67a21be10, type: 3}
+    prefab: {fileID: 920276383365724999, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
   - uiIdentifier: 410
-    prefab: {fileID: 7312268226743733065, guid: d8816f1ea124e5b418b767756f155986, type: 3}
+    prefab: {fileID: 2027220541957821685, guid: bfa571fbb489a0e428a30d1e2ebd6c57, type: 3}
   defaultUIMappings:
   - sceneName: Bootstrap
     uiIdentifier: 101

@@ -18,6 +18,8 @@ namespace Core
             // Load the initial scene (e.g., Account Scene)
             //await Task.Delay(500);
             await _sceneLoader.LoadScene(_nextSceneName);
+            // Ensure the default UI for the loaded scene is shown
+            await _uiManager.ShowDefaultScreenForScene(_nextSceneName);
         }
 
         private async Task Initialize()
