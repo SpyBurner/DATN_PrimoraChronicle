@@ -163,7 +163,7 @@ internal class UIManagerController : IUIManagerController
     {
         if (_model.Panels.Value.TryGetValue(typeof(LoadingScreenBlackPanel), out var panel))
         {
-            await CloseView(panel);
+            await Close(panel);
         }
         else
         {
