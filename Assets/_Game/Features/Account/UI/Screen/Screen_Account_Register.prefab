@@ -722,6 +722,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5795651751447466412, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5062700046871314874}
+    - targetCorrespondingSourceObject: {fileID: 5795651751447466412, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6269344605616253565}
   m_SourcePrefab: {fileID: 100100000, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}
 --- !u!1 &433550765019209347 stripped
 GameObject:
@@ -742,13 +745,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: AccountFeatures::AccountRegisterPanel
   _identifier: 202
   _layer: 1
-  _isModal: 0
   _closeButton: {fileID: 864906518092604060}
   _emailInput: {fileID: 6152356617017719917}
   _passwordInput: {fileID: 1200331858120002744}
   _confirmPasswordInput: {fileID: 6884544490117241033}
   _submitButton: {fileID: 1469782740783016779}
   _backButton: {fileID: 864906518092604060}
+  _errorText: {fileID: 0}
+--- !u!114 &6269344605616253565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433550765019209347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31df4fa4439b2064db5ab8372461196a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AccountFeatures::AccountRegisterPanel
+  _identifier: 0
+  _layer: 0
+  _closeButton: {fileID: 0}
+  _emailInput: {fileID: 0}
+  _passwordInput: {fileID: 0}
+  _confirmPasswordInput: {fileID: 0}
+  _submitButton: {fileID: 0}
+  _backButton: {fileID: 0}
+  _errorText: {fileID: 0}
 --- !u!114 &864906518092604060 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6515232520494149043, guid: f5b4ad32026687c42a9f47cadd2da9b0, type: 3}

@@ -166,6 +166,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6797132209093893444}
+    - targetCorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8530973427569693842}
     - targetCorrespondingSourceObject: {fileID: 2781302010599176570, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5994847683998873922}
@@ -189,8 +192,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: LobbyFeatures::MatchHistoryPanel
   _identifier: 305
   _layer: 4
-  _isModal: 0
   _closeButton: {fileID: 8011067317131363051}
+--- !u!114 &8530973427569693842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1070442826774402681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24bf1e45c3aae94409bc62182259d62a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::MatchHistoryPanel
+  _identifier: 0
+  _layer: 0
+  _closeButton: {fileID: 0}
 --- !u!1 &3152241184516586808 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2781302010599176570, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}

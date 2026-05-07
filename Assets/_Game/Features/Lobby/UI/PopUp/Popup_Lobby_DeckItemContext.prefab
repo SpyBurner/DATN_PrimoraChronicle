@@ -312,6 +312,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3340999308531317468}
+    - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8753662783953122124}
     - targetCorrespondingSourceObject: {fileID: 9101729719906278201, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1660961782695759778}
@@ -335,6 +338,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 0
   m_VerticalFit: 2
+--- !u!114 &8753662783953122124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 582389494146828053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92515d2b6db680143acf85a04a0b4fa2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::DeckItemContextPopup
+  _identifier: 0
+  _layer: 0
+  _closeButton: {fileID: 0}
+  _deckNameText: {fileID: 0}
+  _editButton: {fileID: 0}
+  _selectButton: {fileID: 0}
+  _deleteButton: {fileID: 0}
+  _closeButton: {fileID: 0}
 --- !u!1 &5364241560440639731 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9101729719906278201, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}

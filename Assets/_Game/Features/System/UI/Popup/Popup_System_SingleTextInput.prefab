@@ -624,7 +624,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       propertyPath: m_Name
-      value: Layout_Popup Variant
+      value: Popup_System_SingleTextInput
       objectReference: {fileID: 0}
     - target: {fileID: 6010145286192904194, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       propertyPath: m_AnchorMax.y
@@ -661,6 +661,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2635769386786206764}
+    - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6879062836873825666}
   m_SourcePrefab: {fileID: 100100000, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
 --- !u!1 &4760849771408677621 stripped
 GameObject:
@@ -681,6 +684,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 0
   m_VerticalFit: 2
+--- !u!114 &6879062836873825666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4760849771408677621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98f0eac7e12e7d74e9bcd17432f8d080, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::TextInputPopup
+  _identifier: 0
+  _layer: 0
+  _closeButton: {fileID: 0}
+  _titleText: {fileID: 0}
+  _inputField: {fileID: 0}
+  _confirmButton: {fileID: 0}
+  _cancelButton: {fileID: 0}
 --- !u!224 &5964987636729657077 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3241835923584213215, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}

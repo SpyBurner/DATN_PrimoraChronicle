@@ -425,6 +425,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3332289798578207112}
+    - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9194880326295905227}
     - targetCorrespondingSourceObject: {fileID: 9101729719906278201, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8371142384894278950}
@@ -448,6 +451,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 0
   m_VerticalFit: 2
+--- !u!114 &9194880326295905227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2761271882789928149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 942c39dfb03896b468181d64e191dddb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::ConfirmationPopup
+  _identifier: 0
+  _layer: 0
+  _closeButton: {fileID: 0}
+  _titleText: {fileID: 0}
+  _messageText: {fileID: 0}
+  _confirmButton: {fileID: 0}
+  _cancelButton: {fileID: 0}
 --- !u!224 &5265001483629987848 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6010145286192904194, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}

@@ -730,6 +730,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5172975548139413514, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6708320007973784393}
+    - targetCorrespondingSourceObject: {fileID: 5172975548139413514, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4805901295034073724}
     - targetCorrespondingSourceObject: {fileID: 8629099598833463130, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2235791722276444337}
@@ -758,12 +761,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AccountLoginPanel
   _identifier: 201
   _layer: 1
-  _isModal: 0
   _closeButton: {fileID: 6515232520494149043}
   _emailInput: {fileID: 219424240450499394}
   _passwordInput: {fileID: 5098758567514063767}
   _loginButton: {fileID: 4760222401053795428}
   _registerButton: {fileID: 1170805798622364500}
+  _errorText: {fileID: 0}
+--- !u!114 &4805901295034073724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5795651751447466412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05b02cee073e0574793c192df5cb1750, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AccountFeatures::AccountLoginPanel
+  _identifier: 0
+  _layer: 0
+  _closeButton: {fileID: 0}
+  _emailInput: {fileID: 0}
+  _passwordInput: {fileID: 0}
+  _loginButton: {fileID: 0}
+  _registerButton: {fileID: 0}
+  _errorText: {fileID: 0}
 --- !u!114 &6515232520494149043 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5606579254832946197, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}

@@ -1245,6 +1245,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5172975548139413514, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1840333271973002858}
+    - targetCorrespondingSourceObject: {fileID: 5172975548139413514, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2486212186647370292}
   m_SourcePrefab: {fileID: 100100000, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
 --- !u!224 &947981540985710372 stripped
 RectTransform:
@@ -1296,7 +1299,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: LobbyFeatures::LobbyMainPanel
   _identifier: 301
   _layer: 1
-  _isModal: 0
   _closeButton: {fileID: 0}
   _profileButton: {fileID: 5724477755799722253}
   _battleButton: {fileID: 3773675805805758251}
@@ -1304,6 +1306,35 @@ MonoBehaviour:
   _shopButton: {fileID: 7393643267451062281}
   _settingsButton: {fileID: 2454793757413534584}
   _logoutButton: {fileID: 4504738299614244357}
+  _usernameText: {fileID: 0}
+  _levelText: {fileID: 0}
+  _goldText: {fileID: 0}
+  _avatarImage: {fileID: 0}
+--- !u!114 &2486212186647370292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2309447396471619762}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9c96fbb51fd597439a2166a89660de9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::LobbyMainPanel
+  _identifier: 0
+  _layer: 0
+  _closeButton: {fileID: 0}
+  _profileButton: {fileID: 0}
+  _battleButton: {fileID: 0}
+  _deckButton: {fileID: 0}
+  _shopButton: {fileID: 0}
+  _settingsButton: {fileID: 0}
+  _logoutButton: {fileID: 0}
+  _usernameText: {fileID: 0}
+  _levelText: {fileID: 0}
+  _goldText: {fileID: 0}
+  _avatarImage: {fileID: 0}
 --- !u!1001 &8013362442927303939
 PrefabInstance:
   m_ObjectHideFlags: 0
