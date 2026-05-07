@@ -45,7 +45,7 @@
 ## 5. Phase E: Gameplay Scene (P3)
 - `[ ]` Create `GameplayInstaller`.
 - `[ ]` Implement `GameState` (Match orchestrator).
-- `[ ]` Implement `Hand` (Card draw/play logic).
+- `[x]` Implement `Hand` (Card draw/play logic with Fusion).
 - `[ ]` Implement `FusePhase` (Unit/Modifier fusion).
 - `[ ]` Implement `Board` (Hex grid + Unit occupancy).
 - `[ ]` Implement `Combat` (Turn order + Skill execution).
@@ -57,6 +57,6 @@
 - `[ ]` State Authority enforcement.
 
 ## 7. Phase G: Final Polish & Verification
-- `[ ]` Unity Editor Wiring Checklist (Update `wiring_plan_complete.md`).
+- `[x]` Unity Editor Wiring Checklist (Created `wiring_plan_complete.md` and executed via MCP).
 - `[ ]` Zenject Validation.
 - `[ ]` Full Flow Test: Bootstrap -> Login -> Lobby -> Deck -> Battle -> Gameplay.

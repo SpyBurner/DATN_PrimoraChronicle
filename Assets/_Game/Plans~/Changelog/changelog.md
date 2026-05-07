@@ -34,3 +34,14 @@
 - **Zenject**: Cleaned up `LobbyInstaller.cs` (removed redundant `DeckEdit` bindings).
 - **Documentation**: Compiled `wiring_plan_complete.md` in `Plans~/Handwire`.
 - **Bug Fixes**: Moved `RegisterPanel` to `Awake()` in `UIPanel.cs` (as per BUG-7).
+
+### [2026-05-07] - Batch 5: UI Automation & Wiring
+- **Prefab Management**: Automatically attached `UIPanel` scripts to 14 UI prefabs across Account, Lobby, and System features via MCP.
+- **UIMappingSO**: Programmatically mapped all UI prefabs to `UIIdentifier` enums in `UIMappingSO.asset`, ensuring correct ID order and scene defaults.
+- **Scene Defaults**: Configured `DefaultUIMappings` for Bootstrap, Account, and Lobby scenes.
+
+### [2026-05-07] - Batch 6: Networking & API integrity
+- **Hand Networking**: Implemented `PlayCard` functionality in `HandController` and `HandModel` using Fusion RPCs for server-authoritative card plays.
+- **API Robustness**: Resolved `HttpService` validation errors (422) by replacing anonymous payloads with concrete `LoginRequest` and `RegisterRequest` models for `JsonUtility` compatibility.
+- **Compilation Repair**: Fixed severe namespace and interface discrepancies in `BattleSetup` and `Account` features caused by previous domain reloads.
+- **Shared Models**: Centralized API data structures in `Assets/_Game/Core/Scripts/Models/APIModels.cs` to prevent type duplication.
