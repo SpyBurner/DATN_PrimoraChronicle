@@ -8,7 +8,6 @@ public class ShopItemContextPopup : UIPanel
     [SerializeField] private TMP_Text _itemNameText;
     [SerializeField] private TMP_Text _itemPriceText;
     [SerializeField] private Button _purchaseButton;
-    [SerializeField] private Button _closeButton;
 
     private Action _onPurchase;
 
@@ -16,7 +15,12 @@ public class ShopItemContextPopup : UIPanel
     {
         base.OnEnable();
         _purchaseButton?.onClick.AddListener(OnPurchaseClicked);
-        _closeButton?.onClick.AddListener(Close);
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        _purchaseButton?.onClick.RemoveListener(OnPurchaseClicked);
     }
 
     public void Setup(string itemName, int price, Action onPurchase)
@@ -30,11 +34,6 @@ public class ShopItemContextPopup : UIPanel
     private void OnPurchaseClicked()
     {
         _onPurchase?.Invoke();
-        Close();
-    }
-
-    private void Close()
-    {
-        gameObject.SetActive(false);
+        OnClose();
     }
 }

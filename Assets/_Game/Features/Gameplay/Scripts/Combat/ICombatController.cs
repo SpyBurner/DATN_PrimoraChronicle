@@ -1,5 +1,5 @@
-using System;
-
-public interface ICombatController : IDisposable{
-    void Initialize();
+public interface ICombatController : IController
+{
+    void ExecuteTurn();
+    void SkipCombat();
 }

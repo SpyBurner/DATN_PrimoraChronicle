@@ -9,6 +9,11 @@ public class BoardSubsystem : IBoardSubsystem {
         Controller = controller;
     }
     
+    public void Initialize() {
+        Model?.Initialize();
+        Controller?.Initialize();
+    }
+    
     public void Dispose() {
         Model?.Dispose();
         Controller?.Dispose();

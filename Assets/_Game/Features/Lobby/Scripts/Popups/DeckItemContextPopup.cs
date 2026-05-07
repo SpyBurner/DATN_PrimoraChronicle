@@ -9,7 +9,6 @@ public class DeckItemContextPopup : UIPanel
     [SerializeField] private Button _editButton;
     [SerializeField] private Button _selectButton;
     [SerializeField] private Button _deleteButton;
-    [SerializeField] private Button _closeButton;
 
     private Action _onEdit;
     private Action _onSelect;
@@ -21,7 +20,14 @@ public class DeckItemContextPopup : UIPanel
         _editButton?.onClick.AddListener(OnEditClicked);
         _selectButton?.onClick.AddListener(OnSelectClicked);
         _deleteButton?.onClick.AddListener(OnDeleteClicked);
-        _closeButton?.onClick.AddListener(Close);
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        _editButton?.onClick.RemoveListener(OnEditClicked);
+        _selectButton?.onClick.RemoveListener(OnSelectClicked);
+        _deleteButton?.onClick.RemoveListener(OnDeleteClicked);
     }
 
     public void Setup(string deckName, Action onEdit, Action onSelect, Action onDelete)
@@ -36,23 +42,18 @@ public class DeckItemContextPopup : UIPanel
     private void OnEditClicked()
     {
         _onEdit?.Invoke();
-        Close();
+        OnClose();
     }
 
     private void OnSelectClicked()
     {
         _onSelect?.Invoke();
-        Close();
+        OnClose();
     }
 
     private void OnDeleteClicked()
     {
         _onDelete?.Invoke();
-        Close();
-    }
-
-    private void Close()
-    {
-        gameObject.SetActive(false);
+        OnClose();
     }
 }

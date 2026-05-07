@@ -1,5 +1,5 @@
-using System;
-
-public interface IDrawPhaseController : IDisposable{
-    void Initialize();
+public interface IDrawPhaseController : IController
+{
+    void StartDraw(int count);
+    void CompleteDraw();
 }

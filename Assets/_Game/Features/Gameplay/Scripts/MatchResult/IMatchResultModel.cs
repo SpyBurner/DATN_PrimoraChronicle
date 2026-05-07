@@ -1,6 +1,8 @@
-using System;
 using UnityObservables;
 
-public interface IMatchResultModel : IDisposable{
-    void Initialize();
+public interface IMatchResultModel : IModel
+{
+    Observable<bool> IsVictory { get; }
+    Observable<int> GoldEarned { get; }
+    Observable<int> RankProgress { get; }
 }

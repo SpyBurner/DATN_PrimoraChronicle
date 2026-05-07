@@ -1,7 +1,16 @@
-using System;
 using UnityObservables;
 
-public class MatchResultModel : IMatchResultModel {
+public class MatchResultModel : IMatchResultModel
+{
+    private Observable<bool> _isVictory = new(false);
+    public Observable<bool> IsVictory => _isVictory;
+
+    private Observable<int> _goldEarned = new(0);
+    public Observable<int> GoldEarned => _goldEarned;
+
+    private Observable<int> _rankProgress = new(0);
+    public Observable<int> RankProgress => _rankProgress;
+
     public void Initialize() { }
     public void Dispose() { }
 }

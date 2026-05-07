@@ -1,5 +1,4 @@
-using System;
-
-public interface IBoardController : IDisposable{
-    void Initialize();
+public interface IBoardController : IController
+{
+    void PlaceUnit(int cellIndex, string unitId);
 }

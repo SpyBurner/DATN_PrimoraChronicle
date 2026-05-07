@@ -1,6 +1,8 @@
-using System;
 using UnityObservables;
 
-public interface ICombatModel : IDisposable{
-    void Initialize();
+public interface ICombatModel : IModel
+{
+    Observable<string> CurrentAttackerId { get; }
+    Observable<string> CurrentDefenderId { get; }
+    Observable<string> CombatLog { get; }
 }

@@ -7,6 +7,9 @@ public class GameStateSubsystem : IGameStateSubsystem
     [Inject] private readonly IGameStateController _controller;
     [Inject] private readonly IGameStateModel _model;
 
+    public IGameStateModel Model => _model;
+    public IGameStateController Controller => _controller;
+
     public event UnityAction<int> CurrentTurnChanged;
     public event UnityAction<string> CurrentPhaseChanged;
     public event UnityAction<int> MatchTimerChanged;

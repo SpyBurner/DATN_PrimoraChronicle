@@ -44,12 +44,12 @@
 
 ## 5. Phase E: Gameplay Scene (P3)
 - `[ ]` Create `GameplayInstaller`.
-- `[ ]` Implement `GameState` (Match orchestrator).
+- `[x]` Implement `GameState` (Match orchestrator).
 - `[x]` Implement `Hand` (Card draw/play logic with Fusion).
-- `[ ]` Implement `FusePhase` (Unit/Modifier fusion).
-- `[ ]` Implement `Board` (Hex grid + Unit occupancy).
-- `[ ]` Implement `Combat` (Turn order + Skill execution).
-- `[ ]` Implement `DrawPhase` and `MatchResult`.
+- `[x]` Implement `FusePhase` (Unit/Modifier fusion).
+- `[x]` Implement `Board` (Hex grid + Unit occupancy).
+- `[x]` Implement `Combat` (Turn order + Skill execution).
+- `[x]` Implement `DrawPhase` and `MatchResult`.
 
 ## 6. Phase F: Photon Fusion Integration (P3)
 - `[ ]` Networked properties for Gameplay Models.

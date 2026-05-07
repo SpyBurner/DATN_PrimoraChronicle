@@ -44,4 +44,10 @@
 - **Hand Networking**: Implemented `PlayCard` functionality in `HandController` and `HandModel` using Fusion RPCs for server-authoritative card plays.
 - **API Robustness**: Resolved `HttpService` validation errors (422) by replacing anonymous payloads with concrete `LoginRequest` and `RegisterRequest` models for `JsonUtility` compatibility.
 - **Compilation Repair**: Fixed severe namespace and interface discrepancies in `BattleSetup` and `Account` features caused by previous domain reloads.
-- **Shared Models**: Centralized API data structures in `Assets/_Game/Core/Scripts/Models/APIModels.cs` to prevent type duplication.
+### [2026-05-07] - Batch 7: Gameplay Subsystems Refactor & Synchronization
+- **Compilation Repair**: Resolved severe `CS0101` and `CS0111` duplicate definition errors across `GameState` and `Board` subsystems.
+- **Interface Consolidation**: Cleaned up `IGameStateSubsystem.cs` and `IBoardSubsystem.cs`, moving core interfaces to dedicated files and standardizing inheritance from `IModel` and `IController`.
+- **GameState Networking**: Implemented full `IGameStateModel` with networked synchronization for `CurrentTurn`, `CurrentPhase`, and `MatchTimer` using Fusion `ChangeDetector`.
+- **Board Networking**: Implemented `BoardModel` with a networked occupancy grid (`NetworkDictionary<int, NetworkString>`) and an RPC bridge for authoritative unit placement.
+- **Gameplay Parity**: Fully implemented Models and Controllers for `FusePhase`, `Combat`, `DrawPhase`, and `MatchResult` with networked state synchronization and Zenject lifecycle support.
+- **UI Warnings**: Resolved `UIPanel` field duplication warnings (`_closeButton`) in `ShopItemContextPopup` and `DeckItemContextPopup` by leveraging base class functionality.

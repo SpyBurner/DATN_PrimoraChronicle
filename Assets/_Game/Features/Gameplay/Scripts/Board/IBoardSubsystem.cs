@@ -1,6 +1,5 @@
-using System;
-
-public interface IBoardSubsystem : IDisposable{
+public interface IBoardSubsystem : ISubsystem
+{
     IBoardModel Model { get; }
     IBoardController Controller { get; }
 }
