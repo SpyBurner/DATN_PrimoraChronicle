@@ -37,8 +37,8 @@ internal class ShopController : IShopController
         try
         {
             _debugLogger.Log($"Shop: Purchasing item {itemId}...");
-            var payload = new { itemId };
-            var response = await _httpService.Post<PurchaseResponse>("/api/shop/purchase", payload);
+            var payload = new PurchaseRequest { itemId = itemId };
+            var response = await _httpService.Post<PurchaseResponse, PurchaseRequest>("/api/shop/purchase", payload);
 
             if (response != null && response.success)
             {
@@ -64,4 +64,10 @@ internal class PurchaseResponse
 {
     public bool success;
     public int remainingGold;
+}
+
+[System.Serializable]
+internal class PurchaseRequest
+{
+    public string itemId;
 }

@@ -1621,9 +1621,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2638144179069587244}
-    - targetCorrespondingSourceObject: {fileID: 287337310614229563, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 9156298232673186992}
   m_SourcePrefab: {fileID: 100100000, guid: d6b9dd1dc00e1c5459b597bb112b398d, type: 3}
 --- !u!114 &178248773894609990 stripped
 MonoBehaviour:
@@ -1671,28 +1668,3 @@ MonoBehaviour:
   - {fileID: 5518943301979677213}
   - {fileID: 7798369937760491001}
   _deckButtonPrefab: {fileID: 349912131207401602}
---- !u!114 &9156298232673186992
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7173874680438753492}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a90bfab98ffcfc478d0b374a5f91669, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: LobbyFeatures::DeckPanel
-  _identifier: 0
-  _layer: 0
-  _closeButton: {fileID: 0}
-  _deckSlot:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  _deckButtonPrefab: {fileID: 0}

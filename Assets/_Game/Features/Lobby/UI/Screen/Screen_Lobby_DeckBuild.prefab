@@ -2109,9 +2109,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5172975548139413514, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6189690277546376456}
-    - targetCorrespondingSourceObject: {fileID: 5172975548139413514, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 227269595210655967}
     - targetCorrespondingSourceObject: {fileID: 8629099598833463130, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8190021701053633130}
@@ -2148,27 +2145,6 @@ MonoBehaviour:
   _layer: 1
   _closeButton: {fileID: 220938281464658911}
   _cardDisplayPrefab: {fileID: 5047790633237659390}
-  _championCardContainer: {fileID: 0}
-  _deckContainer: {fileID: 0}
-  _cardContainer: {fileID: 0}
-  _championPortrait: {fileID: 0}
-  _saveButton: {fileID: 0}
---- !u!114 &227269595210655967
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 654259758298662848}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 98b19ea53c5b67b48b7e045e8b654112, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: LobbyFeatures::DeckBuildPanel
-  _identifier: 0
-  _layer: 0
-  _closeButton: {fileID: 0}
-  _cardDisplayPrefab: {fileID: 0}
   _championCardContainer: {fileID: 0}
   _deckContainer: {fileID: 0}
   _cardContainer: {fileID: 0}

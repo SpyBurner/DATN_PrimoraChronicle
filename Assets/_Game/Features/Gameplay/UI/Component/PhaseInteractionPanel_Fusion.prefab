@@ -2093,7 +2093,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 209321908109194314, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 112.43
       objectReference: {fileID: 0}
     - target: {fileID: 209321908109194314, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_SizeDelta.y
@@ -2353,7 +2353,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7531524333353265785, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 95.99
       objectReference: {fileID: 0}
     - target: {fileID: 7531524333353265785, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_SizeDelta.y
@@ -2488,6 +2488,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a598d2cfd84dfca49a78c8a9d3f342f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GameplayFeatures::FusePhasePanel
+  _identifier: 0
+  _layer: 2
+  _closeButton: {fileID: 0}
 --- !u!224 &7566369642628346788 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 236464900097255098, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
