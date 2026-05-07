@@ -1,6 +1,7 @@
-using System;
+using System.Collections.Generic;
 using UnityObservables;
 
-public interface IHandModel : IDisposable{
-    void Initialize();
+public interface IHandModel : IModel
+{
+    Observable<List<string>> Cards { get; }
 }

@@ -1,6 +1,8 @@
-using System;
+using System.Collections.Generic;
+using UnityEngine.Events;
 
-public interface IHandSubsystem : IDisposable{
-    IHandModel Model { get; }
-    IHandController Controller { get; }
+public interface IHandSubsystem : ISubsystem
+{
+    event UnityAction<List<string>> CardsChanged;
+    void PlayCard(string cardId);
 }
