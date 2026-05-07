@@ -4,4 +4,6 @@ public interface IMatchMakingController : IController
 {
     Task StartMatchmaking();
     Task CancelMatchmaking();
+    Task AcceptMatch();
+    Task RejectMatch();
 }

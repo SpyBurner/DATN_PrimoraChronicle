@@ -18,6 +18,7 @@ internal class MatchMakingController : IMatchMakingController
         {
             _debugLogger.Log("MatchMaking: Starting matchmaking");
             _model.SetIsSearching(true);
+            _model.SetIsMatchFound(false);
             _model.SetStatus("Searching for opponent...");
 
             var response = await _httpService.Post<MatchMakingResponse, EmptyRequest>("/api/matchmaking/start", new EmptyRequest());
@@ -30,9 +31,13 @@ internal class MatchMakingController : IMatchMakingController
                 // Simulate wait for match
                 await Task.Delay(3000);
                 
-                _debugLogger.Log("MatchMaking: Match found, loading Gameplay scene");
-                _model.SetStatus("Match found!");
-                await _sceneLoader.LoadScene("Gameplay");
+                _debugLogger.Log("MatchMaking: Match found! Waiting for confirmation.");
+                _model.SetIsSearching(false);
+                _model.SetIsMatchFound(true);
+                _model.SetStatus("Match Found!");
+                
+                // Start confirmation timer
+                await StartConfirmationTimer(10);
             }
             else
             {
@@ -48,6 +53,39 @@ internal class MatchMakingController : IMatchMakingController
         }
     }
 
+    private async Task StartConfirmationTimer(int seconds)
+    {
+        for (int i = seconds; i >= 0; i--)
+        {
+            if (!_model.IsMatchFound.Value) break;
+            _model.SetConfirmationTimer(i);
+            await Task.Delay(1000);
+        }
+
+        if (_model.IsMatchFound.Value)
+        {
+            _debugLogger.Log("MatchMaking: Confirmation timeout");
+            await RejectMatch();
+        }
+    }
+
+    public async Task AcceptMatch()
+    {
+        _debugLogger.Log("MatchMaking: Match accepted, loading Gameplay scene");
+        _model.SetIsMatchFound(false);
+        _model.SetStatus("Joining match...");
+        await _sceneLoader.LoadScene("Gameplay");
+    }
+
+    public async Task RejectMatch()
+    {
+        _debugLogger.Log("MatchMaking: Match rejected");
+        _model.SetIsMatchFound(false);
+        _model.SetStatus("Match canceled");
+        await Task.Delay(1000);
+        _model.SetStatus(string.Empty);
+    }
+
     public async Task CancelMatchmaking()
     {
         try
@@ -55,6 +93,7 @@ internal class MatchMakingController : IMatchMakingController
             _debugLogger.Log("MatchMaking: Canceling matchmaking");
             await _httpService.Post<EmptyRequest>("/api/matchmaking/cancel", new EmptyRequest());
             _model.SetIsSearching(false);
+            _model.SetIsMatchFound(false);
             _model.SetStatus(string.Empty);
             _model.SetQueuePosition(0);
         }
