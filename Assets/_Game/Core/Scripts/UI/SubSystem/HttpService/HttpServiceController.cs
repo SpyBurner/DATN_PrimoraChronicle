@@ -93,7 +93,8 @@ internal class HttpServiceController : IHttpServiceController
 
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    _debugLogger.LogError($"HttpService GET failed: {formattedUrl} - {request.error}");
+                    string errorDetail = request.downloadHandler?.text;
+                    _debugLogger.LogError($"HttpService GET failed: {formattedUrl} - {request.error}\nDetail: {errorDetail}");
                     throw new Exception($"HTTP GET failed: {request.error}");
                 }
 
@@ -138,7 +139,8 @@ internal class HttpServiceController : IHttpServiceController
 
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    _debugLogger.LogError($"HttpService POST failed: {formattedUrl} - {request.error}");
+                    string errorDetail = request.downloadHandler?.text;
+                    _debugLogger.LogError($"HttpService POST failed: {formattedUrl} - {request.error}\nDetail: {errorDetail}");
                     throw new Exception($"HTTP POST failed: {request.error}");
                 }
 

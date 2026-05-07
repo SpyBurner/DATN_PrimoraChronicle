@@ -52,11 +52,11 @@ public class LobbyMainPanel : UIPanel
         _lobbyMain.AvatarUrlChanged -= OnAvatarUrlChanged;
     }
 
-    private void OnProfile() => _uiManager.ShowScreen<ProfilePanel>();
-    private void OnBattle() => _uiManager.ShowScreen<BattlePanel>();
-    private void OnDeck() => _uiManager.ShowScreen<DeckPanel>();
-    private void OnShop() => _uiManager.ShowScreen<ShopPanel>();
-    private void OnSettings() => _uiManager.ShowScreen<SettingPanel>();
+    private void OnProfile() => _uiManager.Show<ProfilePanel>();
+    private void OnBattle() => _uiManager.Show<BattlePanel>();
+    private void OnDeck() => _uiManager.Show<DeckPanel>();
+    private void OnShop() => _uiManager.Show<ShopPanel>();
+    private void OnSettings() => _uiManager.Show<SettingPanel>();
     private void OnLogout() => _lobbyMain.Logout();
 
     private void OnUsernameChanged(string username)

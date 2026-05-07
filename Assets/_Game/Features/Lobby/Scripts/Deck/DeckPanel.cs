@@ -49,7 +49,7 @@ public class DeckPanel : UIPanel
             deckButton.Initialize(deck, () => 
             {
                 _deckBuild.LoadDeck(deck.id);
-                _uiManager.ShowScreen<DeckBuildPanel>();
+                _uiManager.Show<DeckBuildPanel>();
             });
             
             deckButton.gameObject.name = string.IsNullOrWhiteSpace(deck.name)

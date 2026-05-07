@@ -25,11 +25,11 @@ internal class AccountRegisterController : IAccountRegisterController
             _model.SetErrorMessage(string.Empty);
             _model.SetIsSubmitting(true);
 
-            string email = _model.Email.Value;
+            string username = _model.Email.Value; // We use the email field as username in the BE
             string password = _model.Password.Value;
             string confirmPassword = _model.ConfirmPassword.Value;
 
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword))
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword))
             {
                 _model.SetErrorMessage("All fields are required.");
                 _model.SetIsSubmitting(false);
@@ -43,15 +43,15 @@ internal class AccountRegisterController : IAccountRegisterController
                 return;
             }
 
-            _debugLogger.Log($"Attempting registration for {email}");
+            _debugLogger.Log($"Attempting registration for {username}");
 
-            var payload = new { email, password };
+            var payload = new { username, password };
             var response = await _httpService.Post<RegisterResponse>("/api/auth/register", payload);
 
-            if (response != null && !string.IsNullOrEmpty(response.token))
+            if (response != null && response.user != null && !string.IsNullOrEmpty(response.token))
             {
-                await _authSession.StoreSession(response.userId, response.token);
-                _debugLogger.Log($"Registration successful. Loading Lobby scene.");
+                await _authSession.StoreSession(response.user.ID, response.token);
+                _debugLogger.Log($"Registration successful for {response.user.username}. Loading Lobby scene.");
                 await _sceneLoader.LoadScene("Lobby");
             }
             else
@@ -74,6 +74,14 @@ internal class AccountRegisterController : IAccountRegisterController
 [System.Serializable]
 internal class RegisterResponse
 {
-    public string userId;
     public string token;
+    public UserDataResponse user;
+}
+
+[System.Serializable]
+internal class UserDataResponse
+{
+    public string ID;
+    public string username;
+    public int gold;
 }

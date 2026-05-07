@@ -45,7 +45,7 @@ public class AccountLoginPanel : UIPanel
 
     private void OnRegister()
     {
-        _uiManager.ShowScreen<AccountRegisterPanel>();
+        _uiManager.Show<AccountRegisterPanel>();
     }
 
     private void OnErrorMessageChanged(string errorMessage)

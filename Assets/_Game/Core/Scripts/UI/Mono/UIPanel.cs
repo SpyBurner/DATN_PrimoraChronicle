@@ -52,6 +52,6 @@ public class UIPanel : MonoBehaviour, IUIPanel
 
     protected virtual void OnClose()
     {
-        _uiManagerSubsystem.CloseView(this);
+        _uiManagerSubsystem.Close(this);
     }
 }

@@ -24,25 +24,25 @@ internal class AccountLoginController : IAccountLoginController
             _model.SetErrorMessage(string.Empty);
             _model.SetIsSubmitting(true);
 
-            string email = _model.Email.Value;
+            string username = _model.Email.Value; // We use the email field as username in the BE
             string password = _model.Password.Value;
 
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                _model.SetErrorMessage("Email and password are required.");
+                _model.SetErrorMessage("Username and password are required.");
                 _model.SetIsSubmitting(false);
                 return;
             }
 
-            _debugLogger.Log($"Attempting login for {email}");
+            _debugLogger.Log($"Attempting login for {username}");
 
-            var payload = new { email, password };
+            var payload = new { username, password };
             var response = await _httpService.Post<LoginResponse>("/api/auth/login", payload);
 
-            if (response != null && !string.IsNullOrEmpty(response.token))
+            if (response != null && response.user != null && !string.IsNullOrEmpty(response.token))
             {
-                await _authSession.StoreSession(response.userId, response.token);
-                _debugLogger.Log($"Login successful. Loading Lobby scene.");
+                await _authSession.StoreSession(response.user.ID, response.token);
+                _debugLogger.Log($"Login successful for {response.user.username}. Loading Lobby scene.");
                 await _sceneLoader.LoadScene("Lobby");
             }
             else
@@ -65,6 +65,14 @@ internal class AccountLoginController : IAccountLoginController
 [System.Serializable]
 internal class LoginResponse
 {
-    public string userId;
     public string token;
+    public UserDataResponse user;
+}
+
+[System.Serializable]
+internal class UserDataResponse
+{
+    public string ID;
+    public string username;
+    public int gold;
 }

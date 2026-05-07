@@ -49,7 +49,7 @@ public class AccountRegisterPanel : UIPanel
 
     private void OnBack()
     {
-        _uiManager.ShowScreen<AccountLoginPanel>();
+        _uiManager.Show<AccountLoginPanel>();
     }
 
     private void OnErrorMessageChanged(string errorMessage)

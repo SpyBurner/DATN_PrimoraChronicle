@@ -24,7 +24,7 @@ public class BattlePanel : UIPanel
     // D2: Navigation in View via UIManager — IBattleSubsystem has no StartMatchmaking
     private void OnStartMatchmaking() {
         // Pending changes
-        //_uiManager.ShowScreen<MatchMakingPanel>()
+        //_uiManager.Show<MatchMakingPanel>()
     }
 }
 

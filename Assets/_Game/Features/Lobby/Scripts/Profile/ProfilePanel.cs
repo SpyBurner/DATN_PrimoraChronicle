@@ -41,7 +41,7 @@ public class ProfilePanel : UIPanel
     }
 
     // D1: Navigation in View directly via UIManager — not through subsystem
-    private void OnMatchHistory() => _uiManager.ShowScreen<MatchHistoryPanel>();
+    private void OnMatchHistory() => _uiManager.Show<MatchHistoryPanel>();
 
     private void OnUsernameChanged(string username)
     {
