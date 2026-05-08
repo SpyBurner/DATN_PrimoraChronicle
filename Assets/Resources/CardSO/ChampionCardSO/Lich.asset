@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Lich
   m_EditorClassIdentifier: Core::Core.ChampionCardSO
   ID: e40030b3f29bdac4e9fce67c713a5c5b
+  StringID: Lich
   CardType: 1
+  Rarity: 0
   CardName: Lich
   Description: DEATH
   Cost: 0
@@ -26,3 +28,6 @@ MonoBehaviour:
   Speed: 0
   Hp: 0
   Damage: 0
+  DeathAnchor: 0
+  AttackRange: 0
+  MoveRange: 0

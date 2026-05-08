@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Core;
+using UnityEngine;
 using Zenject;
 
 internal class DeckBuildController : IDeckBuildController
@@ -11,6 +12,7 @@ internal class DeckBuildController : IDeckBuildController
     [Inject] private readonly IDeckBuildModel _model;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
     [Inject] private readonly ICardLoadingManagerSubsystem _cardLoadingManager;
+    [Inject] private readonly IAuthSessionModel _authSessionModel;
 
     public void Initialize() { }
     public void Dispose() { }
@@ -25,7 +27,7 @@ internal class DeckBuildController : IDeckBuildController
             if (response != null)
             {
                 _model.SetCurrentDeck(response.id, response.name);
-                
+
                 List<CardSO> deckCards = new();
                 List<CardSO> championCards = new();
 
@@ -48,7 +50,8 @@ internal class DeckBuildController : IDeckBuildController
                     }
                 }
 
-                _model.SetRenderData(deckCards, championCards, GetAvailableCards());
+                List<CardSO> availableCards = await GetAllCollection(deckCards);
+                _model.SetRenderData(deckCards, championCards, availableCards);
                 _debugLogger.Log($"DeckBuild: Loaded deck '{response.name}' with {deckCards.Count} cards and {championCards.Count} champions");
             }
             else
@@ -62,12 +65,21 @@ internal class DeckBuildController : IDeckBuildController
         }
     }
 
+    public async Task CreateEmptyDeck()
+    {
+        _debugLogger.Log("DeckBuild: Creating empty deck");
+        _model.SetCurrentDeck(string.Empty, string.Empty);
+        List<CardSO> availableCards = await GetAllCollection();
+        _model.SetRenderData(Array.Empty<CardSO>(), Array.Empty<CardSO>(), availableCards);
+    }
+
     public void AddCardToDeck(CardSO card)
     {
         if (card == null) return;
 
         var deckCards = new List<CardSO>(_model.DeckCards.Value);
         var championCards = new List<CardSO>(_model.ChampionCards.Value);
+        var availableCards = new List<CardSO>(_model.AvailableCards.Value);
 
         if (card is ChampionCardSO championCard)
         {
@@ -76,9 +88,10 @@ internal class DeckBuildController : IDeckBuildController
         else
         {
             deckCards.Add(card);
+            RemoveFirstMatchingCard(availableCards, card);
         }
 
-        _model.SetRenderData(deckCards, championCards, _model.AvailableCards.Value);
+        _model.SetRenderData(deckCards, championCards, availableCards);
     }
 
     public void RemoveCardFromDeck(CardSO card)
@@ -87,6 +100,7 @@ internal class DeckBuildController : IDeckBuildController
 
         var deckCards = new List<CardSO>(_model.DeckCards.Value);
         var championCards = new List<CardSO>(_model.ChampionCards.Value);
+        var availableCards = new List<CardSO>(_model.AvailableCards.Value);
 
         if (card is ChampionCardSO)
         {
@@ -95,9 +109,10 @@ internal class DeckBuildController : IDeckBuildController
         else
         {
             deckCards.Remove(card);
+            availableCards.Add(card);
         }
 
-        _model.SetRenderData(deckCards, championCards, _model.AvailableCards.Value);
+        _model.SetRenderData(deckCards, championCards, availableCards);
     }
 
     public async Task SaveDeck()
@@ -106,20 +121,29 @@ internal class DeckBuildController : IDeckBuildController
         {
             string deckId = _model.CurrentDeckId.Value;
             string deckName = _model.CurrentDeckName.Value;
-            
+            string userId = _authSessionModel.CurrentUserId.Value;
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _debugLogger.LogError("DeckBuild: Cannot save deck without a current user id");
+                return;
+            }
+
             _debugLogger.Log($"DeckBuild: Saving deck {deckName} ({deckId})");
 
             List<string> cardIds = _model.DeckCards.Value.Select(c => c.ID).ToList();
             cardIds.AddRange(_model.ChampionCards.Value.Select(c => c.ID));
 
             var payload = new SaveDeckRequest
-            { 
+            {
                 id = deckId,
-                name = deckName, 
-                cardIds = cardIds 
+                userId = userId,
+                name = deckName,
+                cardIds = cardIds
             };
-            
-            await _httpService.Post<SaveDeckRequest>($"/api/decks/save", payload);
+
+            string encodedUserId = Uri.EscapeDataString(userId);
+            await _httpService.Post<SaveDeckRequest>($"/api/decks/save?user_id={encodedUserId}", payload);
             _debugLogger.Log("DeckBuild: Deck saved successfully");
         }
         catch (Exception ex)
@@ -130,10 +154,118 @@ internal class DeckBuildController : IDeckBuildController
 
     private List<CardSO> GetAvailableCards()
     {
-        var allCards = _cardLoadingManager.GetCardsById().Values;
-        // Return all non-champion cards as available for building? 
-        // Or all cards including champions? 
-        // For now, return everything.
-        return allCards.ToList();
+        List<CardSO> availableCards = new();
+        availableCards.AddRange(_cardLoadingManager.GetTroopCardList().Values);
+        availableCards.AddRange(_cardLoadingManager.GetSpellCardList().Values);
+        return availableCards;
+    }
+
+    private async Task<List<CardSO>> GetAllCollection(IEnumerable<CardSO> cardsAlreadyInDeck = null)
+    {
+        string userId = _authSessionModel.CurrentUserId.Value;
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            _debugLogger.LogError("DeckBuild: Cannot load available cards without a current user id");
+            return new List<CardSO>();
+        }
+
+        string encodedUserId = Uri.EscapeDataString(userId);
+        string responseJson = await _httpService.Get($"/api/collection/card-copies?user_id={encodedUserId}");
+        Debug.Log($"DeckBuild: Received card copies response: {responseJson}");
+        CollectionCardCopyResponse[] cardCopies = DeserializeArray<CollectionCardCopyResponse>(responseJson);
+
+        Dictionary<string, int> copyCountsByStringId = new(StringComparer.Ordinal);
+        foreach (CollectionCardCopyResponse cardCopy in cardCopies)
+        {
+            if (cardCopy == null || string.IsNullOrWhiteSpace(cardCopy.StringID))
+            {
+                continue;
+            }
+
+            copyCountsByStringId.TryGetValue(cardCopy.StringID, out int count);
+            copyCountsByStringId[cardCopy.StringID] = count + 1;
+        }
+
+        if (cardsAlreadyInDeck != null)
+        {
+            foreach (CardSO deckCard in cardsAlreadyInDeck)
+            {
+                if (deckCard == null || string.IsNullOrWhiteSpace(deckCard.ID))
+                {
+                    continue;
+                }
+
+                if (copyCountsByStringId.TryGetValue(deckCard.ID, out int count) && count > 0)
+                {
+                    copyCountsByStringId[deckCard.ID] = count - 1;
+                }
+            }
+        }
+
+        List<CardSO> availableCards = new();
+        AppendCopies(availableCards, _cardLoadingManager.GetTroopCardList().Values, copyCountsByStringId);
+        AppendCopies(availableCards, _cardLoadingManager.GetSpellCardList().Values, copyCountsByStringId);
+        return availableCards;
+    }
+
+    private static void AppendCopies(List<CardSO> target, IEnumerable<CardSO> sourceCards, IReadOnlyDictionary<string, int> copyCountsByStringId)
+    {
+        foreach (CardSO card in sourceCards)
+        {
+            if (card == null || string.IsNullOrWhiteSpace(card.ID))
+            {
+                continue;
+            }
+
+            if (!copyCountsByStringId.TryGetValue(card.ID, out int copyCount) || copyCount <= 0)
+            {
+                continue;
+            }
+
+            for (int index = 0; index < copyCount; index++)
+            {
+                target.Add(card);
+            }
+        }
+    }
+
+    private static void RemoveFirstMatchingCard(List<CardSO> cards, CardSO targetCard)
+    {
+        if (targetCard == null)
+        {
+            return;
+        }
+
+        int index = cards.FindIndex(card => card != null && card.ID == targetCard.ID);
+        if (index >= 0)
+        {
+            cards.RemoveAt(index);
+        }
+    }
+
+    private static T[] DeserializeArray<T>(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return Array.Empty<T>();
+        }
+
+        string wrappedJson = $"{{\"items\":{json}}}";
+        ArrayWrapper<T> wrapper = JsonUtility.FromJson<ArrayWrapper<T>>(wrappedJson);
+        return wrapper?.items ?? Array.Empty<T>();
+    }
+
+    [Serializable]
+    private class ArrayWrapper<T>
+    {
+        public T[] items;
+    }
+
+    [Serializable]
+    private class CollectionCardCopyResponse
+    {
+        public string ID;
+        public string cardID;
+        public string StringID;
     }
 }

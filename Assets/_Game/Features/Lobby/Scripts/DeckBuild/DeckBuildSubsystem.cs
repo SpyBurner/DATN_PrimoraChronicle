@@ -45,6 +45,7 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
     }
 
     public Task LoadDeck(string deckId) => _controller.LoadDeck(deckId);
+    public Task CreateEmptyDeck() => _controller.CreateEmptyDeck();
     public void AddCardToDeck(CardSO card) => _controller.AddCardToDeck(card);
     public void RemoveCardFromDeck(CardSO card) => _controller.RemoveCardFromDeck(card);
     public Task SaveDeck() => _controller.SaveDeck();

@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Duhallan
   m_EditorClassIdentifier: Core::Core.TroopCardSO
   ID: 0774c20861db0654bb3ca361d25bd259
+  StringID: Duhallan
   CardType: 2
+  Rarity: 0
   CardName: ddd
   Description: aaa
   Cost: 0
@@ -22,3 +24,6 @@ MonoBehaviour:
   Speed: 0
   Hp: 0
   Damage: 0
+  DeathAnchor: 0
+  AttackRange: 0
+  MoveRange: 0

@@ -14,6 +14,7 @@ public interface IDeckBuildSubsystem : ISubsystem
     event UnityAction<bool> IsValidChanged;
 
     Task LoadDeck(string deckId);
+    Task CreateEmptyDeck();
     void AddCardToDeck(CardSO card);
     void RemoveCardFromDeck(CardSO card);
     Task SaveDeck();

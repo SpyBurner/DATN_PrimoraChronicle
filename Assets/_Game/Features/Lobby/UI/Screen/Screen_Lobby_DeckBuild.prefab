@@ -307,7 +307,7 @@ GameObject:
   - component: {fileID: 2189192273042153040}
   - component: {fileID: 6232253538346618446}
   m_Layer: 0
-  m_Name: ChampionCardsSection (2)
+  m_Name: AvailableCardsSection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1940,6 +1940,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7420160981918794664, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
   m_PrefabInstance: {fileID: 5262184121216865119}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6422300083473229744 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1164074357244769519, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
+  m_PrefabInstance: {fileID: 5262184121216865119}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1001 &5683116200273913802
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2145,11 +2156,11 @@ MonoBehaviour:
   _layer: 1
   _closeButton: {fileID: 220938281464658911}
   _cardDisplayPrefab: {fileID: 5047790633237659390}
-  _championCardContainer: {fileID: 0}
-  _deckContainer: {fileID: 0}
-  _cardContainer: {fileID: 0}
-  _championPortrait: {fileID: 0}
-  _saveButton: {fileID: 0}
+  _championCardContainer: {fileID: 8198257236290436442}
+  _deckContainer: {fileID: 9191484528729135062}
+  _cardContainer: {fileID: 2261024068549738601}
+  _championPortrait: {fileID: 6422300083473229744}
+  _saveButton: {fileID: 7273423225697571273}
 --- !u!1 &4115942954679863440 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8629099598833463130, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
@@ -2526,6 +2537,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 918675243931769332, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
   m_PrefabInstance: {fileID: 6129109842824228638}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7273423225697571273 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3602487238759612119, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
+  m_PrefabInstance: {fileID: 6129109842824228638}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3710833358118182796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &6167008761516889128
 PrefabInstance:
   m_ObjectHideFlags: 0

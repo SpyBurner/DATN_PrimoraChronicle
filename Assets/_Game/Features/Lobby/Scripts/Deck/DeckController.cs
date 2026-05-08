@@ -9,6 +9,7 @@ internal class DeckController : IDeckController
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IDeckModel _model;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
+    [Inject] private readonly IAuthSessionModel _authSessionModel;
 
     public void Initialize() { }
     public void Dispose() { }
@@ -17,9 +18,16 @@ internal class DeckController : IDeckController
     {
         try
         {
-            _debugLogger.Log("Deck: Loading decks from server");
-            var response = await _httpService.Get<DecksListResponse>("/api/decks");
+            string userId = _authSessionModel.CurrentUserId.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _debugLogger.LogError("Deck: Cannot load decks without a current user id");
+                return;
+            }
 
+            _debugLogger.Log("Deck: Loading decks from server");
+            string encodedUserId = Uri.EscapeDataString(userId);
+            var response = await _httpService.Get<DecksListResponse>($"/api/decks?user_id={encodedUserId}");
             if (response != null && response.decks != null)
             {
                 List<DeckSummaryData> decks = new(response.decks);

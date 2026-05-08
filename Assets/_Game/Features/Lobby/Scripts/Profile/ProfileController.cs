@@ -7,13 +7,22 @@ internal class ProfileController : IProfileController
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IProfileModel _model;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
+    [Inject] private readonly IAuthSessionModel _authSessionModel;
 
     public async void Initialize()
     {
         try
         {
+            string userId = _authSessionModel.CurrentUserId.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _debugLogger.LogError("Profile: Cannot load profile details without a current user id");
+                return;
+            }
+
             _debugLogger.Log("Profile: Initializing — fetching profile details");
-            var profile = await _httpService.Get<ProfileDetailResponse>("/api/users/me");
+            string encodedUserId = Uri.EscapeDataString(userId);
+            var profile = await _httpService.Get<ProfileDetailResponse>($"/api/users/me?user_id={encodedUserId}");
 
             if (profile != null)
             {

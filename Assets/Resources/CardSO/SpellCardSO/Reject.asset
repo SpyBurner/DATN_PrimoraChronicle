@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Reject
   m_EditorClassIdentifier: Core::Core.SpellCardSO
   ID: 37efbe4509653be47a66d10d8352235b
+  StringID: Reject
   CardType: 3
+  Rarity: 0
   CardName: reject
   Description: 
   Cost: 0

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Zenject;
 
 public class DeckPanel : UIPanel
@@ -25,7 +26,7 @@ public class DeckPanel : UIPanel
         Debug.Log("[DeckPanel] OnEnable called.");
         base.OnEnable();
         _deck.DecksChanged += RenderDecks;
-        
+
         Debug.Log("[DeckPanel] Requesting LoadDecks from subsystem.");
         _deck.LoadDecks();
     }
@@ -42,8 +43,9 @@ public class DeckPanel : UIPanel
     {
         Debug.Log($"[DeckPanel] RenderDecks called with {loadedDecks?.Count ?? 0} decks.");
         ClearDeckButtons();
+        ConfigureEmptySlotButtons(loadedDecks?.Count ?? 0);
 
-        if (loadedDecks == null) 
+        if (loadedDecks == null)
         {
             Debug.LogWarning("[DeckPanel] loadedDecks is null.");
             return;
@@ -59,7 +61,7 @@ public class DeckPanel : UIPanel
                 Debug.LogWarning($"[DeckPanel] Slot at index {index} is null.");
                 continue;
             }
-            
+
             if (_deckButtonPrefab == null)
             {
                 Debug.LogError("[DeckPanel] _deckButtonPrefab is null! Cannot spawn buttons.");
@@ -68,14 +70,15 @@ public class DeckPanel : UIPanel
 
             DeckSummaryData deck = loadedDecks[index];
             DeckButton deckButton = Instantiate(_deckButtonPrefab, _deckSlot[index].transform);
-            
-            deckButton.Initialize(deck, () => 
+            ClearSlotButton(_deckSlot[index]);
+
+            deckButton.Initialize(deck, async () =>
             {
                 Debug.Log($"[DeckPanel] Deck button clicked: {deck.id}");
-                _deckBuild.LoadDeck(deck.id);
-                _uiManager.Show<DeckBuildPanel>();
+                await _deckBuild.LoadDeck(deck.id);
+                await OpenDeckBuildPanel();
             });
-            
+
             deckButton.gameObject.name = string.IsNullOrWhiteSpace(deck.name)
                 ? $"DeckButton_{index}"
                 : deck.name;
@@ -100,5 +103,59 @@ public class DeckPanel : UIPanel
             }
         }
         _spawnedDeckButtons.Clear();
+    }
+
+    private void ConfigureEmptySlotButtons(int filledSlotCount)
+    {
+        for (int index = 0; index < _deckSlot.Length; index++)
+        {
+            GameObject slot = _deckSlot[index];
+            if (slot == null)
+            {
+                continue;
+            }
+
+            if (index < filledSlotCount)
+            {
+                ClearSlotButton(slot);
+                continue;
+            }
+
+            Button slotButton = slot.GetComponent<Button>();
+            if (slotButton == null)
+            {
+                continue;
+            }
+
+            slotButton.onClick.RemoveAllListeners();
+            slotButton.onClick.AddListener(OpenEmptyDeckBuilder);
+        }
+    }
+
+    private void ClearSlotButton(GameObject slot)
+    {
+        if (slot == null)
+        {
+            return;
+        }
+
+        Button slotButton = slot.GetComponent<Button>();
+        if (slotButton != null)
+        {
+            slotButton.onClick.RemoveAllListeners();
+        }
+    }
+
+    private async void OpenEmptyDeckBuilder()
+    {
+        Debug.Log("[DeckPanel] Empty deck slot clicked.");
+        await _deckBuild.CreateEmptyDeck();
+        await OpenDeckBuildPanel();
+    }
+
+    private async System.Threading.Tasks.Task OpenDeckBuildPanel()
+    {
+        await _uiManager.Close(this);
+        await _uiManager.Show<DeckBuildPanel>();
     }
 }
