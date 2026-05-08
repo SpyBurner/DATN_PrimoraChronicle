@@ -1,14 +1,61 @@
 using System;
 using System.Threading.Tasks;
+using UnityEngine.Events;
+using UnityObservables;
 using Zenject;
 
-public class AccountRegisterSubsystem : IAccountRegisterSubsystem, IInitializable, IDisposable
+public class AccountRegisterSubsystem : IAccountRegisterSubsystem
 {
     [Inject] private readonly IAccountRegisterController _controller;
+    [Inject] private readonly IAccountRegisterModel _model;
 
-    public void Initialize() { }
-    public void Dispose() { }
+    public event UnityAction<string> ErrorMessageChanged;
+    public event UnityAction<bool> IsSubmittingChanged;
 
-    public Task Register(string email, string password, string confirmPassword) => _controller.Register(email, password, confirmPassword);
-    public void NavigateToLogin() => _controller.NavigateToLogin();
+    public void Initialize()
+    {
+        if (_model?.ErrorMessage != null)
+            _model.ErrorMessage.OnChanged += HandleErrorMessageChanged;
+
+        if (_model?.IsSubmitting != null)
+            _model.IsSubmitting.OnChanged += HandleIsSubmittingChanged;
+    }
+
+    public void Dispose()
+    {
+        if (_model?.ErrorMessage != null)
+            _model.ErrorMessage.OnChanged -= HandleErrorMessageChanged;
+
+        if (_model?.IsSubmitting != null)
+            _model.IsSubmitting.OnChanged -= HandleIsSubmittingChanged;
+    }
+
+    public void SetEmail(string email) => _controller.SetEmail(email);
+    public void SetPassword(string password) => _controller.SetPassword(password);
+    public void SetConfirmPassword(string confirmPassword) => _controller.SetConfirmPassword(confirmPassword);
+    public Task Register() => _controller.Register();
+
+    private void HandleErrorMessageChanged()
+    {
+        try
+        {
+            ErrorMessageChanged?.Invoke(_model.ErrorMessage.Value);
+        }
+        catch (Exception)
+        {
+            // swallow
+        }
+    }
+
+    private void HandleIsSubmittingChanged()
+    {
+        try
+        {
+            IsSubmittingChanged?.Invoke(_model.IsSubmitting.Value);
+        }
+        catch (Exception)
+        {
+            // swallow
+        }
+    }
 }

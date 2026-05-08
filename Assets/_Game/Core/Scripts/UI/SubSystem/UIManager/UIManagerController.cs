@@ -8,16 +8,15 @@ using Zenject;
 
 internal class UIManagerController : IUIManagerController
 {
-    [Inject]
-    private readonly IUIManagerModel _model;
-    [Inject]
-    private readonly UIMappingSO _uiMapping;
-    [Inject]
-    private readonly DiContainer _container;
-    [Inject]
-    private readonly SceneContextRegistry _sceneContextRegistry;
+    [Inject] private readonly IUIManagerModel _model;
+    [Inject] private readonly UIMappingSO _uiMapping;
+    [Inject] private readonly DiContainer _container;
+    [Inject] private readonly SceneContextRegistry _sceneContextRegistry;
 
-    private UIRoot _uiRoot;
+    private bool _isInternalOperation = false;
+
+    public void Initialize() { }
+    public void Dispose() { }
 
     public void RegisterPanel(IUIPanel panel)
     {
@@ -32,6 +31,8 @@ internal class UIManagerController : IUIManagerController
             _model.PanelsByLayer.Value[panel.Layer] = new List<IUIPanel>();
         }
         _model.PanelsByLayer.Value[panel.Layer].Add(panel);
+        
+        Debug.Log($"[UIManager] Registered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
     }
 
     public void UnregisterPanel(IUIPanel panel)
@@ -47,21 +48,25 @@ internal class UIManagerController : IUIManagerController
                     _model.PanelsByLayer.Value.Remove(panel.Layer);
                 }
             }
+            Debug.Log($"[UIManager] Unregistered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
         }
     }
+
     public void RegisterUIRoot(UIRoot uIRoot)
     {
-        if (_uiRoot != null)
+        if (_model.UIRoot.Value != null)
         {
             UnregisterUIRoot();
         }
-        _uiRoot = uIRoot;
+        _model.UIRoot.Value = uIRoot;
     }
+
     public void UnregisterUIRoot()
     {
-        _uiRoot = null;
+        _model.UIRoot.Value = null;
     }
-    public UIRoot GetUIRoot() => _uiRoot;
+
+    public UIRoot GetUIRoot() => _model.UIRoot.Value;
 
     public T GetPanel<T>() where T : class, IUIPanel
     {
@@ -72,63 +77,120 @@ internal class UIManagerController : IUIManagerController
         throw new Exception($"Panel of type {typeof(T)} not found.");
     }
 
-    public async Task ShowScreen<T>() where T : class, IUIPanel
+    public async Task Show<T>() where T : class, IUIPanel
     {
         var prefab = _uiMapping.GetPrefabByClassType(typeof(T));
-        await ShowView(prefab.gameObject);
+        if (prefab == null)
+        {
+            Debug.LogError($"[UIManager] No prefab found in UIMappingSO for class type {typeof(T).Name}");
+            return;
+        }
+        await Show(prefab.gameObject);
     }
 
     public async Task ShowDefaultScreenForScene(string sceneName = null)
     {
-        Debug.Log($"Showing default screen for scene: {sceneName}");
         sceneName ??= SceneManager.GetActiveScene().name;
+        Debug.Log($"[UIManager] Showing default screen for scene: {sceneName}");
         var prefab = _uiMapping.GetDefaultPrefabBySceneName(sceneName);
-        await ShowView(prefab.gameObject);
+        if (prefab != null)
+        {
+            await Show(prefab.gameObject);
+        }
+        else
+        {
+            Debug.LogWarning($"[UIManager] No default UI mapping found for scene '{sceneName}'");
+        }
     }
 
-    public async Task ShowView(GameObject prefab)
+    public async Task Show(GameObject prefab)
     {
         if (prefab == null)
         {
             throw new Exception("Prefab cannot be null.");
         }
-        var uiPanel = prefab.GetComponent<IUIPanel>();
-        Debug.Log($"uiroot is null: {_uiRoot == null}, prefab has UIPanel: {uiPanel != null}");
 
-        // Prevent duplicate panels of the same type
-        if (uiPanel != null && _model.Panels.Value.ContainsKey(uiPanel.GetType()))
+        _isInternalOperation = true;
+        try
         {
-            Debug.LogWarning($"[UIManager] Panel of type {uiPanel.GetType().Name} is already shown. Skipping duplicate ShowView.");
-            return;
-        }
+            var uiPanel = prefab.GetComponent<IUIPanel>();
+            var uiRoot = _model.UIRoot.Value;
 
-        var parent = uiPanel != null ? _uiRoot.GetLayerParent(uiPanel.Layer) : _uiRoot.transform;
-        var activeScene = SceneManager.GetActiveScene();
-        var containerToUse = _sceneContextRegistry.TryGetContainerForScene(activeScene) ?? _container;
-        var instance = containerToUse.InstantiatePrefab(prefab, parent);
-        var panel = instance.GetComponent<IUIPanel>();
-        panel?.Show();
+            if (uiRoot == null)
+            {
+                Debug.LogError("[UIManager] Cannot ShowView because UIRoot is null in current scene.");
+                return;
+            }
+
+            // Prevent duplicate panels of the same type
+            if (uiPanel != null && _model.Panels.Value.TryGetValue(uiPanel.GetType(), out var existingPanel))
+            {
+                Debug.LogWarning($"[UIManager] Panel of type {uiPanel.GetType().Name} is already registered. Ensuring it is shown.");
+                existingPanel.Show();
+                return;
+            }
+
+            // Close existing panels in the same layer (if not POPUP or HUD)
+            if (uiPanel != null && uiPanel.Layer != UILayer.POPUP && uiPanel.Layer != UILayer.HUD &&
+                _model.PanelsByLayer.Value.TryGetValue(uiPanel.Layer, out var existingPanels))
+            {
+                var panelsToClose = new List<IUIPanel>(existingPanels);
+                foreach (var panel in panelsToClose)
+                {
+                    await Close(panel);
+                }
+            }
+
+            var parent = uiPanel != null ? uiRoot.GetLayerParent(uiPanel.Layer) : uiRoot.transform;
+            var activeScene = SceneManager.GetActiveScene();
+            var containerToUse = _sceneContextRegistry.TryGetContainerForScene(activeScene) ?? _container;
+            
+            Debug.Log($"[UIManager] Instantiating prefab '{prefab.name}' for scene '{activeScene.name}' (Container: {(containerToUse == _container ? "Global" : "Scene")})");
+            
+            var instance = containerToUse.InstantiatePrefab(prefab, parent);
+            instance.SetActive(true); // Ensure instance is active
+            
+            var panelInstance = instance.GetComponent<IUIPanel>();
+            if (panelInstance != null)
+            {
+                Debug.Log($"[UIManager] Calling Show() on panel '{panelInstance.GetType().Name}'");
+                panelInstance.Show();
+                Debug.Log($"[UIManager] {panelInstance.GetType().Name} state: activeSelf={instance.activeSelf}, activeInHierarchy={instance.activeInHierarchy}");
+            }
+            else
+            {
+                Debug.LogError($"[UIManager] Prefab '{prefab.name}' does not have an IUIPanel component on its root!");
+            }
+        }
+        finally
+        {
+            _isInternalOperation = false;
+        }
     }
-    public async Task CloseView(IUIPanel panel)
+
+    public async Task Close(IUIPanel panel)
     {
+        if (panel == null) return;
+        
+        var typeName = panel.GetType().Name;
         panel.Hide();
-        GameObject.Destroy((panel as MonoBehaviour).gameObject);
+        var go = (panel as MonoBehaviour).gameObject;
+        
+        // Immediately unregister to reflect accurate count for auto-show logic
+        UnregisterPanel(panel);
+        
+        GameObject.Destroy(go);
         await Task.Yield();
-        // NOTE: Do not auto-show default screen here — the caller is responsible for
-        // showing the next panel (e.g. via ShowScreen<T>()). The old fallback raced with
-        // Start()-based RegisterPanel and caused duplicate panels to spawn.
+        
+        // If this wasn't part of an internal transition and no UI is left, show default
+        if (!_isInternalOperation && _model.Panels.Value.Count == 0)
+        {
+            Debug.Log($"[UIManager] Last panel '{typeName}' closed and no UI panels left. Showing default screen for current scene.");
+            await ShowDefaultScreenForScene();
+        }
     }
 
-    public Task ShowPopup<T>() where T : class, IUIPanel
-    {
-        if (_model.Panels.Value.TryGetValue(typeof(T), out var panel))
-        {
-            panel.Show();
-            _model.PopupStack.Value.Push(panel);
-            return Task.CompletedTask;
-        }
-        throw new Exception($"Panel of type {typeof(T)} not found.");
-    }
+    public Task ShowPopup<T>() where T : class, IUIPanel => Show<T>();
 
     public Task ClosePopup()
     {
@@ -143,13 +205,49 @@ internal class UIManagerController : IUIManagerController
 
     public async Task FadeIn()
     {
-        await Task.Yield();
+        _isInternalOperation = true;
+        try
+        {
+            if (_model.Panels.Value.TryGetValue(typeof(LoadingScreenBlackPanel), out var panel))
+            {
+                await Close(panel);
+            }
+            else
+            {
+                foreach (var p in new List<IUIPanel>(_model.Panels.Value.Values))
+                {
+                    if (p.Identifier == UIIdentifier.LOADING_SCREEN)
+                    {
+                        await Close(p);
+                        break;
+                    }
+                }
+            }
+        }
+        finally
+        {
+            _isInternalOperation = false;
+        }
     }
 
     public async Task FadeOut()
     {
-        await Task.Yield();
+        _isInternalOperation = true;
+        try
+        {
+            var prefab = _uiMapping.GetPrefabByUIID(UIIdentifier.LOADING_SCREEN);
+            if (prefab != null)
+            {
+                await Show(prefab.gameObject);
+            }
+            else
+            {
+                Debug.LogWarning("[UIManager] No prefab found for LOADING_SCREEN identifier.");
+            }
+        }
+        finally
+        {
+            _isInternalOperation = false;
+        }
     }
-
 }
-

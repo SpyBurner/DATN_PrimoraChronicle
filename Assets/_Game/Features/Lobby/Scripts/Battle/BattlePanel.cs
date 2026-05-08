@@ -4,7 +4,8 @@ using Zenject;
 
 public class BattlePanel : UIPanel
 {
-    [Inject] private readonly IBattleSubsystem _battle;
+    [Inject] private readonly IBattleSetupSubsystem _battleSetup;
+    [Inject] private readonly IUIManagerSubsystem _uiManager;
 
     [SerializeField] private Button _startMatchmakingButton;
 
@@ -20,5 +21,8 @@ public class BattlePanel : UIPanel
         _startMatchmakingButton?.onClick.RemoveListener(OnStartMatchmaking);
     }
 
-    private void OnStartMatchmaking() => _battle.StartMatchmaking();
+    private void OnStartMatchmaking()
+    {
+        _battleSetup.StartMatchmaking();
+    }
 }

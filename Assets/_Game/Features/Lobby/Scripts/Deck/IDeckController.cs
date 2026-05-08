@@ -1,6 +1,6 @@
-using Zenject;
+using System.Threading.Tasks;
 
-public interface IDeckController : IInitializable
+public interface IDeckController : IController
 {
-    void EditDeck();
+    Task LoadDecks();
 }

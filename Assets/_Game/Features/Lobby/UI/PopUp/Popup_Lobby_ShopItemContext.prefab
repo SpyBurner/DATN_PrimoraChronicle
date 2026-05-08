@@ -434,7 +434,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       propertyPath: m_Name
-      value: PopUp_Lobby_ShopItemContext
+      value: Popup_Lobby_ShopItemContext
       objectReference: {fileID: 0}
     - target: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       propertyPath: m_IsActive
@@ -498,6 +498,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8469608120219955997}
+    - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4781143001471685162}
     - targetCorrespondingSourceObject: {fileID: 9101729719906278201, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7464026863672002105}
@@ -557,3 +560,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 0
   m_VerticalFit: 2
+--- !u!114 &4781143001471685162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6112408038027674965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42ce0d13a9e674b41a57539daf54ea78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::ShopItemContextPopup
+  _identifier: 0
+  _layer: 0
+  _closeButton: {fileID: 0}
+  _itemNameText: {fileID: 0}
+  _itemPriceText: {fileID: 0}
+  _purchaseButton: {fileID: 0}
+  _closeButton: {fileID: 0}

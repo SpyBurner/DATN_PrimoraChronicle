@@ -1,14 +1,75 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using Zenject;
 
 internal class ShopController : IShopController
 {
+    [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IShopModel _model;
+    [Inject] private readonly IHttpServiceSubsystem _httpService;
 
     public void Initialize() { }
+    public void Dispose() { }
 
-    public void Purchase()
+    public async Task LoadItems()
     {
-        Debug.Log("Shop: Purchase");
+        try
+        {
+            _debugLogger.Log("Shop: Loading items...");
+            var response = await _httpService.Get<ShopItemsResponse>("/api/shop/items");
+
+            if (response != null && response.items != null)
+            {
+                _model.SetItems(new List<ShopItemData>(response.items));
+                _debugLogger.Log($"Shop: Loaded {response.items.Length} items.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _debugLogger.LogError($"Shop: Failed to load items: {ex.Message}");
+        }
     }
+
+    public async Task PurchaseItem(string itemId)
+    {
+        try
+        {
+            _debugLogger.Log($"Shop: Purchasing item {itemId}...");
+            var payload = new PurchaseRequest { itemId = itemId };
+            
+            // Explicitly using the two-generic Post version to avoid conversion errors with anonymous types
+            var response = await _httpService.Post<PurchaseResponse, PurchaseRequest>("/api/shop/purchase", payload);
+
+            if (response != null && response.success)
+            {
+                _model.SetUserGold(response.remainingGold);
+                _debugLogger.Log($"Shop: Purchase successful. Remaining gold: {response.remainingGold}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _debugLogger.LogError($"Shop: Purchase failed: {ex.Message}");
+        }
+    }
+}
+
+[System.Serializable]
+internal class ShopItemsResponse
+{
+    public ShopItemData[] items;
+}
+
+[System.Serializable]
+internal class PurchaseResponse
+{
+    public bool success;
+    public int remainingGold;
+}
+
+[System.Serializable]
+internal class PurchaseRequest
+{
+    public string itemId;
 }

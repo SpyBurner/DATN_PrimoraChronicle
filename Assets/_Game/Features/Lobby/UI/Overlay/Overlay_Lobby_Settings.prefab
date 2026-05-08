@@ -556,5 +556,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: LobbyFeatures::SettingPanel
   _identifier: 310
   _layer: 4
-  _isModal: 0
   _closeButton: {fileID: 774736865358120452}

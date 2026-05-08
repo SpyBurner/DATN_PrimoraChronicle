@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 using Zenject;
 
@@ -17,8 +16,10 @@ namespace Core
             Debug.Log("Bootstrapper starting...");
             await Initialize();
             // Load the initial scene (e.g., Account Scene)
-            await Task.Delay(500);
+            //await Task.Delay(500);
             await _sceneLoader.LoadScene(_nextSceneName);
+            // Ensure the default UI for the loaded scene is shown
+            await _uiManager.ShowDefaultScreenForScene(_nextSceneName);
         }
 
         private async Task Initialize()

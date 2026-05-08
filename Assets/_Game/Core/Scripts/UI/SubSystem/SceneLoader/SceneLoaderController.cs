@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zenject;
 
-internal class SceneLoaderController : ISceneLoaderController, IInitializable, IDisposable
+internal class SceneLoaderController : ISceneLoaderController
 {
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IUIManagerSubsystem _uiManager;
@@ -49,6 +49,9 @@ internal class SceneLoaderController : ISceneLoaderController, IInitializable, I
 
         await _uiManager.FadeIn();
         _debugLogger.Log($"Fade in completed for scene '{sceneName}'.");
+        
+        // Show the default screen for the newly loaded scene
+        await _uiManager.ShowDefaultScreenForScene(sceneName);
 
         _sceneModel.IsLoading.Value = false;
     }
@@ -65,10 +68,8 @@ internal class SceneLoaderController : ISceneLoaderController, IInitializable, I
         return LoadScene(currentScene.name);
     }
 
-    async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        _debugLogger.Log($"Scene '{scene.name}' loaded with mode '{mode}'.");
-        await Task.Yield(); // Ensure this runs after all Awake() methods in the new scene
-        await _uiManager.ShowDefaultScreenForScene(scene.name);
+        _debugLogger.Log($"Scene '{scene.name}' loaded with mode '{mode}'. Default screen will be handled by UIRoot/UIManager.");
     }
 }

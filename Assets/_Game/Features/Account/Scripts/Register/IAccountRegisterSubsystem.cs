@@ -1,8 +1,13 @@
 using System.Threading.Tasks;
-using Zenject;
+using UnityEngine.Events;
 
 public interface IAccountRegisterSubsystem : ISubsystem
 {
-    Task Register(string email, string password, string confirmPassword);
-    void NavigateToLogin();
+    event UnityAction<string> ErrorMessageChanged;
+    event UnityAction<bool> IsSubmittingChanged;
+
+    void SetEmail(string email);
+    void SetPassword(string password);
+    void SetConfirmPassword(string confirmPassword);
+    Task Register();
 }

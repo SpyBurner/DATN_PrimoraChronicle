@@ -1,6 +1,5 @@
-using Zenject;
+using System.Threading.Tasks;
 
-public interface IProfileController : IInitializable
+public interface IProfileController : IController
 {
-    void NavigateToMatchHistory();
 }

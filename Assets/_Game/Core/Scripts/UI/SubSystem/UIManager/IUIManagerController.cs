@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Core;
 using UnityEngine;
@@ -12,12 +12,11 @@ public interface IUIManagerController : IController
     void UnregisterUIRoot();
     UIRoot GetUIRoot();
     T GetPanel<T>() where T : class, IUIPanel;
-    Task ShowScreen<T>() where T : class, IUIPanel;
+    Task Show<T>() where T : class, IUIPanel;
     Task ShowDefaultScreenForScene(string sceneName = null);
-    Task ShowPopup<T>() where T : class, IUIPanel;
+    Task Show(GameObject prefab);
+    Task Close(IUIPanel panel);
     Task ClosePopup();
     Task FadeIn();
     Task FadeOut();
-    Task ShowView(GameObject prefab);
-    Task CloseView(IUIPanel panel);
 }

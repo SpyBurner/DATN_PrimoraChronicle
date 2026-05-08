@@ -1,15 +1,20 @@
 ﻿<Solution>
+  <Project Path="MCPForUnity.Runtime.csproj" />
+  <Project Path="AccountFeatures.csproj" />
   <Project Path="Core.csproj" />
   <Project Path="Zenject.csproj" />
   <Project Path="Fusion.Unity.Editor.csproj" />
   <Project Path="Fusion.Menu.csproj" />
   <Project Path="Unity.Theme.Tests.Editor.csproj" />
   <Project Path="Zenject-ReflectionBaking-Editor.csproj" />
+  <Project Path="MCPForUnity.Editor.csproj" />
+  <Project Path="Core.Tests.Editor.csproj" />
   <Project Path="Zenject-Editor.csproj" />
   <Project Path="Unity.Theme.csproj" />
+  <Project Path="LobbyFeatures.csproj" />
   <Project Path="Unity.Theme.Tests.Base.csproj" />
   <Project Path="Unity.Theme.Tests.Runtime.csproj" />
-  <Project Path="AccountFeatures.csproj" />
+  <Project Path="GameplayFeatures.csproj" />
   <Project Path="com.IvanMurzak.Unity.Theme.Installer.csproj" />
   <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="Fusion.Unity.csproj" />

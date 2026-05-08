@@ -907,6 +907,50 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c10972270ae009f4f8666b3ad28dd01c, type: 3}
+--- !u!114 &889145423019480624 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4975709264901819353, guid: c10972270ae009f4f8666b3ad28dd01c, type: 3}
+  m_PrefabInstance: {fileID: 5285999164930022889}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &2614751780569735045 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7859576159162827372, guid: c10972270ae009f4f8666b3ad28dd01c, type: 3}
+  m_PrefabInstance: {fileID: 5285999164930022889}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &3004911574728071698 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6982887383189030907, guid: c10972270ae009f4f8666b3ad28dd01c, type: 3}
+  m_PrefabInstance: {fileID: 5285999164930022889}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &3823850424588364034 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8956163809701704939, guid: c10972270ae009f4f8666b3ad28dd01c, type: 3}
+  m_PrefabInstance: {fileID: 5285999164930022889}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &5724477755799722253 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 444389664455591140, guid: c10972270ae009f4f8666b3ad28dd01c, type: 3}
@@ -1296,7 +1340,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: LobbyFeatures::LobbyMainPanel
   _identifier: 301
   _layer: 1
-  _isModal: 0
   _closeButton: {fileID: 0}
   _profileButton: {fileID: 5724477755799722253}
   _battleButton: {fileID: 3773675805805758251}
@@ -1304,6 +1347,10 @@ MonoBehaviour:
   _shopButton: {fileID: 7393643267451062281}
   _settingsButton: {fileID: 2454793757413534584}
   _logoutButton: {fileID: 4504738299614244357}
+  _usernameText: {fileID: 2614751780569735045}
+  _levelText: {fileID: 3823850424588364034}
+  _goldText: {fileID: 889145423019480624}
+  _avatarImage: {fileID: 3004911574728071698}
 --- !u!1001 &8013362442927303939
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,5 +1,6 @@
-using Zenject;
+using System.Threading.Tasks;
 
-public interface IMatchHistoryController : IInitializable
+public interface IMatchHistoryController : IController
 {
+    Task LoadMatchHistory(string userId);
 }

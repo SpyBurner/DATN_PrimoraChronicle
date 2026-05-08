@@ -1,10 +1,32 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using UnityEngine.Events;
 using Zenject;
 
-public class MatchHistorySubsystem : IMatchHistorySubsystem, IInitializable, IDisposable
+public class MatchHistorySubsystem : IMatchHistorySubsystem
 {
     [Inject] private readonly IMatchHistoryController _controller;
+    [Inject] private readonly IMatchHistoryModel _model;
 
-    public void Initialize() { }
-    public void Dispose() { }
+    public event UnityAction<List<MatchHistoryData>> MatchHistoryChanged;
+
+    public void Initialize()
+    {
+        if (_model?.MatchHistory != null)
+            _model.MatchHistory.OnChanged += HandleMatchHistoryChanged;
+    }
+
+    public void Dispose()
+    {
+        if (_model?.MatchHistory != null)
+            _model.MatchHistory.OnChanged -= HandleMatchHistoryChanged;
+    }
+
+    public Task LoadMatchHistory(string userId) => _controller.LoadMatchHistory(userId);
+
+    private void HandleMatchHistoryChanged()
+    {
+        try { MatchHistoryChanged?.Invoke(_model.MatchHistory.Value); } catch { }
+    }
 }

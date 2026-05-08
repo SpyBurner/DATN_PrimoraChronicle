@@ -204,6 +204,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
+--- !u!114 &947839108583898996 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 129746019759470124, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
+  m_PrefabInstance: {fileID: 931002627239774552}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!224 &7290805301555520816 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7621692832500509800, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
@@ -363,6 +374,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
+--- !u!114 &1466229619039760365 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3602487238759612119, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
+  m_PrefabInstance: {fileID: 2713281471763812666}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!224 &2961197410830649550 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 918675243931769332, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
@@ -510,6 +532,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5885515916679181817, guid: c2b094e7dc2bab94a8ddd9519a8353c8, type: 3}
   m_PrefabInstance: {fileID: 6495818012710661240}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1878254616799935578 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4626655386410881058, guid: c2b094e7dc2bab94a8ddd9519a8353c8, type: 3}
+  m_PrefabInstance: {fileID: 6495818012710661240}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_InputField
 --- !u!1001 &9095780577646761514
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -624,7 +657,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       propertyPath: m_Name
-      value: Layout_Popup Variant
+      value: Popup_System_SingleTextInput
       objectReference: {fileID: 0}
     - target: {fileID: 6010145286192904194, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       propertyPath: m_AnchorMax.y
@@ -661,6 +694,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2635769386786206764}
+    - targetCorrespondingSourceObject: {fileID: 4335659787289627871, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6879062836873825666}
   m_SourcePrefab: {fileID: 100100000, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}
 --- !u!1 &4760849771408677621 stripped
 GameObject:
@@ -681,6 +717,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 0
   m_VerticalFit: 2
+--- !u!114 &6879062836873825666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4760849771408677621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98f0eac7e12e7d74e9bcd17432f8d080, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LobbyFeatures::TextInputPopup
+  _identifier: 0
+  _layer: 0
+  _closeButton: {fileID: 0}
+  _titleText: {fileID: 947839108583898996}
+  _inputField: {fileID: 1878254616799935578}
+  _confirmButton: {fileID: 1466229619039760365}
+  _cancelButton: {fileID: 0}
 --- !u!224 &5964987636729657077 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3241835923584213215, guid: 578197baa4d44824a8475a4a04ee33b4, type: 3}

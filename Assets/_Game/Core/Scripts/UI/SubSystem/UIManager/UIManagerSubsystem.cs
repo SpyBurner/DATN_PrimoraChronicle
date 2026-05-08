@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Core;
@@ -16,6 +16,9 @@ public class UIManagerSubsystem : IUIManagerSubsystem
     public event UnityAction<Dictionary<Type, IUIPanel>> PanelsChanged;
     public event UnityAction<Dictionary<UILayer, List<IUIPanel>>> PanelsByLayerChanged;
     public event UnityAction<Stack<IUIPanel>> PopupStackChanged;
+    public event UnityAction<Core.UIRoot> UIRootChanged;
+
+    public int TotalPanelCount => _model.Panels.Value.Count;
 
     public void Initialize()
     {
@@ -27,6 +30,9 @@ public class UIManagerSubsystem : IUIManagerSubsystem
 
         if (_model?.PopupStack != null)
             _model.PopupStack.OnChanged += HandlePopupStackChanged;
+
+        if (_model?.UIRoot != null)
+            _model.UIRoot.OnChanged += HandleUIRootChanged;
     }
 
     public void Dispose()
@@ -39,6 +45,9 @@ public class UIManagerSubsystem : IUIManagerSubsystem
 
         if (_model?.PopupStack != null)
             _model.PopupStack.OnChanged -= HandlePopupStackChanged;
+
+        if (_model?.UIRoot != null)
+            _model.UIRoot.OnChanged -= HandleUIRootChanged;
     }
 
     // Controller surface - forward calls to the controller
@@ -50,19 +59,13 @@ public class UIManagerSubsystem : IUIManagerSubsystem
     public UIRoot GetUIRoot() => _controller.GetUIRoot();
     public T GetPanel<T>() where T : class, IUIPanel => _controller.GetPanel<T>();
 
-    public Task ShowScreen<T>() where T : class, IUIPanel => _controller.ShowScreen<T>();
-
+    public Task Show<T>() where T : class, IUIPanel => _controller.Show<T>();
+    public Task Show(GameObject prefab) => _controller.Show(prefab);
     public Task ShowDefaultScreenForScene(string sceneName = null) => _controller.ShowDefaultScreenForScene(sceneName);
-
-    public Task ShowPopup<T>() where T : class, IUIPanel => _controller.ShowPopup<T>();
-
+    public Task Close(IUIPanel panel) => _controller.Close(panel);
     public Task ClosePopup() => _controller.ClosePopup();
-
     public Task FadeIn() => _controller.FadeIn();
-
     public Task FadeOut() => _controller.FadeOut();
-    public Task ShowView(GameObject prefab) => _controller.ShowView(prefab);
-    public Task CloseView(IUIPanel panel) => _controller.CloseView(panel);
 
     // Local handlers that forward the model state to subscribers via UnityAction events
     private void HandlePanelsChanged()
@@ -94,6 +97,18 @@ public class UIManagerSubsystem : IUIManagerSubsystem
         try
         {
             PopupStackChanged?.Invoke(_model.PopupStack.Value);
+        }
+        catch (Exception)
+        {
+            // swallow
+        }
+    }
+
+    private void HandleUIRootChanged()
+    {
+        try
+        {
+            UIRootChanged?.Invoke(_model.UIRoot.Value);
         }
         catch (Exception)
         {

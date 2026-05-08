@@ -1,8 +1,9 @@
 using System.Threading.Tasks;
-using Zenject;
 
-public interface IAccountRegisterController : IInitializable
+public interface IAccountRegisterController : IController
 {
-    Task Register(string email, string password, string confirmPassword);
-    void NavigateToLogin();
+    void SetEmail(string email);
+    void SetPassword(string password);
+    void SetConfirmPassword(string confirmPassword);
+    Task Register();
 }

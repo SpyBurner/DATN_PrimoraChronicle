@@ -189,7 +189,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: LobbyFeatures::MatchHistoryPanel
   _identifier: 305
   _layer: 4
-  _isModal: 0
   _closeButton: {fileID: 8011067317131363051}
 --- !u!1 &3152241184516586808 stripped
 GameObject:

@@ -1581,6 +1581,9 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 7507938400447423761}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3078792261778253874, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3194670556817313285}
     - targetCorrespondingSourceObject: {fileID: 4844142296856957363, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8301923534191492783}
@@ -1616,6 +1619,26 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &5039343943576641162 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3078792261778253874, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
+  m_PrefabInstance: {fileID: 8022399271454471864}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3194670556817313285
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5039343943576641162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e47d4370e81036f42a3ed2690d39b572, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::DrawPhasePanel
+  _identifier: 407
+  _layer: 2
+  _closeButton: {fileID: 0}
 --- !u!224 &7790486494451355650 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 236464900097255098, guid: 7548995a51ea8a744ab32d010080e261, type: 3}

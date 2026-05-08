@@ -1246,7 +1246,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: LobbyFeatures::BattlePanel
   _identifier: 302
   _layer: 4
-  _isModal: 0
   _closeButton: {fileID: 4326675468919273068}
   _startMatchmakingButton: {fileID: 7183533088737568784}
 --- !u!224 &7087767062334608995 stripped

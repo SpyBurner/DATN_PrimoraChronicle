@@ -6,9 +6,9 @@ using Zenject;
 
 internal class SceneLoaderModel : ISceneLoaderModel
 {
-    private Observable<bool> _isLoading = new(new());
-    private Observable<AsyncOperation> _currentLoad = new(new());
-    private Observable<CancellationTokenSource> _sceneToken = new(new());
+    private Observable<bool> _isLoading = new(false);
+    private Observable<AsyncOperation> _currentLoad = new(null);
+    private Observable<CancellationTokenSource> _sceneToken = new(null);
 
     public Observable<bool> IsLoading { get => _isLoading; }
     public Observable<AsyncOperation> CurrentLoad { get => _currentLoad; }
