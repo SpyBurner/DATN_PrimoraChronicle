@@ -8,6 +8,9 @@ public interface IMatchMakingModel : IModel
     Observable<bool> IsMatchFound { get; }
     Observable<int> ConfirmationTimer { get; }
 
+    void SetIsSearching(bool isSearching);
+    void SetStatus(string status);
+    void SetQueuePosition(int position);
     void SetIsMatchFound(bool isFound);
     void SetConfirmationTimer(int timer);
 }

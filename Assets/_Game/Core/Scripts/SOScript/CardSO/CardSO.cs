@@ -19,17 +19,28 @@ namespace Core
     public enum CardNation
     {
         None,
-        Death,
-        Fire,
-        Plant
+        Hollow,
+        Verdant,
+        Ashen
     }
+    public enum CardRarity
+    {
+        Common,
+        Rare,
+        Epic,
+        Legendary
+    }
+
     [CreateAssetMenu(fileName = "CardSO", menuName = "ScriptableObjects/CardSO")]
     public class CardSO : ScriptableObject
     {
         [Header("Card Info")]
         public string ID;
+        public string StringID; // Readable ID for backend sync
         public CardType CardType;
+        public CardRarity Rarity;
         public string CardName;
+        [TextArea(3, 10)]
         public string Description;
         public int Cost;
         public CardNation CardNation;

@@ -9,6 +9,9 @@ namespace Core
         public int Speed;
         public int Hp;
         public int Damage;
+        public int DeathAnchor;
+        public int AttackRange;
+        public int MoveRange;
 
         private void Reset()
         {
