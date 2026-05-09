@@ -33,7 +33,8 @@ internal class DeckBuildController : IDeckBuildController
 
                 foreach (var cardId in response.cardIds)
                 {
-                    if (_cardLoadingManager.TryGetCard(cardId, out var card))
+                    CardSO card = ResolveCardByStringId(cardId);
+                    if (card != null)
                     {
                         if (card is ChampionCardSO championCard)
                         {
@@ -131,8 +132,8 @@ internal class DeckBuildController : IDeckBuildController
 
             _debugLogger.Log($"DeckBuild: Saving deck {deckName} ({deckId})");
 
-            List<string> cardIds = _model.DeckCards.Value.Select(c => c.ID).ToList();
-            cardIds.AddRange(_model.ChampionCards.Value.Select(c => c.ID));
+            List<string> cardIds = _model.DeckCards.Value.Select(c => c.StringID).ToList();
+            cardIds.AddRange(_model.ChampionCards.Value.Select(c => c.StringID));
 
             var payload = new SaveDeckRequest
             {
@@ -150,6 +151,19 @@ internal class DeckBuildController : IDeckBuildController
         {
             _debugLogger.LogError($"DeckBuild: SaveDeck failed: {ex.Message}");
         }
+    }
+
+    private CardSO ResolveCardByStringId(string cardStringId)
+    {
+        if (string.IsNullOrWhiteSpace(cardStringId))
+        {
+            return null;
+        }
+
+        return _cardLoadingManager
+            .GetCardsById()
+            .Values
+            .FirstOrDefault(card => string.Equals(card?.StringID, cardStringId, StringComparison.Ordinal));
     }
 
     private List<CardSO> GetAvailableCards()
@@ -190,14 +204,15 @@ internal class DeckBuildController : IDeckBuildController
         {
             foreach (CardSO deckCard in cardsAlreadyInDeck)
             {
-                if (deckCard == null || string.IsNullOrWhiteSpace(deckCard.ID))
+                string backendStringId = deckCard?.StringID;
+                if (string.IsNullOrWhiteSpace(backendStringId))
                 {
                     continue;
                 }
 
-                if (copyCountsByStringId.TryGetValue(deckCard.ID, out int count) && count > 0)
+                if (copyCountsByStringId.TryGetValue(backendStringId, out int count) && count > 0)
                 {
-                    copyCountsByStringId[deckCard.ID] = count - 1;
+                    copyCountsByStringId[backendStringId] = count - 1;
                 }
             }
         }
@@ -212,12 +227,13 @@ internal class DeckBuildController : IDeckBuildController
     {
         foreach (CardSO card in sourceCards)
         {
-            if (card == null || string.IsNullOrWhiteSpace(card.ID))
+            string backendStringId = card?.StringID;
+            if (string.IsNullOrWhiteSpace(backendStringId))
             {
                 continue;
             }
 
-            if (!copyCountsByStringId.TryGetValue(card.ID, out int copyCount) || copyCount <= 0)
+            if (!copyCountsByStringId.TryGetValue(backendStringId, out int copyCount) || copyCount <= 0)
             {
                 continue;
             }

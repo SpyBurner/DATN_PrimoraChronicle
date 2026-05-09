@@ -51,7 +51,14 @@ def get_me(user_id: str, db: Session = Depends(get_db)):
 @app.get("/api/collection/card-copies", response_model=List[schemas.CardCopyResponse], tags=["Collections"])
 def get_card_copies(user_id: str, db: Session = Depends(get_db)):
     copies = db.query(models.CardCopy).filter(models.CardCopy.userID == user_id).all()
-    return copies
+    return [
+        schemas.CardCopyResponse(
+            ID=copy.ID,
+            cardID=copy.cardID,
+            StringID=copy.card.StringID if copy.card else None,
+        )
+        for copy in copies
+    ]
 
 @app.get("/api/decks", response_model=schemas.DeckSummaryListResponse, tags=["Decks"])
 def get_decks(user_id: str, db: Session = Depends(get_db)):
@@ -83,19 +90,25 @@ def save_deck(deck_data: schemas.DeckSaveRequest, db: Session = Depends(get_db))
     
     # Clear current cards
     deck.card_copies = []
+    used_copy_ids = set()
     
     # Add new cards by resolving StringID to Card, then finding or creating a CardCopy for the user
     for s_id in deck_data.cardIds:
         card = db.query(models.Card).filter(models.Card.StringID == s_id).first()
         if card:
-            # For simplicity in test BE, we find or create a card copy for this user
-            copy = db.query(models.CardCopy).filter(models.CardCopy.cardID == card.ID, models.CardCopy.userID == deck.userID).first()
-            if not copy:
+            available_copies = db.query(models.CardCopy).filter(
+                models.CardCopy.cardID == card.ID,
+                models.CardCopy.userID == deck.userID,
+            ).all()
+
+            copy = next((candidate for candidate in available_copies if candidate.ID not in used_copy_ids), None)
+            if copy is None:
                 copy = models.CardCopy(cardID=card.ID, userID=deck.userID)
                 db.add(copy)
                 db.commit()
                 db.refresh(copy)
-            
+
+            used_copy_ids.add(copy.ID)
             deck.card_copies.append(copy)
     
     db.commit()

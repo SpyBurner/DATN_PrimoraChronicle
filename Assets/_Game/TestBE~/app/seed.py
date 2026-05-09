@@ -27,7 +27,7 @@ def seed_db():
     db.add(cfg)
     
     # Based on Unity Client ChampionCardSO, SpellCardSO, TroopCardSO files
-    string_ids = ["Lich", "Reject", "Duhallan"] + [f"card-{i}" for i in range(1, 48)]
+    string_ids = ["Lich", "Reject", "Duhallan"]
     db_cards = []
     for sid in string_ids:
         c = models.Card(StringID=sid)
@@ -37,6 +37,12 @@ def seed_db():
     db.commit()
     for c in db_cards:
         db.refresh(c)
+
+    reject_card = next((c for c in db_cards if c.StringID == "Reject"), None)
+    duhalla_card = next((c for c in db_cards if c.StringID == "Duhallan"), None)
+
+    if reject_card is None or duhalla_card is None:
+        raise RuntimeError("Required seed cards 'Reject' and 'Duhallan' were not created.")
 
     users = []
     for i in range(1, 3):
@@ -50,8 +56,9 @@ def seed_db():
 
     for u in users:
         copies = []
-        for _ in range(50):
-            cc = models.CardCopy(userID=u.ID, cardID=random.choice(db_cards).ID)
+        seeded_card_ids = ([reject_card.ID] * 20) + ([duhalla_card.ID] * 20)
+        for card_id in seeded_card_ids:
+            cc = models.CardCopy(userID=u.ID, cardID=card_id)
             db.add(cc)
             copies.append(cc)
         db.commit()
@@ -69,7 +76,6 @@ def seed_db():
         db.commit()
     
     lich_card = next((c for c in db_cards if c.StringID == "Lich"), db_cards[0])
-    reject_card = next((c for c in db_cards if c.StringID == "Reject"), db_cards[1])
 
     # 10 match histories (5 matches played between player1 and player2)
     for i in range(5):
