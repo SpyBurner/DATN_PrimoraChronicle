@@ -19,6 +19,7 @@ namespace Core
     public abstract class CardSO : ScriptableObject
     {
         [Header("GDS Identification")]
+        public string ID; // Unity Asset ID
         public string StringID; // Universal bridge to GDS JSON
 
         [Header("Visual Assets")]
