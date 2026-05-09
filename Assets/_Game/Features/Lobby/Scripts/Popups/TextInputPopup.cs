@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Zenject;
 
 public class TextInputPopup : UIPanel
 {
@@ -9,6 +10,8 @@ public class TextInputPopup : UIPanel
     [SerializeField] private TMP_InputField _inputField;
     [SerializeField] private Button _confirmButton;
     [SerializeField] private Button _cancelButton;
+
+    [Inject] private IPopupSubsystem _popupSubsystem;
 
     private Action<string> _onConfirm;
     private Action _onCancel;
@@ -31,12 +34,14 @@ public class TextInputPopup : UIPanel
 
     private void OnConfirmClicked()
     {
+        _popupSubsystem.SetResult(_inputField.text);
         _onConfirm?.Invoke(_inputField.text);
         Close();
     }
 
     private void OnCancelClicked()
     {
+        _popupSubsystem.Cancel();
         _onCancel?.Invoke();
         Close();
     }

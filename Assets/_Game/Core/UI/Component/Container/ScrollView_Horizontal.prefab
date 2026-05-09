@@ -888,6 +888,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2711124222115081001, guid: 9c654b9875d20ac46a91ee2a544c011c, type: 3}
+      propertyPath: m_MovementType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2711124222115081001, guid: 9c654b9875d20ac46a91ee2a544c011c, type: 3}
       propertyPath: m_VerticalScrollbar
       value: 
       objectReference: {fileID: 0}

@@ -2,12 +2,14 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-
+using Zenject;
 public class ShopItemContextPopup : UIPanel
 {
     [SerializeField] private TMP_Text _itemNameText;
     [SerializeField] private TMP_Text _itemPriceText;
     [SerializeField] private Button _purchaseButton;
+
+    [Inject] private IPopupSubsystem _popupSubsystem;
 
     private Action _onPurchase;
 
@@ -33,7 +35,14 @@ public class ShopItemContextPopup : UIPanel
 
     private void OnPurchaseClicked()
     {
+        _popupSubsystem.SetResult(true);
         _onPurchase?.Invoke();
         OnClose();
+    }
+
+    protected override void OnClose()
+    {
+        _popupSubsystem.SetResult(false);
+        base.OnClose();
     }
 }

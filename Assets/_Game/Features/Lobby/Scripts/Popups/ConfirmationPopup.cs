@@ -1,5 +1,6 @@
 using System;
 using TMPro;
+using Zenject;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +10,8 @@ public class ConfirmationPopup : UIPanel
     [SerializeField] private TMP_Text _messageText;
     [SerializeField] private Button _confirmButton;
     [SerializeField] private Button _cancelButton;
+
+    [Inject] private IPopupSubsystem _popupSubsystem;
 
     private Action _onConfirm;
     private Action _onCancel;
@@ -31,12 +34,14 @@ public class ConfirmationPopup : UIPanel
 
     private void OnConfirmClicked()
     {
+        _popupSubsystem.SetResult(true);
         _onConfirm?.Invoke();
         Close();
     }
 
     private void OnCancelClicked()
     {
+        _popupSubsystem.SetResult(false); // Or Cancel()
         _onCancel?.Invoke();
         Close();
     }

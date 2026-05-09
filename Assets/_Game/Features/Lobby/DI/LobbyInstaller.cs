@@ -67,5 +67,13 @@ public class LobbyInstaller : MonoInstaller
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<MatchMakingSubsystem>()
             .AsSingle().NonLazy();
+
+        // Popups
+        Container.BindInterfacesAndSelfTo<PopupSubsystemModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<PopupSubsystemController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<PopupSubsystem>()
+            .AsSingle().NonLazy();
     }
 }
