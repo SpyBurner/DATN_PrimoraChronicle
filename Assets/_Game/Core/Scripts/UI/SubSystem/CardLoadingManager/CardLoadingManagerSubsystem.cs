@@ -71,6 +71,21 @@ public class CardLoadingManagerSubsystem : ICardLoadingManagerSubsystem
         return _controller.GetMasterGDSData();
     }
 
+    public bool TryGetCardData(string stringId, out CardData data)
+    {
+        return _controller.TryGetCardData(stringId, out data);
+    }
+
+    public bool TryGetSkillData(string stringId, out SkillData data)
+    {
+        return _controller.TryGetSkillData(stringId, out data);
+    }
+
+    public bool TryGetEffectData(string stringId, out StatusEffectData data)
+    {
+        return _controller.TryGetEffectData(stringId, out data);
+    }
+
     private void HandleCardsByIdChanged()
     {
         try

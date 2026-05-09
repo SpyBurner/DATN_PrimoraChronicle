@@ -38,10 +38,10 @@ namespace Core.GDS
         public int n_atk_dmg;
         public List<HexCoordinate> n_atk_pattern;
         public string grants_skill;
-        public bool is_summonable;
+        public int is_summonable;
 
         // Champion specific
-        public List<List<object>> grants_cards; // [[quantity, card_id], ...]
+        public List<CardGrantRef> grants_cards;
 
         // Spell specific
         public string main_phase_spell_behavior_id;
@@ -54,6 +54,13 @@ namespace Core.GDS
     {
         public string string_id;
         public int duration;
+    }
+
+    [Serializable]
+    public class CardGrantRef
+    {
+        public string string_id;
+        public int quantity;
     }
 
     [Serializable]

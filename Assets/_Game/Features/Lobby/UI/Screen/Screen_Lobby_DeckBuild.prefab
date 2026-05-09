@@ -1185,6 +1185,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1461212841437075171, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
   m_PrefabInstance: {fileID: 2714218904159841938}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6477531475533996597 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8957104649299905703, guid: d339d67257e251e4bae2f9d06fb4b109, type: 3}
+  m_PrefabInstance: {fileID: 2714218904159841938}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &3412077843853886362
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1935,14 +1946,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
---- !u!224 &3458409966831849719 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 7420160981918794664, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
-  m_PrefabInstance: {fileID: 5262184121216865119}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &6422300083473229744 stripped
+--- !u!114 &2267036516806954645 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1164074357244769519, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
+  m_CorrespondingSourceObject: {fileID: 6228804979508583882, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
   m_PrefabInstance: {fileID: 5262184121216865119}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1951,6 +1957,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!224 &3458409966831849719 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 7420160981918794664, guid: 09795448675247547ab16d5b6d8e9c29, type: 3}
+  m_PrefabInstance: {fileID: 5262184121216865119}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5683116200273913802
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2156,10 +2167,11 @@ MonoBehaviour:
   _layer: 1
   _closeButton: {fileID: 220938281464658911}
   _cardDisplayPrefab: {fileID: 5047790633237659390}
-  _championCardContainer: {fileID: 8198257236290436442}
+  _championGrantedCardsContainer: {fileID: 8198257236290436442}
   _deckContainer: {fileID: 9191484528729135062}
   _cardContainer: {fileID: 2261024068549738601}
-  _championPortrait: {fileID: 6422300083473229744}
+  _championPortrait: {fileID: 2267036516806954645}
+  _championDescription: {fileID: 6477531475533996597}
   _saveButton: {fileID: 7273423225697571273}
 --- !u!1 &4115942954679863440 stripped
 GameObject:

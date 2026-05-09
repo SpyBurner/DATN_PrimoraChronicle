@@ -39,7 +39,7 @@ internal class CardLoadingManagerController : ICardLoadingManagerController
     private void LoadVisualAssets()
     {
         Dictionary<string, CardSO> cardsById = new();
-        Dictionary<string, ChampionCardSO> championCardsList = new();
+        Dictionary<string, ChampionCardSO> championIdentityList = new();
         Dictionary<string, SpellCardSO> spellCardList = new();
         Dictionary<string, TroopCardSO> troopCardList = new();
 
@@ -67,7 +67,7 @@ internal class CardLoadingManagerController : ICardLoadingManagerController
             switch (card)
             {
                 case ChampionCardSO championCard:
-                    championCardsList[championCard.StringID] = championCard;
+                    championIdentityList[championCard.StringID] = championCard;
                     break;
                 case SpellCardSO spellCard:
                     spellCardList[spellCard.StringID] = spellCard;
@@ -79,7 +79,7 @@ internal class CardLoadingManagerController : ICardLoadingManagerController
         }
 
         _model.CardsById.Value = cardsById;
-        _model.ChampionCardsList.Value = championCardsList;
+        _model.ChampionIdentityList.Value = championIdentityList;
         _model.SpellCardList.Value = spellCardList;
         _model.TroopCardList.Value = troopCardList;
         
@@ -139,7 +139,7 @@ internal class CardLoadingManagerController : ICardLoadingManagerController
     }
 
     public IReadOnlyDictionary<string, CardSO> GetCardsById() => _model.CardsById.Value;
-    public IReadOnlyDictionary<string, ChampionCardSO> GetChampionCardsList() => _model.ChampionCardsList.Value;
+    public IReadOnlyDictionary<string, ChampionCardSO> GetChampionCardsList() => _model.ChampionIdentityList.Value;
     public IReadOnlyDictionary<string, SpellCardSO> GetSpellCardList() => _model.SpellCardList.Value;
     public IReadOnlyDictionary<string, TroopCardSO> GetTroopCardList() => _model.TroopCardList.Value;
 
@@ -159,6 +159,24 @@ internal class CardLoadingManagerController : ICardLoadingManagerController
     }
 
     public MasterGDSData GetMasterGDSData() => _model.MasterData.Value;
+    
+    public bool TryGetCardData(string stringId, out CardData data)
+    {
+        data = null;
+        return _model.MasterData.Value?.cards?.TryGetValue(stringId, out data) ?? false;
+    }
+
+    public bool TryGetSkillData(string stringId, out SkillData data)
+    {
+        data = null;
+        return _model.MasterData.Value?.skills?.TryGetValue(stringId, out data) ?? false;
+    }
+
+    public bool TryGetEffectData(string stringId, out StatusEffectData data)
+    {
+        data = null;
+        return _model.MasterData.Value?.effects?.TryGetValue(stringId, out data) ?? false;
+    }
 
     void IInitializable.Initialize() { }
     void IDisposable.Dispose() { }

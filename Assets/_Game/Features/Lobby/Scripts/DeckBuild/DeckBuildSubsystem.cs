@@ -14,6 +14,7 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
     public event UnityAction<string> CurrentDeckNameChanged;
     public event UnityAction<IReadOnlyList<CardSO>> DeckCardsChanged;
     public event UnityAction<IReadOnlyList<CardSO>> ChampionCardsChanged;
+    public event UnityAction<IReadOnlyList<CardSO>> ChampionGrantedCardsChanged;
     public event UnityAction<IReadOnlyList<CardSO>> AvailableCardsChanged;
     public event UnityAction<int> DeckSizeChanged;
     public event UnityAction<bool> IsValidChanged;
@@ -26,6 +27,7 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
         _model.CurrentDeckName.OnChanged += HandleCurrentDeckNameChanged;
         _model.DeckCards.OnChanged += HandleDeckCardsChanged;
         _model.ChampionCards.OnChanged += HandleChampionCardsChanged;
+        _model.ChampionGrantedCards.OnChanged += HandleChampionGrantedCardsChanged;
         _model.AvailableCards.OnChanged += HandleAvailableCardsChanged;
         _model.DeckSize.OnChanged += HandleDeckSizeChanged;
         _model.IsValid.OnChanged += HandleIsValidChanged;
@@ -39,6 +41,7 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
         _model.CurrentDeckName.OnChanged -= HandleCurrentDeckNameChanged;
         _model.DeckCards.OnChanged -= HandleDeckCardsChanged;
         _model.ChampionCards.OnChanged -= HandleChampionCardsChanged;
+        _model.ChampionGrantedCards.OnChanged -= HandleChampionGrantedCardsChanged;
         _model.AvailableCards.OnChanged -= HandleAvailableCardsChanged;
         _model.DeckSize.OnChanged -= HandleDeckSizeChanged;
         _model.IsValid.OnChanged -= HandleIsValidChanged;
@@ -54,6 +57,7 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
     private void HandleCurrentDeckNameChanged() => CurrentDeckNameChanged?.Invoke(_model.CurrentDeckName.Value);
     private void HandleDeckCardsChanged() => DeckCardsChanged?.Invoke(_model.DeckCards.Value);
     private void HandleChampionCardsChanged() => ChampionCardsChanged?.Invoke(_model.ChampionCards.Value);
+    private void HandleChampionGrantedCardsChanged() => ChampionGrantedCardsChanged?.Invoke(_model.ChampionGrantedCards.Value);
     private void HandleAvailableCardsChanged() => AvailableCardsChanged?.Invoke(_model.AvailableCards.Value);
     private void HandleDeckSizeChanged() => DeckSizeChanged?.Invoke(_model.DeckSize.Value);
     private void HandleIsValidChanged() => IsValidChanged?.Invoke(_model.IsValid.Value);

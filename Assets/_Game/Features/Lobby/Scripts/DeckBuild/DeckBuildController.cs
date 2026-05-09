@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Codice.CM.Common;
 using Core;
 using UnityEngine;
 using WebSocketSharp;
@@ -30,21 +31,16 @@ internal class DeckBuildController : IDeckBuildController
                 _model.SetCurrentDeck(response.id, response.name);
 
                 List<CardSO> deckCards = new();
-                List<CardSO> championCards = new();
+                ChampionCardSO championCard = ResolveCardByStringId(response.championStringID) as ChampionCardSO;
+                List<CardSO> championCards = championCard != null ? new List<CardSO> { championCard } : new List<CardSO>();
+                List<CardSO> grantedCards = GetGrantedCards(championCard);
 
                 foreach (var cardId in response.cardIds)
                 {
                     CardSO card = ResolveCardByStringId(cardId);
                     if (card != null)
                     {
-                        if (card is ChampionCardSO championCard)
-                        {
-                            championCards.Add(championCard);
-                        }
-                        else
-                        {
-                            deckCards.Add(card);
-                        }
+                        deckCards.Add(card);
                     }
                     else
                     {
@@ -53,8 +49,8 @@ internal class DeckBuildController : IDeckBuildController
                 }
 
                 List<CardSO> availableCards = await GetAllCollection(deckCards);
-                _model.SetRenderData(deckCards, championCards, availableCards);
-                _debugLogger.Log($"DeckBuild: Loaded deck '{response.name}' with {deckCards.Count} cards and {championCards.Count} champions");
+                _model.SetRenderData(deckCards, championCards, grantedCards, availableCards);
+                _debugLogger.Log($"DeckBuild: Loaded deck '{response.name}' with {deckCards.Count} cards, {championCards.Count} champions, and {grantedCards.Count} granted cards");
             }
             else
             {
@@ -72,7 +68,7 @@ internal class DeckBuildController : IDeckBuildController
         _debugLogger.Log("DeckBuild: Creating empty deck");
         _model.SetCurrentDeck(string.Empty, string.Empty);
         List<CardSO> availableCards = await GetAllCollection();
-        _model.SetRenderData(Array.Empty<CardSO>(), Array.Empty<CardSO>(), availableCards);
+        _model.SetRenderData(Array.Empty<CardSO>(), Array.Empty<CardSO>(), Array.Empty<CardSO>(), availableCards);
     }
 
     public void AddCardToDeck(CardSO card)
@@ -85,6 +81,8 @@ internal class DeckBuildController : IDeckBuildController
 
         if (card is ChampionCardSO championCard)
         {
+            // Enforce 1 champion limit
+            championCards.Clear();
             championCards.Add(championCard);
         }
         else
@@ -93,7 +91,8 @@ internal class DeckBuildController : IDeckBuildController
             RemoveFirstMatchingCard(availableCards, card);
         }
 
-        _model.SetRenderData(deckCards, championCards, availableCards);
+        List<CardSO> grantedCards = GetGrantedCards(championCards.FirstOrDefault());
+        _model.SetRenderData(deckCards, championCards, grantedCards, availableCards);
     }
 
     public void RemoveCardFromDeck(CardSO card)
@@ -114,7 +113,39 @@ internal class DeckBuildController : IDeckBuildController
             availableCards.Add(card);
         }
 
-        _model.SetRenderData(deckCards, championCards, availableCards);
+        List<CardSO> grantedCards = GetGrantedCards(championCards.FirstOrDefault());
+        _model.SetRenderData(deckCards, championCards, grantedCards, availableCards);
+    }
+
+    private List<CardSO> GetGrantedCards(CardSO champion)
+    {
+        List<CardSO> grantedCards = new();
+        if (champion == null) return grantedCards;
+
+        if (_cardLoadingManager.TryGetCardData(champion.StringID, out var cardData))
+        {
+            if (cardData.grants_cards != null)
+            {
+                foreach (var grant in cardData.grants_cards)
+                {
+                    if (grant != null)
+                    {
+                        string stringId = grant.string_id;
+                        int count = grant.quantity;
+
+                        CardSO card = ResolveCardByStringId(stringId);
+                        if (card != null)
+                        {
+                            for (int i = 0; i < count; i++)
+                            {
+                                grantedCards.Add(card);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return grantedCards;
     }
 
     public async Task SaveDeck()
@@ -219,7 +250,7 @@ internal class DeckBuildController : IDeckBuildController
         return availableCards;
     }
 
-    private static void AppendCopies(List<CardSO> target, IEnumerable<CardSO> sourceCards, IReadOnlyDictionary<string, int> copyCountsByStringId)
+    private void AppendCopies(List<CardSO> target, IEnumerable<CardSO> sourceCards, IReadOnlyDictionary<string, int> copyCountsByStringId)
     {
         foreach (CardSO card in sourceCards)
         {
@@ -227,6 +258,15 @@ internal class DeckBuildController : IDeckBuildController
             if (string.IsNullOrWhiteSpace(backendStringId))
             {
                 continue;
+            }
+
+            // Filter out non-summonable cards (tokens)
+            if (_cardLoadingManager.TryGetCardData(backendStringId, out var cardData))
+            {
+                if (cardData.is_summonable == 0)
+                {
+                    continue;
+                }
             }
 
             if (!copyCountsByStringId.TryGetValue(backendStringId, out int copyCount) || copyCount <= 0)

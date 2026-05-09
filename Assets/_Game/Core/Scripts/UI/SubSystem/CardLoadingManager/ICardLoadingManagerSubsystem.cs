@@ -15,4 +15,7 @@ public interface ICardLoadingManagerSubsystem : ISubsystem
     bool TryGetCard(string cardId, out CardSO card);
     T GetCard<T>(string cardId) where T : CardSO;
     MasterGDSData GetMasterGDSData();
+    bool TryGetCardData(string stringId, out CardData data);
+    bool TryGetSkillData(string stringId, out SkillData data);
+    bool TryGetEffectData(string stringId, out StatusEffectData data);
 }

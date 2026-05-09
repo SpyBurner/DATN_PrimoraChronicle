@@ -4,17 +4,20 @@ using Core;
 using Zenject;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class DeckBuildPanel : UIPanel
 {
     [Inject] private readonly IDeckBuildSubsystem _deckBuild;
     [Inject] private readonly IDeckBuildModel _deckBuildModel;
+    [Inject] private readonly ICardLoadingManagerSubsystem _cardLoadingManager;
 
     [SerializeField] private CardDisplay _cardDisplayPrefab;
-    [SerializeField] private GameObject _championCardContainer;
+    [SerializeField] private GameObject _championGrantedCardsContainer;
     [SerializeField] private GameObject _deckContainer;
     [SerializeField] private GameObject _cardContainer;
     [SerializeField] private Image _championPortrait;
+    [SerializeField] private TMP_Text _championDescription;
     [SerializeField] private Button _saveButton;
 
     protected override void OnEnable()
@@ -23,6 +26,7 @@ public class DeckBuildPanel : UIPanel
 
         _deckBuild.DeckCardsChanged += HandleDeckCardsChanged;
         _deckBuild.ChampionCardsChanged += HandleChampionCardsChanged;
+        _deckBuild.ChampionGrantedCardsChanged += HandleChampionGrantedCardsChanged;
         _deckBuild.AvailableCardsChanged += HandleAvailableCardsChanged;
 
         _saveButton?.onClick.AddListener(OnSave);
@@ -34,6 +38,7 @@ public class DeckBuildPanel : UIPanel
     {
         _deckBuild.DeckCardsChanged -= HandleDeckCardsChanged;
         _deckBuild.ChampionCardsChanged -= HandleChampionCardsChanged;
+        _deckBuild.ChampionGrantedCardsChanged -= HandleChampionGrantedCardsChanged;
         _deckBuild.AvailableCardsChanged -= HandleAvailableCardsChanged;
 
         _saveButton?.onClick.RemoveListener(OnSave);
@@ -51,6 +56,7 @@ public class DeckBuildPanel : UIPanel
 
         HandleDeckCardsChanged(_deckBuildModel.DeckCards.Value);
         HandleChampionCardsChanged(_deckBuildModel.ChampionCards.Value);
+        HandleChampionGrantedCardsChanged(_deckBuildModel.ChampionGrantedCards.Value);
         HandleAvailableCardsChanged(_deckBuildModel.AvailableCards.Value);
     }
 
@@ -58,7 +64,7 @@ public class DeckBuildPanel : UIPanel
     {
         ClearContainer(_deckContainer);
         ClearContainer(_cardContainer);
-        ClearContainer(_championCardContainer);
+        ClearContainer(_championGrantedCardsContainer);
     }
 
     private void HandleDeckCardsChanged(IReadOnlyList<CardSO> cards)
@@ -76,13 +82,28 @@ public class DeckBuildPanel : UIPanel
 
     private void HandleChampionCardsChanged(IReadOnlyList<CardSO> cards)
     {
-        ClearContainer(_championCardContainer);
-        RenderCards(cards, _championCardContainer);
+        CardSO champion = (cards != null && cards.Count > 0) ? cards[0] : null;
 
         if (_championPortrait != null)
         {
-            _championPortrait.sprite = (cards != null && cards.Count > 0) ? cards[0].CardIllustration : null;
+            _championPortrait.sprite = champion != null ? champion.CardIllustration : null;
         }
+
+        if (_championDescription != null)
+        {
+            string description = string.Empty;
+            if (champion != null && _cardLoadingManager.TryGetCardData(champion.StringID, out var cardData))
+            {
+                description = cardData.description;
+            }
+            _championDescription.text = description;
+        }
+    }
+
+    private void HandleChampionGrantedCardsChanged(IReadOnlyList<CardSO> cards)
+    {
+        ClearContainer(_championGrantedCardsContainer);
+        RenderCards(cards, _championGrantedCardsContainer);
     }
 
     private void HandleAvailableCardsChanged(IReadOnlyList<CardSO> cards)

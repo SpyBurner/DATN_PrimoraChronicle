@@ -16,4 +16,7 @@ public interface ICardLoadingManagerController : IController
     
     // GDS Data access
     MasterGDSData GetMasterGDSData();
+    bool TryGetCardData(string stringId, out CardData data);
+    bool TryGetSkillData(string stringId, out SkillData data);
+    bool TryGetEffectData(string stringId, out StatusEffectData data);
 }
