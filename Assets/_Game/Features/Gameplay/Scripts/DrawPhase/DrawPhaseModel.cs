@@ -1,13 +1,7 @@
-using Fusion;
 using UnityObservables;
 
-public class DrawPhaseModel : NetworkBehaviour, IDrawPhaseModel
+public class DrawPhaseModel : IDrawPhaseModel
 {
-    private ChangeDetector _changeDetector;
-
-    [Networked] public int NetworkedCount { get; set; }
-    [Networked] public NetworkBool NetworkedIsDrawing { get; set; }
-
     private Observable<int> _cardsToDraw = new(0);
     public Observable<int> CardsToDraw => _cardsToDraw;
 
@@ -15,27 +9,16 @@ public class DrawPhaseModel : NetworkBehaviour, IDrawPhaseModel
     public Observable<bool> IsDrawing => _isDrawing;
 
     public void Initialize() { }
-    public void Dispose() { }
 
-    public override void Spawned()
+    public void Dispose()
     {
-        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        SyncState();
+        _cardsToDraw.Value = 0;
+        _isDrawing.Value = false;
     }
 
-    public override void Render()
+    public void ApplyState(DrawPhaseStateData data)
     {
-        if (_changeDetector == null) return;
-        foreach (var change in _changeDetector.DetectChanges(this))
-        {
-            SyncState();
-            break;
-        }
-    }
-
-    private void SyncState()
-    {
-        _cardsToDraw.Value = NetworkedCount;
-        _isDrawing.Value = NetworkedIsDrawing;
+        _cardsToDraw.Value = data.CardsToDraw;
+        _isDrawing.Value = data.IsDrawing;
     }
 }

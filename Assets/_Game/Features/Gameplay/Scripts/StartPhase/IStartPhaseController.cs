@@ -1,7 +1,8 @@
-using System.Threading.Tasks;
-
-public interface IStartPhaseController : IController
+internal interface IStartPhaseController : IController
 {
-    void SelectChampion(int championId);
-    void ConfirmSelection();
+    void SetIsReady(bool ready);
+    void AddChampion(int championId);
+    void RemoveChampion(int championId);
+    void RegisterBridge(IStartPhaseNetworkBridge bridge);
+    void OnAuthoritativeStateReceived(StartPhaseStateData data);
 }

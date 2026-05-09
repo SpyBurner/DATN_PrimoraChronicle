@@ -1,5 +1,8 @@
-public interface ICombatController : IController
+internal interface ICombatController : IController
 {
     void ExecuteTurn();
     void SkipCombat();
+    void RegisterBridge(ICombatNetworkBridge bridge);
+    void OnAuthoritativeStateReceived(CombatStateData data);
 }
+

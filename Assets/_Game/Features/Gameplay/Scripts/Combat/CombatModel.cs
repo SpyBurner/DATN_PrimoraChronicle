@@ -1,14 +1,7 @@
-using Fusion;
 using UnityObservables;
 
-public class CombatModel : NetworkBehaviour, ICombatModel
+public class CombatModel : ICombatModel
 {
-    private ChangeDetector _changeDetector;
-
-    [Networked] public NetworkString<_16> NetworkedAttacker { get; set; }
-    [Networked] public NetworkString<_16> NetworkedDefender { get; set; }
-    [Networked] public NetworkString<_64> NetworkedLog { get; set; }
-
     private Observable<string> _currentAttackerId = new("");
     public Observable<string> CurrentAttackerId => _currentAttackerId;
 
@@ -19,28 +12,18 @@ public class CombatModel : NetworkBehaviour, ICombatModel
     public Observable<string> CombatLog => _combatLog;
 
     public void Initialize() { }
-    public void Dispose() { }
 
-    public override void Spawned()
+    public void Dispose()
     {
-        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        SyncState();
+        _currentAttackerId.Value = "";
+        _currentDefenderId.Value = "";
+        _combatLog.Value = "";
     }
 
-    public override void Render()
+    public void ApplyState(CombatStateData data)
     {
-        if (_changeDetector == null) return;
-        foreach (var change in _changeDetector.DetectChanges(this))
-        {
-            SyncState();
-            break;
-        }
-    }
-
-    private void SyncState()
-    {
-        _currentAttackerId.Value = NetworkedAttacker.ToString();
-        _currentDefenderId.Value = NetworkedDefender.ToString();
-        _combatLog.Value = NetworkedLog.ToString();
+        _currentAttackerId.Value = data.CurrentAttackerId.ToString();
+        _currentDefenderId.Value = data.CurrentDefenderId.ToString();
+        _combatLog.Value = data.CombatLog.ToString();
     }
 }

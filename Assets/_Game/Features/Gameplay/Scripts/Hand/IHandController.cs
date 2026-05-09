@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 
-public interface IHandController : IController
+internal interface IHandController : IController
 {
-    Task PlayCard(string cardId);
+    void PlayCard(string cardId);
+    void RegisterBridge(IHandNetworkBridge bridge);
+    void OnAuthoritativeStateReceived(HandStateData data);
 }

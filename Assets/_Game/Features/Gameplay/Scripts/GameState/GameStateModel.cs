@@ -1,49 +1,29 @@
-using Fusion;
 using UnityObservables;
-using UnityEngine;
 
-public class GameStateModel : NetworkBehaviour, IGameStateModel
+public class GameStateModel : IGameStateModel
 {
-    private ChangeDetector _changeDetector;
-
-    [Networked] public int NetworkedTurn { get; set; }
-    [Networked] public NetworkString<_16> NetworkedPhase { get; set; }
-    [Networked] public int NetworkedTimer { get; set; }
-
     private Observable<int> _currentTurn = new(0);
     public Observable<int> CurrentTurn => _currentTurn;
 
-    private Observable<string> _currentPhase = new("None");
+    private Observable<string> _currentPhase = new("");
     public Observable<string> CurrentPhase => _currentPhase;
 
     private Observable<int> _matchTimer = new(0);
     public Observable<int> MatchTimer => _matchTimer;
 
     public void Initialize() { }
-    public void Dispose() { }
 
-    public override void Spawned()
+    public void Dispose()
     {
-        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        SyncState();
+        _currentTurn.Value = 0;
+        _currentPhase.Value = "";
+        _matchTimer.Value = 0;
     }
 
-    public override void Render()
+    public void ApplyState(GameStateStateData data)
     {
-        if (_changeDetector == null) return;
-        foreach (var change in _changeDetector.DetectChanges(this))
-        {
-            if (change == nameof(NetworkedTurn) || change == nameof(NetworkedPhase) || change == nameof(NetworkedTimer))
-            {
-                SyncState();
-            }
-        }
-    }
-
-    private void SyncState()
-    {
-        _currentTurn.Value = NetworkedTurn;
-        _currentPhase.Value = NetworkedPhase.ToString();
-        _matchTimer.Value = NetworkedTimer;
+        _currentTurn.Value = data.CurrentTurn;
+        _currentPhase.Value = data.CurrentPhase;
+        _matchTimer.Value = data.MatchTimer;
     }
 }

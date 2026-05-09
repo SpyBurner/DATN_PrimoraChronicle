@@ -5,48 +5,43 @@ public class GameplayInstaller : MonoInstaller
     public override void InstallBindings()
     {
         // GameState Subsystem
-        // Note: GameStateModel is a NetworkBehaviour, so it must be bound from the hierarchy or a prefab factory.
-        Container.BindInterfacesAndSelfTo<GameStateModel>()
-            .FromComponentInHierarchy().AsSingle().NonLazy();
-            
-        Container.BindInterfacesAndSelfTo<GameStateController>()
-            .AsSingle().NonLazy();
-            
-        Container.BindInterfacesAndSelfTo<GameStateSubsystem>()
-            .AsSingle().NonLazy();
+        Container.Bind<IGameStateModel>().To<GameStateModel>().AsSingle();
+        Container.Bind<IGameStateController>().To<GameStateController>().AsSingle();
+        Container.Bind<IGameStateSubsystem>().To<GameStateSubsystem>().AsSingle();
 
-        // Hand Subsystem (NetworkBehaviour)
-        Container.BindInterfacesAndSelfTo<HandModel>()
-            .FromComponentInHierarchy().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<HandController>().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<HandSubsystem>().AsSingle().NonLazy();
+        // Hand Subsystem
+        Container.Bind<IHandModel>().To<HandModel>().AsSingle();
+        Container.Bind<IHandController>().To<HandController>().AsSingle();
+        Container.Bind<IHandSubsystem>().To<HandSubsystem>().AsSingle();
 
         // FusePhase Subsystem
-        Container.BindInterfacesAndSelfTo<FusePhaseModel>().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<FusePhaseController>().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<FusePhaseSubsystem>().AsSingle().NonLazy();
+        Container.Bind<IFusePhaseModel>().To<FusePhaseModel>().AsSingle();
+        Container.Bind<IFusePhaseController>().To<FusePhaseController>().AsSingle();
+        Container.Bind<IFusePhaseSubsystem>().To<FusePhaseSubsystem>().AsSingle();
 
-        // Board Subsystem (NetworkBehaviour)
-        Container.BindInterfacesAndSelfTo<BoardModel>()
-            .FromComponentInHierarchy().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<BoardController>().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<BoardSubsystem>().AsSingle().NonLazy();
+        // Board Subsystem
+        Container.Bind<IBoardModel>().To<BoardModel>().AsSingle();
+        Container.Bind<IBoardController>().To<BoardController>().AsSingle();
+        Container.Bind<IBoardSubsystem>().To<BoardSubsystem>().AsSingle();
 
-        // Combat Subsystem (NetworkBehaviour)
-        Container.BindInterfacesAndSelfTo<CombatModel>()
-            .FromComponentInHierarchy().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<CombatController>().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<CombatSubsystem>().AsSingle().NonLazy();
+        // Combat Subsystem
+        Container.Bind<ICombatModel>().To<CombatModel>().AsSingle();
+        Container.Bind<ICombatController>().To<CombatController>().AsSingle();
+        Container.Bind<ICombatSubsystem>().To<CombatSubsystem>().AsSingle();
 
         // DrawPhase Subsystem
-        Container.BindInterfacesAndSelfTo<DrawPhaseModel>().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<DrawPhaseController>().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<DrawPhaseSubsystem>().AsSingle().NonLazy();
+        Container.Bind<IDrawPhaseModel>().To<DrawPhaseModel>().AsSingle();
+        Container.Bind<IDrawPhaseController>().To<DrawPhaseController>().AsSingle();
+        Container.Bind<IDrawPhaseSubsystem>().To<DrawPhaseSubsystem>().AsSingle();
 
         // MatchResult Subsystem
-        Container.BindInterfacesAndSelfTo<MatchResultModel>().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<MatchResultController>().AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<MatchResultSubsystem>().AsSingle().NonLazy();
+        Container.Bind<IMatchResultModel>().To<MatchResultModel>().AsSingle();
+        Container.Bind<IMatchResultController>().To<MatchResultController>().AsSingle();
+        Container.Bind<IMatchResultSubsystem>().To<MatchResultSubsystem>().AsSingle();
 
+        // StartPhase Subsystem
+        Container.Bind<IStartPhaseModel>().To<StartPhaseModel>().AsSingle();
+        Container.Bind<IStartPhaseController>().To<StartPhaseController>().AsSingle();
+        Container.Bind<IStartPhaseSubsystem>().To<StartPhaseSubsystem>().AsSingle();
     }
 }

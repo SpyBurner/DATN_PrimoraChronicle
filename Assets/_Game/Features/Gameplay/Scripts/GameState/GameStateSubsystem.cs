@@ -4,55 +4,55 @@ using Zenject;
 
 public class GameStateSubsystem : IGameStateSubsystem
 {
-    [Inject] private readonly IGameStateController _controller;
-    [Inject] private readonly IGameStateModel _model;
+    private readonly IGameStateController _controller;
+    private readonly IGameStateModel _model;
 
-    public IGameStateModel Model => _model;
-    public IGameStateController Controller => _controller;
+    public event UnityAction<int> TurnChanged;
+    public event UnityAction<string> PhaseChanged;
+    public event UnityAction<int> TimerChanged;
 
-    public event UnityAction<int> CurrentTurnChanged;
-    public event UnityAction<string> CurrentPhaseChanged;
-    public event UnityAction<int> MatchTimerChanged;
+    public GameStateSubsystem(IGameStateController controller, IGameStateModel model)
+    {
+        _controller = controller;
+        _model = model;
+    }
 
     public void Initialize()
     {
-        if (_model?.CurrentTurn != null)
-            _model.CurrentTurn.OnChanged += HandleCurrentTurnChanged;
-
-        if (_model?.CurrentPhase != null)
-            _model.CurrentPhase.OnChanged += HandleCurrentPhaseChanged;
-
-        if (_model?.MatchTimer != null)
-            _model.MatchTimer.OnChanged += HandleMatchTimerChanged;
+        _model.CurrentTurn.OnChanged += HandleTurnChanged;
+        _model.CurrentPhase.OnChanged += HandlePhaseChanged;
+        _model.MatchTimer.OnChanged += HandleTimerChanged;
     }
 
     public void Dispose()
     {
-        if (_model?.CurrentTurn != null)
-            _model.CurrentTurn.OnChanged -= HandleCurrentTurnChanged;
-
-        if (_model?.CurrentPhase != null)
-            _model.CurrentPhase.OnChanged -= HandleCurrentPhaseChanged;
-
-        if (_model?.MatchTimer != null)
-            _model.MatchTimer.OnChanged -= HandleMatchTimerChanged;
+        _model.CurrentTurn.OnChanged -= HandleTurnChanged;
+        _model.CurrentPhase.OnChanged -= HandlePhaseChanged;
+        _model.MatchTimer.OnChanged -= HandleTimerChanged;
+        
+        _controller.Dispose();
+        _model.Dispose();
     }
+
+    // ── Intent ──────────────────────────────────────────────────────────
 
     public void StartMatch() => _controller.StartMatch();
     public void EndTurn() => _controller.EndTurn();
+    public void SetPhase(string phase) => _controller.SetPhase(phase);
 
-    private void HandleCurrentTurnChanged()
-    {
-        try { CurrentTurnChanged?.Invoke(_model.CurrentTurn.Value); } catch { }
-    }
+    // ── Network registration ─────────────────────────────────────────────
 
-    private void HandleCurrentPhaseChanged()
-    {
-        try { CurrentPhaseChanged?.Invoke(_model.CurrentPhase.Value); } catch { }
-    }
+    public void RegisterNetworkBridge(IGameStateNetworkBridge bridge) 
+        => _controller.RegisterBridge(bridge);
 
-    private void HandleMatchTimerChanged()
-    {
-        try { MatchTimerChanged?.Invoke(_model.MatchTimer.Value); } catch { }
-    }
+    // ── Authoritative sync ───────────────────────────────────────────────
+
+    public void OnAuthoritativeStateReceived(GameStateStateData data) 
+        => _controller.OnAuthoritativeStateReceived(data);
+
+    // ── Observable handlers ──────────────────────────────────────────────
+
+    private void HandleTurnChanged() => TurnChanged?.Invoke(_model.CurrentTurn.Value);
+    private void HandlePhaseChanged() => PhaseChanged?.Invoke(_model.CurrentPhase.Value);
+    private void HandleTimerChanged() => TimerChanged?.Invoke(_model.MatchTimer.Value);
 }

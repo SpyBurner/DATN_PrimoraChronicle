@@ -1,20 +1,54 @@
 using Zenject;
 
-public class CombatController : ICombatController
+internal class CombatController : ICombatController
 {
-    [Inject] private readonly ICombatModel _model;
-    [Inject] private readonly IDebugLogger _debugLogger;
+    private readonly ICombatModel _model;
+    private readonly IDebugLogger _debugLogger;
+    private ICombatNetworkBridge _bridge;
+
+    public CombatController(ICombatModel model, IDebugLogger debugLogger)
+    {
+        _model = model;
+        _debugLogger = debugLogger;
+    }
 
     public void Initialize() { }
     public void Dispose() { }
 
+    public void RegisterBridge(ICombatNetworkBridge bridge)
+    {
+        _bridge = bridge;
+        _debugLogger.Log($"[CombatController] Bridge {(_bridge == null ? "unregistered" : "registered")}.");
+    }
+
     public void ExecuteTurn()
     {
-        _debugLogger.Log("CombatController: ExecuteTurn");
+        if (_bridge != null)
+        {
+            _bridge.SendExecuteTurnRpc();
+        }
+        else
+        {
+            _debugLogger.Log("CombatController: ExecuteTurn (Local)");
+            // Local path implementation would go here
+        }
     }
 
     public void SkipCombat()
     {
-        _debugLogger.Log("CombatController: SkipCombat");
+        if (_bridge != null)
+        {
+            _bridge.SendSkipCombatRpc();
+        }
+        else
+        {
+            _debugLogger.Log("CombatController: SkipCombat (Local)");
+            // Local path implementation would go here
+        }
+    }
+
+    public void OnAuthoritativeStateReceived(CombatStateData data)
+    {
+        _model.ApplyState(data);
     }
 }

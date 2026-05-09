@@ -1,18 +1,40 @@
-using System.Threading.Tasks;
 using Zenject;
 
-public class HandController : IHandController
+internal class HandController : IHandController
 {
-    [Inject] private readonly IHandModel _model;
-    [Inject] private readonly IDebugLogger _debugLogger;
+    private readonly IHandModel _model;
+    private readonly IDebugLogger _debugLogger;
+    private IHandNetworkBridge _bridge;
+
+    public HandController(IHandModel model, IDebugLogger debugLogger)
+    {
+        _model = model;
+        _debugLogger = debugLogger;
+    }
 
     public void Initialize() { }
     public void Dispose() { }
 
-    public async Task PlayCard(string cardId)
+    public void RegisterBridge(IHandNetworkBridge bridge)
     {
-        _debugLogger.Log($"HandController: Requesting to play card {cardId}");
-        _model.RequestPlayCard(cardId);
-        await Task.Yield();
+        _bridge = bridge;
+        _debugLogger.Log($"[HandController] Bridge {(_bridge == null ? "unregistered" : "registered")}.");
+    }
+
+    public void PlayCard(string cardId)
+    {
+        if (_bridge != null)
+        {
+            _bridge.SendPlayCardRpc(cardId);
+        }
+        else
+        {
+            _debugLogger.Log($"HandController: PlayCard {cardId} (Local)");
+        }
+    }
+
+    public void OnAuthoritativeStateReceived(HandStateData data)
+    {
+        _model.ApplyState(data);
     }
 }

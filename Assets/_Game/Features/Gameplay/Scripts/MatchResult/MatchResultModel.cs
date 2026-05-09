@@ -12,5 +12,18 @@ public class MatchResultModel : IMatchResultModel
     public Observable<int> RankProgress => _rankProgress;
 
     public void Initialize() { }
-    public void Dispose() { }
+
+    public void Dispose()
+    {
+        _isVictory.Value = false;
+        _goldEarned.Value = 0;
+        _rankProgress.Value = 0;
+    }
+
+    public void ApplyState(MatchResultStateData data)
+    {
+        _isVictory.Value = data.IsVictory;
+        _goldEarned.Value = data.GoldEarned;
+        _rankProgress.Value = data.RankProgress;
+    }
 }
