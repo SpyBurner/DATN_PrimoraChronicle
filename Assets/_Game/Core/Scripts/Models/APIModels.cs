@@ -44,7 +44,6 @@ public class EmptyRequest { }
 public class SaveDeckRequest
 {
     public string id;
-    public string userId;
     public string name;
     public List<string> cardIds;
 }

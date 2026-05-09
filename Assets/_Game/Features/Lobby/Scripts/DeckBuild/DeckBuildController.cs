@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Core;
 using UnityEngine;
+using WebSocketSharp;
 using Zenject;
 
 internal class DeckBuildController : IDeckBuildController
@@ -122,29 +123,32 @@ internal class DeckBuildController : IDeckBuildController
         {
             string deckId = _model.CurrentDeckId.Value;
             string deckName = _model.CurrentDeckName.Value;
-            string userId = _authSessionModel.CurrentUserId.Value;
-
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                _debugLogger.LogError("DeckBuild: Cannot save deck without a current user id");
-                return;
-            }
 
             _debugLogger.Log($"DeckBuild: Saving deck {deckName} ({deckId})");
 
             List<string> cardIds = _model.DeckCards.Value.Select(c => c.StringID).ToList();
             cardIds.AddRange(_model.ChampionCards.Value.Select(c => c.StringID));
 
+            // Client-side validation
+            if (deckName.IsNullOrEmpty())
+            {
+                _debugLogger.LogError($"Deck name cannot be empty!");
+            }
+
+            if (cardIds.Count < Constants.DECK_CARD_COUNT)
+            {
+                _debugLogger.LogError($"Not enough cards in deck {deckName}");
+                return;
+            }
+
             var payload = new SaveDeckRequest
             {
                 id = deckId,
-                userId = userId,
                 name = deckName,
                 cardIds = cardIds
             };
 
-            string encodedUserId = Uri.EscapeDataString(userId);
-            await _httpService.Post<SaveDeckRequest>($"/api/decks/save?user_id={encodedUserId}", payload);
+            await _httpService.Post<SaveDeckRequest>($"/api/decks/save", payload);
             _debugLogger.Log("DeckBuild: Deck saved successfully");
         }
         catch (Exception ex)
@@ -176,15 +180,7 @@ internal class DeckBuildController : IDeckBuildController
 
     private async Task<List<CardSO>> GetAllCollection(IEnumerable<CardSO> cardsAlreadyInDeck = null)
     {
-        string userId = _authSessionModel.CurrentUserId.Value;
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            _debugLogger.LogError("DeckBuild: Cannot load available cards without a current user id");
-            return new List<CardSO>();
-        }
-
-        string encodedUserId = Uri.EscapeDataString(userId);
-        string responseJson = await _httpService.Get($"/api/collection/card-copies?user_id={encodedUserId}");
+        string responseJson = await _httpService.Get($"/api/collection/card-copies");
         Debug.Log($"DeckBuild: Received card copies response: {responseJson}");
         CollectionCardCopyResponse[] cardCopies = DeserializeArray<CollectionCardCopyResponse>(responseJson);
 

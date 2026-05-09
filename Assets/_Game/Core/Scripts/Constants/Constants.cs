@@ -7,6 +7,7 @@ public static class Constants
     /// <summary>
     /// UI Identifiers
     /// </summary>
+    public const int DECK_CARD_COUNT = 20;
 }
 
 public static class HttpErrors

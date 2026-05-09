@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Core
 {
-    [CreateAssetMenu(fileName = "ChampionCardSO", menuName = "ScriptableObjects/Cards/ChampionCardSO")]
-    public class ChampionCardSO : UnitCardSO
+    [CreateAssetMenu(fileName = "EquipSpellSO", menuName = "ScriptableObjects/Cards/EquipSpellSO")]
+    public class EquipSpellSO : SpellCardSO
     {
         private void Reset()
         {
