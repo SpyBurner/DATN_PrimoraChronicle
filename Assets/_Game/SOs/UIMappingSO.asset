@@ -41,6 +41,8 @@ MonoBehaviour:
     prefab: {fileID: 8753662783953122124, guid: 1268ad7c583c1f34ba7e571a44f6ffdb, type: 3}
   - uiIdentifier: 314
     prefab: {fileID: 4781143001471685162, guid: be153f6e47a1d9d4e848368bc4e16a5d, type: 3}
+  - uiIdentifier: 315
+    prefab: {fileID: 5382090466334304618, guid: ad7536438f174de4dab79021d50d09b0, type: 3}
   - uiIdentifier: 401
     prefab: {fileID: -7274689697689511306, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
   - uiIdentifier: 405

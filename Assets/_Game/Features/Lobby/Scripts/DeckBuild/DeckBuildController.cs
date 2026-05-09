@@ -154,21 +154,28 @@ internal class DeckBuildController : IDeckBuildController
         {
             string deckId = _model.CurrentDeckId.Value;
             string deckName = _model.CurrentDeckName.Value;
+            string championStringId = _model.ChampionCards.Value.FirstOrDefault()?.StringID;
 
             _debugLogger.Log($"DeckBuild: Saving deck {deckName} ({deckId})");
 
             List<string> cardIds = _model.DeckCards.Value.Select(c => c.StringID).ToList();
-            cardIds.AddRange(_model.ChampionCards.Value.Select(c => c.StringID));
 
             // Client-side validation
             if (deckName.IsNullOrEmpty())
             {
                 _debugLogger.LogError($"Deck name cannot be empty!");
+                return;
             }
 
-            if (cardIds.Count < Constants.DECK_CARD_COUNT)
+            if (cardIds.Count != Constants.DECK_CARD_COUNT)
             {
-                _debugLogger.LogError($"Not enough cards in deck {deckName}");
+                _debugLogger.LogError($"DeckBuild: Deck {deckName} must contain exactly {Constants.DECK_CARD_COUNT} cards before saving");
+                return;
+            }
+
+            if (championStringId.IsNullOrEmpty())
+            {
+                _debugLogger.LogError($"DeckBuild: Deck {deckName} must contain exactly 1 champion before saving");
                 return;
             }
 
@@ -176,6 +183,7 @@ internal class DeckBuildController : IDeckBuildController
             {
                 id = deckId,
                 name = deckName,
+                championStringID = championStringId,
                 cardIds = cardIds
             };
 

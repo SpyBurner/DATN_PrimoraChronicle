@@ -80,6 +80,7 @@ public enum UIIdentifier
     POPUP_TEXT_INPUT = 312,
     POPUP_DECK_ITEM_CONTEXT = 313,
     POPUP_SHOP_ITEM_CONTEXT = 314,
+    POPUP_SAVE_DECK_CONFIRM = 315,
 
     // Gameplay
     GAMEPLAY_SCENE = 400,

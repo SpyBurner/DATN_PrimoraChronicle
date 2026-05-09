@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using System.Threading.Tasks;
 using Core;
 using Zenject;
 using UnityEngine;
@@ -161,9 +162,19 @@ public class DeckBuildPanel : UIPanel
         _deckBuild.RemoveCardFromDeck(card);
     }
 
-    private void OnSave()
+    private async void OnSave()
     {
-        _deckBuild.SaveDeck();
+        await _uiManagerSubsystem.Show<DeckSaveConfirmPopup>();
+
+        DeckSaveConfirmPopup popup = _uiManagerSubsystem.GetPanel<DeckSaveConfirmPopup>();
+        popup.Setup(_deckBuildModel.CurrentDeckName.Value, deckName => _ = SaveDeckWithName(deckName));
+    }
+
+    private async Task SaveDeckWithName(string deckName)
+    {
+        string trimmedDeckName = deckName?.Trim() ?? string.Empty;
+        _deckBuildModel.SetCurrentDeck(_deckBuildModel.CurrentDeckId.Value, trimmedDeckName);
+        await _deckBuild.SaveDeck();
     }
 
     private void ClearContainer(GameObject container)
