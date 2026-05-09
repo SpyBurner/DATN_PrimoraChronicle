@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8830977379004214349}
   - component: {fileID: 3813041083144992525}
   - component: {fileID: 4553950130060041772}
+  - component: {fileID: 1992104554098502240}
   m_Layer: 0
   m_Name: Panel
   m_TagString: Untagged
@@ -39,9 +40,9 @@ RectTransform:
   - {fileID: 5778490562671819008}
   m_Father: {fileID: 2039266233850231753}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 910, y: -250.975}
   m_SizeDelta: {x: 771.4075, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8912069667954207435
@@ -128,6 +129,20 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &1992104554098502240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343018041256677889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &3419142355572253369
 GameObject:
   m_ObjectHideFlags: 0
@@ -431,6 +446,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7300157216331849797, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: data.colorGuid
       value: 187d588c-abd1-410c-a4d7-16a1523b1677
@@ -567,7 +586,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 858145186437614191, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 775.11
+      value: 881.7559
       objectReference: {fileID: 0}
     - target: {fileID: 858145186437614191, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -591,7 +610,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1102184911446031833, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 194.89
+      value: 92.984
       objectReference: {fileID: 0}
     - target: {fileID: 1102184911446031833, guid: 577942d2757ccc047a321ccc57ca592b, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -1301,7 +1320,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8487699280679530514, guid: 6d26dc7bc3bfd2e488f1326185849eb5, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 101.81
       objectReference: {fileID: 0}
     - target: {fileID: 8487699280679530514, guid: 6d26dc7bc3bfd2e488f1326185849eb5, type: 3}
       propertyPath: m_SizeDelta.y
@@ -1434,7 +1453,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2260562927846401261, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 62.88
       objectReference: {fileID: 0}
     - target: {fileID: 2260562927846401261, guid: ba73ad5a48259fe4ba659dcb0bd49891, type: 3}
       propertyPath: m_SizeDelta.y
@@ -1615,6 +1634,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
       propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
+      propertyPath: m_VerticalFit
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6281777969741214053, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
+      propertyPath: m_HorizontalFit
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7300157216331849797, guid: 83e3c9936ccdd54479d6092e5b4bf070, type: 3}
