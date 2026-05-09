@@ -67,5 +67,13 @@ internal class CoreInstaller : MonoInstaller
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<AudioManagerSubsystem>()
             .AsSingle().NonLazy();
+
+        // Network
+        Container.BindInterfacesAndSelfTo<NetworkManagerModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<NetworkManagerController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<NetworkManagerSubsystem>()
+            .AsSingle().NonLazy();
     }
 }
