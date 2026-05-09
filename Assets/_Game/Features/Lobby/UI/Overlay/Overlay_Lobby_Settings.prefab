@@ -349,6 +349,39 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d373be48cfbb4ac4f840e9b5f567b929, type: 3}
+--- !u!114 &2661986718098229950 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4492811750337205413, guid: d373be48cfbb4ac4f840e9b5f567b929, type: 3}
+  m_PrefabInstance: {fileID: 1921043262785805851}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
+--- !u!114 &3487642582299500168 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3084529067269914771, guid: d373be48cfbb4ac4f840e9b5f567b929, type: 3}
+  m_PrefabInstance: {fileID: 1921043262785805851}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
+--- !u!114 &4809323792613971609 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6347485203171526786, guid: d373be48cfbb4ac4f840e9b5f567b929, type: 3}
+  m_PrefabInstance: {fileID: 1921043262785805851}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
 --- !u!224 &8119274222436849430 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7639686376771078413, guid: d373be48cfbb4ac4f840e9b5f567b929, type: 3}
@@ -557,3 +590,7 @@ MonoBehaviour:
   _identifier: 310
   _layer: 4
   _closeButton: {fileID: 774736865358120452}
+  masterSlider: {fileID: 3487642582299500168}
+  musicSlider: {fileID: 4809323792613971609}
+  sfxSlider: {fileID: 2661986718098229950}
+  applyButton: {fileID: 0}
