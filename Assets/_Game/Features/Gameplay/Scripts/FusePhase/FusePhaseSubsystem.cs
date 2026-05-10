@@ -4,18 +4,14 @@ using Zenject;
 
 public class FusePhaseSubsystem : IFusePhaseSubsystem
 {
+    [Inject]
     private readonly IFusePhaseController _controller;
+    [Inject]
     private readonly IFusePhaseModel _model;
 
     public event UnityAction<bool> IsActiveChanged;
     public event UnityAction<string> PrimaryUnitIdChanged;
     public event UnityAction<string> SecondaryUnitIdChanged;
-
-    public FusePhaseSubsystem(IFusePhaseController controller, IFusePhaseModel model)
-    {
-        _controller = controller;
-        _model = model;
-    }
 
     public void Initialize()
     {

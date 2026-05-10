@@ -21,7 +21,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         PushState();
     }
 
-    public override void OnDestroy()
+    public void OnDestroy()
     {
         if (HasInputAuthority)
             _subsystem.RegisterNetworkBridge(null);

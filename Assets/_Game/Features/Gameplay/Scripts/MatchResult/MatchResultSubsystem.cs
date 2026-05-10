@@ -4,19 +4,14 @@ using Zenject;
 
 public class MatchResultSubsystem : IMatchResultSubsystem
 {
+    [Inject]
     private readonly IMatchResultController _controller;
+    [Inject]
     private readonly IMatchResultModel _model;
 
     public event UnityAction<bool> IsVictoryChanged;
     public event UnityAction<int> GoldEarnedChanged;
     public event UnityAction<int> RankProgressChanged;
-
-    public MatchResultSubsystem(IMatchResultController controller, IMatchResultModel model)
-    {
-        _controller = controller;
-        _model = model;
-    }
-
     public void Initialize()
     {
         _model.IsVictory.OnChanged += HandleVictoryChanged;

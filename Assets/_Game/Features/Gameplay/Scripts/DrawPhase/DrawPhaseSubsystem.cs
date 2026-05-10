@@ -4,17 +4,13 @@ using Zenject;
 
 public class DrawPhaseSubsystem : IDrawPhaseSubsystem
 {
+    [Inject]
     private readonly IDrawPhaseController _controller;
+    [Inject]
     private readonly IDrawPhaseModel _model;
 
     public event UnityAction<int> CardsToDrawChanged;
     public event UnityAction<bool> IsDrawingChanged;
-
-    public DrawPhaseSubsystem(IDrawPhaseController controller, IDrawPhaseModel model)
-    {
-        _controller = controller;
-        _model = model;
-    }
 
     public void Initialize()
     {

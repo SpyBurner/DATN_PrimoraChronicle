@@ -5,18 +5,14 @@ using Zenject;
 
 public class StartPhaseSubsystem : IStartPhaseSubsystem
 {
+    [Inject]
     private readonly IStartPhaseController _controller;
+    [Inject]
     private readonly IStartPhaseModel _model;
 
     public event UnityAction<List<int>> SelectedChampionsChanged;
     public event UnityAction<bool> IsReadyChanged;
     public event UnityAction<string> StatusChanged;
-
-    public StartPhaseSubsystem(IStartPhaseController controller, IStartPhaseModel model)
-    {
-        _controller = controller;
-        _model = model;
-    }
 
     public void Initialize()
     {

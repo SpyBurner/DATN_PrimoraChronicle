@@ -5,6 +5,8 @@ public class BattleSetupController : IBattleSetupController
 {
     [Inject] private readonly IBattleSetupModel _model;
     [Inject] private readonly IDebugLogger _debugLogger;
+    [Inject] private readonly INetworkManagerSubsystem _networkManager;
+    [Inject] private readonly UIManagerSubsystem _uiManager;
 
     public void Initialize() { }
     public void Dispose() { }
@@ -16,18 +18,12 @@ public class BattleSetupController : IBattleSetupController
     public async Task StartMatchmaking()
     {
         _debugLogger.Log($"BattleSetup: Starting matchmaking (Offline: {_model.IsOffline.Value}, Bots: {_model.BotCount.Value})");
-        // Logic to transition to MatchMaking subsystem or start game directly
-        await Task.Yield();
+        await _uiManager.Show<MatchMakingPanel>();
+        await _networkManager.StartSession(
+            new Fusion.StartGameArgs{
+                PlayerCount = _model.PlayerCount.Value,
+                GameMode = Fusion.GameMode.AutoHostOrClient,
+                SessionName = "BattleSession",
+            });
     }
-}
-
-[System.Serializable]
-internal class BattleSetupResponse
-{
-    public string opponentName;
-    public int opponentLevel;
-    public int playerHP;
-    public int opponentHP;
-    public int playerMaxHP;
-    public int opponentMaxHP;
 }

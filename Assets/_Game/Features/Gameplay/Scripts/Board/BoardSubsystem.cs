@@ -5,16 +5,12 @@ using Zenject;
 
 public class BoardSubsystem : IBoardSubsystem
 {
+    [Inject]
     private readonly IBoardController _controller;
+    [Inject]
     private readonly IBoardModel _model;
 
     public event UnityAction<Dictionary<int, string>> GridChanged;
-
-    public BoardSubsystem(IBoardController controller, IBoardModel model)
-    {
-        _controller = controller;
-        _model = model;
-    }
 
     public void Initialize()
     {

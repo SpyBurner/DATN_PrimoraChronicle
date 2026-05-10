@@ -1,12 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using Fusion;
 using Zenject;
 
 internal class MatchMakingController : IMatchMakingController
 {
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IMatchMakingModel _model;
-    [Inject] private readonly IHttpServiceSubsystem _httpService;
+    [Inject] private readonly INetworkManagerSubsystem _networkSubsystem;
     [Inject] private readonly ISceneLoaderSubsystem _sceneLoader;
 
     public void Initialize() { }
@@ -16,72 +17,62 @@ internal class MatchMakingController : IMatchMakingController
     {
         try
         {
-            _debugLogger.Log("MatchMaking: Starting matchmaking");
-            _model.SetIsSearching(true);
-            _model.SetIsMatchFound(false);
-            _model.SetStatus("Searching for opponent...");
+            _debugLogger.Log("MatchMaking: Starting session via NetworkSubsystem");
+            _model.SetStatus("Connecting to Network...");
 
-            var response = await _httpService.Post<MatchMakingResponse, EmptyRequest>("/api/matchmaking/start", new EmptyRequest());
-
-            if (response != null)
+            // Configure Fusion session args
+            var args = new StartGameArgs
             {
-                _model.SetQueuePosition(response.queuePosition);
-                _debugLogger.Log($"MatchMaking: Queue position {response.queuePosition}");
-                
-                // Simulate wait for match
-                await Task.Delay(3000);
-                
-                _debugLogger.Log("MatchMaking: Match found! Waiting for confirmation.");
-                _model.SetIsSearching(false);
-                _model.SetIsMatchFound(true);
+                GameMode = GameMode.Shared,
+                // SessionName = null, // Use null for random matchmaking in some modes, or a specific lobby
+            };
+
+            bool success = await _networkSubsystem.StartSession(args);
+
+            if (success)
+            {
+                _debugLogger.Log("MatchMaking: Session joined successfully.");
                 _model.SetStatus("Match Found!");
                 
                 // Start confirmation timer
-                await StartConfirmationTimer(10);
+                await StartTimer(5);
             }
             else
             {
-                _model.SetIsSearching(false);
                 _model.SetStatus("Matchmaking failed");
             }
         }
         catch (Exception ex)
         {
             _debugLogger.LogError($"MatchMaking: StartMatchmaking failed: {ex.Message}");
-            _model.SetIsSearching(false);
             _model.SetStatus($"Error: {ex.Message}");
         }
     }
 
-    private async Task StartConfirmationTimer(int seconds)
+    private async Task StartTimer(int seconds)
     {
         for (int i = seconds; i >= 0; i--)
         {
-            if (!_model.IsMatchFound.Value) break;
-            _model.SetConfirmationTimer(i);
+            _model.SetTimer(i);
             await Task.Delay(1000);
-        }
-
-        if (_model.IsMatchFound.Value)
-        {
-            _debugLogger.Log("MatchMaking: Confirmation timeout");
-            await RejectMatch();
         }
     }
 
     public async Task AcceptMatch()
     {
         _debugLogger.Log("MatchMaking: Match accepted, loading Gameplay scene");
-        _model.SetIsMatchFound(false);
         _model.SetStatus("Joining match...");
-        await _sceneLoader.LoadScene("Gameplay");
+        
+        // In Fusion, scene loading is often handled by the Runner, 
+        // but here we follow the existing pattern of using SceneLoader if applicable,
+        // or let Fusion handle it if we passed Scene to StartGameArgs.
     }
 
     public async Task RejectMatch()
     {
-        _debugLogger.Log("MatchMaking: Match rejected");
-        _model.SetIsMatchFound(false);
+        _debugLogger.Log("MatchMaking: Match rejected, shutting down network session");
         _model.SetStatus("Match canceled");
+        await _networkSubsystem.ShutdownRunner();
         await Task.Delay(1000);
         _model.SetStatus(string.Empty);
     }
@@ -91,7 +82,7 @@ internal class MatchMakingController : IMatchMakingController
         try
         {
             _debugLogger.Log("MatchMaking: Canceling matchmaking");
-            await _httpService.Post<EmptyRequest>("/api/matchmaking/cancel", new EmptyRequest());
+            await _networkSubsystem.ShutdownRunner();
             _model.SetIsSearching(false);
             _model.SetIsMatchFound(false);
             _model.SetStatus(string.Empty);
@@ -102,10 +93,4 @@ internal class MatchMakingController : IMatchMakingController
             _debugLogger.LogError($"MatchMaking: CancelMatchmaking failed: {ex.Message}");
         }
     }
-}
-
-[System.Serializable]
-internal class MatchMakingResponse
-{
-    public int queuePosition;
 }

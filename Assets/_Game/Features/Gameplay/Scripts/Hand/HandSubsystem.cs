@@ -5,16 +5,12 @@ using Zenject;
 
 public class HandSubsystem : IHandSubsystem
 {
+    [Inject]
     private readonly IHandController _controller;
+    [Inject]
     private readonly IHandModel _model;
 
     public event UnityAction<List<string>> CardsChanged;
-
-    public HandSubsystem(IHandController controller, IHandModel model)
-    {
-        _controller = controller;
-        _model = model;
-    }
 
     public void Initialize()
     {

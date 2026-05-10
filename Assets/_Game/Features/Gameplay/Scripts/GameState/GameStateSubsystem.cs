@@ -4,18 +4,14 @@ using Zenject;
 
 public class GameStateSubsystem : IGameStateSubsystem
 {
+    [Inject]
     private readonly IGameStateController _controller;
+    [Inject]
     private readonly IGameStateModel _model;
 
     public event UnityAction<int> TurnChanged;
     public event UnityAction<string> PhaseChanged;
     public event UnityAction<int> TimerChanged;
-
-    public GameStateSubsystem(IGameStateController controller, IGameStateModel model)
-    {
-        _controller = controller;
-        _model = model;
-    }
 
     public void Initialize()
     {

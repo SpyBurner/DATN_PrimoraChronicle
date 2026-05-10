@@ -4,18 +4,14 @@ using Zenject;
 
 public class CombatSubsystem : ICombatSubsystem
 {
+    [Inject]
     private readonly ICombatController _controller;
+    [Inject]
     private readonly ICombatModel _model;
 
     public event UnityAction<string> AttackerChanged;
     public event UnityAction<string> DefenderChanged;
     public event UnityAction<string> LogChanged;
-
-    public CombatSubsystem(ICombatController controller, ICombatModel model)
-    {
-        _controller = controller;
-        _model = model;
-    }
 
     public void Initialize()
     {

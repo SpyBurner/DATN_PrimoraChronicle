@@ -20,7 +20,7 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
         PushState();
     }
 
-    public override void OnDestroy()
+    public void OnDestroy()
     {
         if (HasInputAuthority)
             _subsystem.RegisterNetworkBridge(null);
