@@ -1,9 +1,5 @@
-using System.Threading.Tasks;
-
 public interface IBattleSetupController : IController
 {
-    void SetOffline(bool isOffline);
-    void SetBotCount(int count);
-    void SetPlayerCount(int count);
-    Task StartMatchmaking();
+    void SetFillRoomWithAI(bool fillRoomWithAI);
+    void SetPlayerCnt(int playerCnt);
 }

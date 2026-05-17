@@ -1,14 +1,14 @@
-using System.Threading.Tasks;
 using UnityEngine.Events;
 
 public interface IBattleSetupSubsystem : ISubsystem
 {
-    event UnityAction<bool> IsOfflineChanged;
-    event UnityAction<int> BotCountChanged;
-    event UnityAction<int> PlayerCountChanged;
+    event UnityAction<bool> FillRoomWithAIChanged;
+    event UnityAction<int> PlayerCntChanged;
 
-    void SetOffline(bool isOffline);
-    void SetBotCount(int count);
-    void SetPlayerCount(int count);
-    Task StartMatchmaking();
+    // Passthrough values for MatchMaking or UI to read
+    bool FillRoomWithAI { get; }
+    int  PlayerCnt      { get; }
+
+    void SetFillRoomWithAI(bool fillRoomWithAI);
+    void SetPlayerCnt(int playerCnt);
 }

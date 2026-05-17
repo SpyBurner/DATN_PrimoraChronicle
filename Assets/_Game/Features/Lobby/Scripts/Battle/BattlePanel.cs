@@ -27,7 +27,8 @@ public class BattlePanel : UIPanel
 
         _playerCountDropdown.AddOptions(_dropdownOptions.Select(x => x.ToString()).ToList());
 
-        _battleSetup.SetPlayerCount(_dropdownOptions[0]);
+        _battleSetup.SetPlayerCnt(_dropdownOptions[0]);
+        _battleSetup.SetFillRoomWithAI(false);
     }
 
     protected override void OnDisable()
@@ -38,26 +39,21 @@ public class BattlePanel : UIPanel
         _fillRoomWithAI?.onValueChanged.RemoveListener(OnFillRoomWithAIChanged);
     }
 
-    private void OnStartMatchmaking()
+    private async void OnStartMatchmaking()
     {
-        _battleSetup.StartMatchmaking();
+        await _uiManager.Show<MatchMakingPanel>();
     }
 
     private void OnFillRoomWithAIChanged(bool isFillRoom)
     {
-        _battleSetup.SetBotCount(isFillRoom ? 1 : 0);
+        _battleSetup.SetFillRoomWithAI(isFillRoom);
     }
 
     private void OnPlayerCountChanged(int choiceIndex)
     {
         var playerCnt = _dropdownOptions[choiceIndex];
-        _battleSetup.SetPlayerCount(playerCnt);
+        _battleSetup.SetPlayerCnt(playerCnt);
 
-        var botMode = playerCnt == 2 && _fillRoomWithAI.isOn;
-        _fillRoomWithAI.enabled = playerCnt == 2;
-
-        var botCnt = botMode ? 1 : 0;
-        _battleSetup.SetBotCount(botCnt);
-        
+        _fillRoomWithAI.gameObject.SetActive(playerCnt == 2);
     }
 }

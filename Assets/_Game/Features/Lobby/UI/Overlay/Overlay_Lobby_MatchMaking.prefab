@@ -893,11 +893,8 @@ MonoBehaviour:
   _identifier: 306
   _layer: 4
   _closeButton: {fileID: 8306657158752231871}
-  _searchingRoot: {fileID: 0}
   _statusText: {fileID: 9034182578043154631}
-  _queuePositionText: {fileID: 0}
   _cancelButton: {fileID: 8306657158752231871}
-  _matchFoundRoot: {fileID: 0}
   _timerText: {fileID: 2183149958615640222}
   _acceptButton: {fileID: 9116690672753455867}
   _rejectButton: {fileID: 8306657158752231871}
