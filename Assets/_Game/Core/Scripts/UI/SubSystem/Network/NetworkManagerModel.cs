@@ -9,6 +9,8 @@ internal class NetworkManagerModel : INetworkManagerModel
     private Observable<int> _playerCount = new(0);
     private Observable<int> _maxPlayers = new(0);
     private Observable<string> _errorMessage = new(string.Empty);
+    private Observable<PlayerRef> _lastJoinedPlayer = new(PlayerRef.None);
+    private Observable<PlayerRef> _lastLeftPlayer = new(PlayerRef.None);
 
     public Observable<NetworkRunner.States> RunnerState { get => _runnerState; private set => _runnerState = value; }
     public Observable<string> SessionName { get => _sessionName; private set => _sessionName = value; }
@@ -16,6 +18,8 @@ internal class NetworkManagerModel : INetworkManagerModel
     public Observable<int> PlayerCount { get => _playerCount; private set => _playerCount = value; }
     public Observable<int> MaxPlayers { get => _maxPlayers; private set => _maxPlayers = value; }
     public Observable<string> ErrorMessage { get => _errorMessage; private set => _errorMessage = value; }
+    public Observable<PlayerRef> LastJoinedPlayer { get => _lastJoinedPlayer; private set => _lastJoinedPlayer = value; }
+    public Observable<PlayerRef> LastLeftPlayer { get => _lastLeftPlayer; private set => _lastLeftPlayer = value; }
     public void Initialize() { }
 
     public void Dispose()
@@ -26,6 +30,8 @@ internal class NetworkManagerModel : INetworkManagerModel
         _playerCount.Value = 0;
         _maxPlayers.Value = 0;
         _errorMessage.Value = string.Empty;
+        _lastJoinedPlayer.Value = PlayerRef.None;
+        _lastLeftPlayer.Value = PlayerRef.None;
     }
 
     public void SetRunnerState(NetworkRunner.States state) => _runnerState.Value = state;
@@ -34,6 +40,8 @@ internal class NetworkManagerModel : INetworkManagerModel
     public void SetPlayerCount(int count) => _playerCount.Value = count;
     public void SetMaxPlayers(int maxPlayers) => _maxPlayers.Value = maxPlayers;
     public void SetErrorMessage(string message) => _errorMessage.Value = message;
+    public void SetLastJoinedPlayer(PlayerRef player) => _lastJoinedPlayer.Value = player;
+    public void SetLastLeftPlayer(PlayerRef player) => _lastLeftPlayer.Value = player;
 
     public void GetRunnerState(out NetworkRunner.States state) => state = _runnerState.Value;
 }

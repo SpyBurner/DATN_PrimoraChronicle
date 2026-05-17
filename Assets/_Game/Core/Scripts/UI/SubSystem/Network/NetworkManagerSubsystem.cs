@@ -13,6 +13,8 @@ public class NetworkManagerSubsystem : INetworkManagerSubsystem
     public event UnityAction<string> SessionNameChanged;
     public event UnityAction<int> PlayerCountChanged;
     public event UnityAction<string> ErrorMessageChanged;
+    public event UnityAction<PlayerRef> PlayerJoined;
+    public event UnityAction<PlayerRef> PlayerLeft;
 
     public NetworkRunner.States RunnerState => _model.RunnerState.Value;
     public string SessionName => _model.SessionName.Value;
@@ -28,6 +30,8 @@ public class NetworkManagerSubsystem : INetworkManagerSubsystem
         _model.SessionName.OnChanged += HandleSessionNameChanged;
         _model.PlayerCount.OnChanged += HandlePlayerCountChanged;
         _model.ErrorMessage.OnChanged += HandleErrorMessageChanged;
+        _model.LastJoinedPlayer.OnChanged += HandleLastJoinedPlayerChanged;
+        _model.LastLeftPlayer.OnChanged += HandleLastLeftPlayerChanged;
     }
 
     public void Dispose()
@@ -36,6 +40,8 @@ public class NetworkManagerSubsystem : INetworkManagerSubsystem
         _model.SessionName.OnChanged -= HandleSessionNameChanged;
         _model.PlayerCount.OnChanged -= HandlePlayerCountChanged;
         _model.ErrorMessage.OnChanged -= HandleErrorMessageChanged;
+        _model.LastJoinedPlayer.OnChanged -= HandleLastJoinedPlayerChanged;
+        _model.LastLeftPlayer.OnChanged -= HandleLastLeftPlayerChanged;
     }
 
     public Task<bool> StartSession(StartGameArgs args) => _controller.StartSession(args);
@@ -45,4 +51,6 @@ public class NetworkManagerSubsystem : INetworkManagerSubsystem
     private void HandleSessionNameChanged() => SessionNameChanged?.Invoke(_model.SessionName.Value);
     private void HandlePlayerCountChanged() => PlayerCountChanged?.Invoke(_model.PlayerCount.Value);
     private void HandleErrorMessageChanged() => ErrorMessageChanged?.Invoke(_model.ErrorMessage.Value);
+    private void HandleLastJoinedPlayerChanged() => PlayerJoined?.Invoke(_model.LastJoinedPlayer.Value);
+    private void HandleLastLeftPlayerChanged() => PlayerLeft?.Invoke(_model.LastLeftPlayer.Value);
 }

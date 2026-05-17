@@ -1,4 +1,4 @@
-﻿using Core;
+using Core;
 using Core.Config;
 using Zenject;
 
@@ -9,6 +9,11 @@ internal class CoreInstaller : MonoInstaller
 
     public override void InstallBindings()
     {
+        // Create MainThreadDispatcher
+        var dispatcherGo = new UnityEngine.GameObject("MainThreadDispatcher");
+        UnityEngine.Object.DontDestroyOnLoad(dispatcherGo);
+        dispatcherGo.AddComponent<MainThreadDispatcher>();
+
         Container.BindInstance(UIMapping).AsSingle();
         
         if (ServerConfig != null)
@@ -74,6 +79,22 @@ internal class CoreInstaller : MonoInstaller
         Container.BindInterfacesAndSelfTo<NetworkManagerController>()
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<NetworkManagerSubsystem>()
+            .AsSingle().NonLazy();
+
+        // BackendBridge
+        Container.BindInterfacesAndSelfTo<BackendBridgeModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<BackendBridgeController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<BackendBridgeSubsystem>()
+            .AsSingle().NonLazy();
+
+        // ServerSession
+        Container.BindInterfacesAndSelfTo<ServerSessionModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<ServerSessionController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<ServerSessionSubsystem>()
             .AsSingle().NonLazy();
     }
 }

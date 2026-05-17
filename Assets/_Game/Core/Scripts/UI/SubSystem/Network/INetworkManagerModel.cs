@@ -9,6 +9,8 @@ public interface INetworkManagerModel : IModel
     Observable<int> PlayerCount { get; }
     Observable<int> MaxPlayers { get; }
     Observable<string> ErrorMessage { get; }
+    Observable<PlayerRef> LastJoinedPlayer { get; }
+    Observable<PlayerRef> LastLeftPlayer { get; }
 
     void SetRunnerState(NetworkRunner.States state);
     void SetSessionName(string sessionName);
@@ -16,4 +18,6 @@ public interface INetworkManagerModel : IModel
     void SetPlayerCount(int count);
     void SetMaxPlayers(int maxPlayers);
     void SetErrorMessage(string message);
+    void SetLastJoinedPlayer(PlayerRef player);
+    void SetLastLeftPlayer(PlayerRef player);
 }

@@ -10,7 +10,6 @@ internal class NetworkManagerController : INetworkManagerController, INetworkRun
 {
     [Inject] private readonly INetworkManagerModel _model;
     [Inject] private readonly IDebugLogger _debugLogger;
-
     public NetworkRunner Runner { get; private set; }
 
     public void Initialize() { }
@@ -32,7 +31,7 @@ internal class NetworkManagerController : INetworkManagerController, INetworkRun
                 var go = new GameObject("[NetworkRunner]");
                 GameObject.DontDestroyOnLoad(go);
                 Runner = go.AddComponent<NetworkRunner>();
-                Runner.ProvideInput = true;
+                Runner.ProvideInput = !Application.isBatchMode;
 
                 Runner.AddCallbacks(this);
             }
@@ -91,10 +90,16 @@ internal class NetworkManagerController : INetworkManagerController, INetworkRun
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
-        => _model.SetPlayerCount(runner.SessionInfo.PlayerCount);
+    {
+        _model.SetPlayerCount(runner.SessionInfo.PlayerCount);
+        _model.SetLastJoinedPlayer(player);
+    }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
-        => _model.SetPlayerCount(runner.SessionInfo.PlayerCount);
+    {
+        _model.SetPlayerCount(runner.SessionInfo.PlayerCount);
+        _model.SetLastLeftPlayer(player);
+    }
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
