@@ -142,7 +142,7 @@ The Combat Phase runs in this order:
 
 ## 8. Damage & The Modifier Pipeline
 
-- All damage is applied directly to HP. There is no base armor.
+- All damage is applied directly to HP.
 - Before any action resolves, the system runs three passes in strict order:
   1. **Aggregate Pass:** All active stat changes triggered by the action are gathered into a temporary buffer.
   2. **Intercept Pass:** Defensive status effects evaluate the buffer and cancel or modify specific incoming values.
@@ -169,23 +169,11 @@ The Combat Phase runs in this order:
 - Applying the same Lingering effect to a tile that already holds it refreshes or stacks according to its own behavior.
 - The owning player's units are immune to the negative effects of their own faction's Lingering effects.
 
-### Standard Tile Effects
-- Standard tile effects (e.g., Ash Cloud, Scorching Ground, Banner of Cinders) persist only for the current combat cycle and are cleared at board clear.
-- Multiple standard tile effects stack on the same tile normally.
-- Standard tile effects are removed by specific Purify card effects.
-
-### Decay (Special Case)
-- Decay is a Unit-type effect that travels with the afflicted unit when it moves.
-- When a unit with Decay stands on a Corrupted tile, the Corrupted damage is increased by 1 per Decay stack on that unit.
-
 ---
 
 ## 11. Stat Modification Rules
 
 - Any effect that modifies Max HP also modifies current HP by the same delta.
-- If an effect increases Max HP, current HP increases by the same amount.
-- If an effect decreases Max HP and current HP would exceed the new Max HP, current HP is set equal to the new Max HP.
-- Status effects that modify stats are applied permanently to the unit for the duration of the status effect.
 - The `ignore_friendly_fire: true` flag on a skill is the only mechanism that permits a skill to affect allied units.
 - The `ignore_pathfinding: true` flag on a skill is the only mechanism that permits movement without checking intermediate tiles.
 
@@ -195,7 +183,7 @@ The Combat Phase runs in this order:
 
 - A skill's cooldown ticks down by 1 at the start of the owning unit's turn.
 - A skill is usable when its cooldown value reaches 0.
-- Skills with `one_time: true` are permanently disabled after their first use in the match.
+- Skills with `one_time: true` are permanently disabled after their first use in that cycle's combat phase.
 - Persistent Unit cooldowns carry across board clear cycles.
 
 ---
