@@ -8,5 +8,6 @@ public interface ILobbyMainSubsystem : ISubsystem
     event UnityAction<int> GoldChanged;
     event UnityAction<string> AvatarUrlChanged;
 
+    void Refresh();
     Task Logout();
 }

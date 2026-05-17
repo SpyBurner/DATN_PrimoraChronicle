@@ -6,7 +6,6 @@ using Zenject;
 
 public class ProfileSubsystem : IProfileSubsystem
 {
-    [Inject] private readonly IProfileController _controller;
     [Inject] private readonly IProfileModel _model;
 
     public event UnityAction<string> UsernameChanged;
@@ -35,8 +34,6 @@ public class ProfileSubsystem : IProfileSubsystem
 
         if (_model?.AvatarUrl != null)
             _model.AvatarUrl.OnChanged += HandleAvatarUrlChanged;
-
-        _controller.Initialize();
     }
 
     public void Dispose()
@@ -87,6 +84,16 @@ public class ProfileSubsystem : IProfileSubsystem
 
     private void HandleAvatarUrlChanged()
     {
+        try { AvatarUrlChanged?.Invoke(_model.AvatarUrl.Value); } catch { }
+    }
+
+    public void Refresh()
+    {
+        try { UsernameChanged?.Invoke(_model.Username.Value); } catch { }
+        try { LevelChanged?.Invoke(_model.Level.Value); } catch { }
+        try { XpChanged?.Invoke(_model.Xp.Value); } catch { }
+        try { XpToNextLevelChanged?.Invoke(_model.XpToNextLevel.Value); } catch { }
+        try { GoldChanged?.Invoke(_model.Gold.Value); } catch { }
         try { AvatarUrlChanged?.Invoke(_model.AvatarUrl.Value); } catch { }
     }
 }
