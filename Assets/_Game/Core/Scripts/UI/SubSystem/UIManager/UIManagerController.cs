@@ -31,7 +31,7 @@ internal class UIManagerController : IUIManagerController
             _model.PanelsByLayer.Value[panel.Layer] = new List<IUIPanel>();
         }
         _model.PanelsByLayer.Value[panel.Layer].Add(panel);
-        
+
         Debug.Log($"[UIManager] Registered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
     }
 
@@ -144,12 +144,12 @@ internal class UIManagerController : IUIManagerController
             var parent = uiPanel != null ? uiRoot.GetLayerParent(uiPanel.Layer) : uiRoot.transform;
             var activeScene = SceneManager.GetActiveScene();
             var containerToUse = _sceneContextRegistry.TryGetContainerForScene(activeScene) ?? _container;
-            
+
             Debug.Log($"[UIManager] Instantiating prefab '{prefab.name}' for scene '{activeScene.name}' (Container: {(containerToUse == _container ? "Global" : "Scene")})");
-            
+
             var instance = containerToUse.InstantiatePrefab(prefab, parent);
             instance.SetActive(true); // Ensure instance is active
-            
+
             var panelInstance = instance.GetComponent<IUIPanel>();
             if (panelInstance != null)
             {
@@ -171,17 +171,17 @@ internal class UIManagerController : IUIManagerController
     public async Task Close(IUIPanel panel)
     {
         if (panel == null) return;
-        
+
         var typeName = panel.GetType().Name;
         panel.Hide();
         var go = (panel as MonoBehaviour).gameObject;
-        
+
         // Immediately unregister to reflect accurate count for auto-show logic
         UnregisterPanel(panel);
-        
+
         GameObject.Destroy(go);
         await Task.Yield();
-        
+
         // If this wasn't part of an internal transition and no UI is left, show default
         if (!_isInternalOperation && _model.Panels.Value.Count == 0)
         {

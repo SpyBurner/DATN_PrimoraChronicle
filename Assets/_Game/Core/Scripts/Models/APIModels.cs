@@ -45,5 +45,6 @@ public class SaveDeckRequest
 {
     public string id;
     public string name;
+    public string championStringID;
     public List<string> cardIds;
 }
