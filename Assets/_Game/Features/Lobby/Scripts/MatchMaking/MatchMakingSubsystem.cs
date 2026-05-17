@@ -23,18 +23,6 @@ public class MatchMakingSubsystem : IMatchMakingSubsystem
 
     public void Dispose()
     {
-        if (_model?.IsSearching != null)
-            _model.IsSearching.OnChanged -= HandleIsSearchingChanged;
-
-        if (_model?.Status != null)
-            _model.Status.OnChanged -= HandleStatusChanged;
-
-        if (_model?.QueuePosition != null)
-            _model.QueuePosition.OnChanged -= HandleQueuePositionChanged;
-
-        if (_model?.IsMatchFound != null)
-            _model.IsMatchFound.OnChanged -= HandleIsMatchFoundChanged;
-
         if (_model?.Timer != null)
             _model.Timer.OnChanged -= HandleConfirmationTimerChanged;
     }
@@ -44,28 +32,13 @@ public class MatchMakingSubsystem : IMatchMakingSubsystem
     public Task AcceptMatch() => _controller.AcceptMatch();
     public Task RejectMatch() => _controller.RejectMatch();
 
-    private void HandleIsSearchingChanged()
-    {
-        try { IsSearchingChanged?.Invoke(_model.IsSearching.Value); } catch { }
-    }
-
     private void HandleStatusChanged()
     {
         try { StatusChanged?.Invoke(_model.Status.Value); } catch { }
     }
 
-    private void HandleQueuePositionChanged()
-    {
-        try { QueuePositionChanged?.Invoke(_model.QueuePosition.Value); } catch { }
-    }
-
-    private void HandleIsMatchFoundChanged()
-    {
-        try { IsMatchFoundChanged?.Invoke(_model.IsMatchFound.Value); } catch { }
-    }
-
     private void HandleConfirmationTimerChanged()
     {
-        try { TimerChanged?.Invoke(_model.Timer.Value); } catch { }
+        try { TimerChanged?.Invoke((int)MathF.Ceiling(_model.Timer.Value)); } catch { }
     }
 }

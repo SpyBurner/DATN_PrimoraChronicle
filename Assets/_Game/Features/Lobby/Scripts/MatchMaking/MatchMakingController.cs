@@ -83,10 +83,7 @@ internal class MatchMakingController : IMatchMakingController
         {
             _debugLogger.Log("MatchMaking: Canceling matchmaking");
             await _networkSubsystem.ShutdownRunner();
-            _model.SetIsSearching(false);
-            _model.SetIsMatchFound(false);
             _model.SetStatus(string.Empty);
-            _model.SetQueuePosition(0);
         }
         catch (Exception ex)
         {

@@ -21,9 +21,5 @@ internal class MatchMakingModel : IMatchMakingModel
 
     public void SetStatus(string status) => _status.Value = status;
     public void SetTimer(float timer) => _timer.Value = timer;
-
-    public void SetPlayerJoinedCount(int count)
-    {
-        throw new System.NotImplementedException();
-    }
+    public void SetPlayerJoinedCount(int count) => _playerJoinedCount.Value = count;
 }
