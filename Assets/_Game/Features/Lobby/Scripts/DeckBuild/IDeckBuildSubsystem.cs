@@ -13,6 +13,7 @@ public interface IDeckBuildSubsystem : ISubsystem
     event UnityAction<IReadOnlyList<CardSO>> AvailableCardsChanged;
     event UnityAction<int> DeckSizeChanged;
     event UnityAction<bool> IsValidChanged;
+    event UnityAction<string> ErrorMessageChanged;
 
     Task LoadDeck(string deckId);
     Task CreateEmptyDeck();

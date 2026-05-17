@@ -163,21 +163,23 @@ internal class DeckBuildController : IDeckBuildController
             // Client-side validation
             if (deckName.IsNullOrEmpty())
             {
-                _debugLogger.LogError($"Deck name cannot be empty!");
+                _model.SetErrorMessage("Deck name cannot be empty.");
                 return;
             }
 
             if (cardIds.Count != Constants.DECK_CARD_COUNT)
             {
-                _debugLogger.LogError($"DeckBuild: Deck {deckName} must contain exactly {Constants.DECK_CARD_COUNT} cards before saving");
+                _model.SetErrorMessage($"Deck must contain exactly {Constants.DECK_CARD_COUNT} cards (currently {cardIds.Count}).");
                 return;
             }
 
             if (championStringId.IsNullOrEmpty())
             {
-                _debugLogger.LogError($"DeckBuild: Deck {deckName} must contain exactly 1 champion before saving");
+                _model.SetErrorMessage("Deck must contain exactly 1 champion.");
                 return;
             }
+
+            _model.SetErrorMessage(string.Empty);
 
             var payload = new SaveDeckRequest
             {
@@ -192,6 +194,7 @@ internal class DeckBuildController : IDeckBuildController
         }
         catch (Exception ex)
         {
+            _model.SetErrorMessage($"Save failed: {ex.Message}");
             _debugLogger.LogError($"DeckBuild: SaveDeck failed: {ex.Message}");
         }
     }

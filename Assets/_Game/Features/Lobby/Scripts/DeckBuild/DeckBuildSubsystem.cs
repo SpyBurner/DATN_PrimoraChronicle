@@ -18,6 +18,7 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
     public event UnityAction<IReadOnlyList<CardSO>> AvailableCardsChanged;
     public event UnityAction<int> DeckSizeChanged;
     public event UnityAction<bool> IsValidChanged;
+    public event UnityAction<string> ErrorMessageChanged;
 
     public void Initialize()
     {
@@ -31,6 +32,7 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
         _model.AvailableCards.OnChanged += HandleAvailableCardsChanged;
         _model.DeckSize.OnChanged += HandleDeckSizeChanged;
         _model.IsValid.OnChanged += HandleIsValidChanged;
+        _model.ErrorMessage.OnChanged += HandleErrorMessageChanged;
     }
 
     public void Dispose()
@@ -45,6 +47,7 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
         _model.AvailableCards.OnChanged -= HandleAvailableCardsChanged;
         _model.DeckSize.OnChanged -= HandleDeckSizeChanged;
         _model.IsValid.OnChanged -= HandleIsValidChanged;
+        _model.ErrorMessage.OnChanged -= HandleErrorMessageChanged;
     }
 
     public Task LoadDeck(string deckId) => _controller.LoadDeck(deckId);
@@ -61,4 +64,5 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
     private void HandleAvailableCardsChanged() => AvailableCardsChanged?.Invoke(_model.AvailableCards.Value);
     private void HandleDeckSizeChanged() => DeckSizeChanged?.Invoke(_model.DeckSize.Value);
     private void HandleIsValidChanged() => IsValidChanged?.Invoke(_model.IsValid.Value);
+    private void HandleErrorMessageChanged() => ErrorMessageChanged?.Invoke(_model.ErrorMessage.Value);
 }
