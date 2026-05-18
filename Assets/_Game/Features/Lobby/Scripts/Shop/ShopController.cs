@@ -77,9 +77,15 @@ internal class ShopController : IShopController
     {
         var pool = new List<string>();
         foreach (var key in _cardLoadingManager.GetSpellCardList().Keys)
-            pool.Add(key);
+        {
+            if (_cardLoadingManager.TryGetCardData(key, out var data) && data.rarity == "Common")
+                pool.Add(key);
+        }
         foreach (var key in _cardLoadingManager.GetTroopCardList().Keys)
-            pool.Add(key);
+        {
+            if (_cardLoadingManager.TryGetCardData(key, out var data) && data.rarity == "Common")
+                pool.Add(key);
+        }
         return pool;
     }
 
