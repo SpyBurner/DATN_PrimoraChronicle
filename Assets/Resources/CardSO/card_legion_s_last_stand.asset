@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1115e1978cd43db40b2e7abccdab7796, type: 3}
+  m_Name: card_legion_s_last_stand
+  m_EditorClassIdentifier: Core::Core.EquipSpellSO
+  ID: c008b40fb545f194cb5d47cd36089aeb
+  StringID: card_legions_last_stand
+  CardIllustration: {fileID: 0}

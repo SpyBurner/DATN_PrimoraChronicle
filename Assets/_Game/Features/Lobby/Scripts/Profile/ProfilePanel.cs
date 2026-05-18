@@ -22,9 +22,11 @@ public class ProfilePanel : UIPanel
         _profile.UsernameChanged += OnUsernameChanged;
         _profile.LevelChanged += OnLevelChanged;
         _profile.XpChanged += OnXpChanged;
-        _profile.XpToNextLevelChanged += OnXpToNextLevelChanged;
+        // _profile.XpToNextLevelChanged += OnXpToNextLevelChanged;
         _profile.GoldChanged += OnGoldChanged;
         _profile.AvatarUrlChanged += OnAvatarUrlChanged;
+
+        _profile.Refresh();
     }
 
     protected override void OnDisable()

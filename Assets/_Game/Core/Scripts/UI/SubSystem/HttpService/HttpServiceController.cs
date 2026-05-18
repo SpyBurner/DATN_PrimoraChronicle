@@ -94,8 +94,9 @@ internal class HttpServiceController : IHttpServiceController
                 if (request.result != UnityWebRequest.Result.Success)
                 {
                     string errorDetail = request.downloadHandler?.text;
-                    _debugLogger.LogError($"HttpService GET failed: {formattedUrl} - {request.error}\nDetail: {errorDetail}");
-                    throw new Exception($"HTTP GET failed: {request.error}");
+                    string readableError = InterceptError(request, errorDetail);
+                    _debugLogger.LogError($"HttpService GET failed: {formattedUrl} - {request.error}\nDetail: {errorDetail}\nReadable: {readableError}");
+                    throw new Exception(readableError);
                 }
 
                 _debugLogger.Log($"HttpService GET success: {formattedUrl}");
@@ -141,8 +142,9 @@ internal class HttpServiceController : IHttpServiceController
                 if (request.result != UnityWebRequest.Result.Success)
                 {
                     string errorDetail = request.downloadHandler?.text;
-                    _debugLogger.LogError($"HttpService POST failed: {formattedUrl} - {request.error}\nDetail: {errorDetail}");
-                    throw new Exception($"HTTP POST failed: {request.error}");
+                    string readableError = InterceptError(request, errorDetail);
+                    _debugLogger.LogError($"HttpService POST failed: {formattedUrl} - {request.error}\nDetail: {errorDetail}\nReadable: {readableError}");
+                    throw new Exception(readableError);
                 }
 
                 _debugLogger.Log($"HttpService POST success: {formattedUrl}");
@@ -165,5 +167,60 @@ internal class HttpServiceController : IHttpServiceController
         {
             request.SetRequestHeader("Authorization", $"Bearer {_authToken}");
         }
+    }
+
+    private string InterceptError(UnityWebRequest request, string detail)
+    {
+        if (request.result == UnityWebRequest.Result.ConnectionError)
+            return HttpErrors.NETWORK_ERROR;
+            
+        if (request.result == UnityWebRequest.Result.ProtocolError)
+        {
+            // Try to parse backend detail
+            if (!string.IsNullOrEmpty(detail))
+            {
+                try 
+                {
+                    var errorObj = JsonUtility.FromJson<BackendError>(detail);
+                    if (!string.IsNullOrEmpty(errorObj.detail))
+                    {
+                        return MapBackendDetail(errorObj.detail);
+                    }
+                }
+                catch { /* Ignore parse error */ }
+            }
+
+            return request.responseCode switch
+            {
+                401 => HttpErrors.UNAUTHORIZED,
+                403 => HttpErrors.FORBIDDEN,
+                404 => HttpErrors.NOT_FOUND,
+                >= 500 => HttpErrors.SERVER_ERROR,
+                _ => HttpErrors.DEFAULT
+            };
+        }
+
+        return HttpErrors.DEFAULT;
+    }
+
+    private string MapBackendDetail(string detail)
+    {
+        // Exact matches for backend strings defined in TestBE main.py
+        return detail switch
+        {
+            "Invalid credentials" => HttpErrors.INVALID_CREDENTIALS,
+            "Username already registered" => HttpErrors.USERNAME_TAKEN,
+            "Deck must contain exactly 20 cards" => HttpErrors.DECK_SIZE_INVALID,
+            _ when detail.Contains("does not own enough copies") => HttpErrors.CARD_NOT_OWNED,
+            _ when detail.Contains("not found in GDS") => HttpErrors.CARD_NOT_FOUND,
+            _ when detail.Contains("is not 'Common'") => HttpErrors.CARD_INVALID_RARITY,
+            _ => detail // Return original if no specific mapping, or fallback to DEFAULT if preferred
+        };
+    }
+
+    [Serializable]
+    private class BackendError
+    {
+        public string detail;
     }
 }

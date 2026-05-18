@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Core;
+using Core.GDS;
 using UnityEngine.Events;
 using Zenject;
 
@@ -11,14 +13,14 @@ public class CardLoadingManagerSubsystem : ICardLoadingManagerSubsystem
 
     public event UnityAction<IReadOnlyDictionary<string, CardSO>> CardsByIdChanged;
 
-    public void Initialize()
+    public async void Initialize()
     {
         if (_model?.CardsById != null)
         {
             _model.CardsById.OnChanged += HandleCardsByIdChanged;
         }
 
-        _controller.LoadCards();
+        await LoadCardsAsync();
     }
 
     public void Dispose()
@@ -27,6 +29,11 @@ public class CardLoadingManagerSubsystem : ICardLoadingManagerSubsystem
         {
             _model.CardsById.OnChanged -= HandleCardsByIdChanged;
         }
+    }
+
+    public async Task LoadCardsAsync()
+    {
+        await _controller.LoadCardsAsync();
     }
 
     public IReadOnlyDictionary<string, CardSO> GetCardsById()
@@ -57,6 +64,26 @@ public class CardLoadingManagerSubsystem : ICardLoadingManagerSubsystem
     public T GetCard<T>(string cardId) where T : CardSO
     {
         return _controller.GetCard<T>(cardId);
+    }
+
+    public MasterGDSData GetMasterGDSData()
+    {
+        return _controller.GetMasterGDSData();
+    }
+
+    public bool TryGetCardData(string stringId, out CardData data)
+    {
+        return _controller.TryGetCardData(stringId, out data);
+    }
+
+    public bool TryGetSkillData(string stringId, out SkillData data)
+    {
+        return _controller.TryGetSkillData(stringId, out data);
+    }
+
+    public bool TryGetEffectData(string stringId, out StatusEffectData data)
+    {
+        return _controller.TryGetEffectData(stringId, out data);
     }
 
     private void HandleCardsByIdChanged()

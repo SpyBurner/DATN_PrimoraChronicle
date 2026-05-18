@@ -46,6 +46,14 @@ public class LobbyMainSubsystem : ILobbyMainSubsystem
 
     public Task Logout() => _controller.Logout();
 
+    public void Refresh()
+    {
+        try { UsernameChanged?.Invoke(_model.Username.Value); } catch { }
+        try { LevelChanged?.Invoke(_model.Level.Value); } catch { }
+        try { GoldChanged?.Invoke(_model.Gold.Value); } catch { }
+        try { AvatarUrlChanged?.Invoke(_model.AvatarUrl.Value); } catch { }
+    }
+
     private void HandleUsernameChanged()
     {
         try { UsernameChanged?.Invoke(_model.Username.Value); } catch { }

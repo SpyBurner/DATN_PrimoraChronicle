@@ -12,22 +12,28 @@ internal class MatchHistoryController : IMatchHistoryController
     public void Initialize() { }
     public void Dispose() { }
 
-    public async Task LoadMatchHistory(string userId)
+    public async Task LoadMatchHistory()
     {
         try
         {
-            _debugLogger.Log($"MatchHistory: Loading history for {userId}...");
-            var response = await _httpService.Get<List<MatchHistoryData>>($"/api/matches?user_id={userId}");
+            _debugLogger.Log("MatchHistory: Loading history...");
+            string responseJson = await _httpService.Get("/api/matches");
+            string wrappedJson = $"{{\"items\":{responseJson}}}";
+            var wrapper = UnityEngine.JsonUtility.FromJson<MatchHistoryArrayWrapper>(wrappedJson);
+            var items = wrapper?.items ?? Array.Empty<MatchHistoryData>();
 
-            if (response != null)
-            {
-                _model.SetMatchHistory(new List<MatchHistoryData>(response));
-                _debugLogger.Log($"MatchHistory: Loaded {response.Count} matches.");
-            }
+            _model.SetMatchHistory(new List<MatchHistoryData>(items));
+            _debugLogger.Log($"MatchHistory: Loaded {items.Length} matches.");
         }
         catch (Exception ex)
         {
             _debugLogger.LogError($"MatchHistory: Failed to load history: {ex.Message}");
         }
     }
+}
+
+[System.Serializable]
+internal class MatchHistoryArrayWrapper
+{
+    public MatchHistoryData[] items;
 }

@@ -14,9 +14,11 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
     public event UnityAction<string> CurrentDeckNameChanged;
     public event UnityAction<IReadOnlyList<CardSO>> DeckCardsChanged;
     public event UnityAction<IReadOnlyList<CardSO>> ChampionCardsChanged;
+    public event UnityAction<IReadOnlyList<CardSO>> ChampionGrantedCardsChanged;
     public event UnityAction<IReadOnlyList<CardSO>> AvailableCardsChanged;
     public event UnityAction<int> DeckSizeChanged;
     public event UnityAction<bool> IsValidChanged;
+    public event UnityAction<string> ErrorMessageChanged;
 
     public void Initialize()
     {
@@ -26,9 +28,11 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
         _model.CurrentDeckName.OnChanged += HandleCurrentDeckNameChanged;
         _model.DeckCards.OnChanged += HandleDeckCardsChanged;
         _model.ChampionCards.OnChanged += HandleChampionCardsChanged;
+        _model.ChampionGrantedCards.OnChanged += HandleChampionGrantedCardsChanged;
         _model.AvailableCards.OnChanged += HandleAvailableCardsChanged;
         _model.DeckSize.OnChanged += HandleDeckSizeChanged;
         _model.IsValid.OnChanged += HandleIsValidChanged;
+        _model.ErrorMessage.OnChanged += HandleErrorMessageChanged;
     }
 
     public void Dispose()
@@ -39,12 +43,16 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
         _model.CurrentDeckName.OnChanged -= HandleCurrentDeckNameChanged;
         _model.DeckCards.OnChanged -= HandleDeckCardsChanged;
         _model.ChampionCards.OnChanged -= HandleChampionCardsChanged;
+        _model.ChampionGrantedCards.OnChanged -= HandleChampionGrantedCardsChanged;
         _model.AvailableCards.OnChanged -= HandleAvailableCardsChanged;
         _model.DeckSize.OnChanged -= HandleDeckSizeChanged;
         _model.IsValid.OnChanged -= HandleIsValidChanged;
+        _model.ErrorMessage.OnChanged -= HandleErrorMessageChanged;
     }
 
     public Task LoadDeck(string deckId) => _controller.LoadDeck(deckId);
+    public Task CreateEmptyDeck() => _controller.CreateEmptyDeck();
+    public Task LoadAvailableCards() => _controller.LoadAvailableCards();
     public void AddCardToDeck(CardSO card) => _controller.AddCardToDeck(card);
     public void RemoveCardFromDeck(CardSO card) => _controller.RemoveCardFromDeck(card);
     public Task SaveDeck() => _controller.SaveDeck();
@@ -53,7 +61,9 @@ public class DeckBuildSubsystem : IDeckBuildSubsystem
     private void HandleCurrentDeckNameChanged() => CurrentDeckNameChanged?.Invoke(_model.CurrentDeckName.Value);
     private void HandleDeckCardsChanged() => DeckCardsChanged?.Invoke(_model.DeckCards.Value);
     private void HandleChampionCardsChanged() => ChampionCardsChanged?.Invoke(_model.ChampionCards.Value);
+    private void HandleChampionGrantedCardsChanged() => ChampionGrantedCardsChanged?.Invoke(_model.ChampionGrantedCards.Value);
     private void HandleAvailableCardsChanged() => AvailableCardsChanged?.Invoke(_model.AvailableCards.Value);
     private void HandleDeckSizeChanged() => DeckSizeChanged?.Invoke(_model.DeckSize.Value);
     private void HandleIsValidChanged() => IsValidChanged?.Invoke(_model.IsValid.Value);
+    private void HandleErrorMessageChanged() => ErrorMessageChanged?.Invoke(_model.ErrorMessage.Value);
 }

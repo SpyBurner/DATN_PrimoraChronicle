@@ -9,11 +9,15 @@ public interface IDeckBuildSubsystem : ISubsystem
     event UnityAction<string> CurrentDeckNameChanged;
     event UnityAction<IReadOnlyList<CardSO>> DeckCardsChanged;
     event UnityAction<IReadOnlyList<CardSO>> ChampionCardsChanged;
+    event UnityAction<IReadOnlyList<CardSO>> ChampionGrantedCardsChanged;
     event UnityAction<IReadOnlyList<CardSO>> AvailableCardsChanged;
     event UnityAction<int> DeckSizeChanged;
     event UnityAction<bool> IsValidChanged;
+    event UnityAction<string> ErrorMessageChanged;
 
     Task LoadDeck(string deckId);
+    Task CreateEmptyDeck();
+    Task LoadAvailableCards();
     void AddCardToDeck(CardSO card);
     void RemoveCardFromDeck(CardSO card);
     Task SaveDeck();

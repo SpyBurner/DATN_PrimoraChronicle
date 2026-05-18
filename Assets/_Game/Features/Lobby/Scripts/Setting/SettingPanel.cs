@@ -10,7 +10,6 @@ public class SettingPanel : UIPanel
     [SerializeField] private Slider masterSlider;
     [SerializeField] private Slider musicSlider;
     [SerializeField] private Slider sfxSlider;
-    [SerializeField] private Button applyButton;
 
     protected override void Awake()
     {
@@ -51,11 +50,6 @@ public class SettingPanel : UIPanel
         {
             sfxSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
         }
-
-        if (applyButton != null)
-        {
-            applyButton.onClick.AddListener(OnApply);
-        }
     }
 
     protected override void OnDisable()
@@ -64,7 +58,6 @@ public class SettingPanel : UIPanel
         if (masterSlider != null) masterSlider.onValueChanged.RemoveListener(OnMasterVolumeChanged);
         if (musicSlider != null) musicSlider.onValueChanged.RemoveListener(OnMusicVolumeChanged);
         if (sfxSlider != null) sfxSlider.onValueChanged.RemoveListener(OnSFXVolumeChanged);
-        if (applyButton != null) applyButton.onClick.RemoveListener(OnApply);
         
         base.OnDisable();
     }
@@ -73,23 +66,20 @@ public class SettingPanel : UIPanel
     {
         Debug.Log($"[SettingPanel] Master Volume changed to {value}");
         _setting.SetMasterVolume(value);
+        _setting.ApplySettings(); // Apply immediately to hear the change
     }
 
     private void OnMusicVolumeChanged(float value)
     {
         Debug.Log($"[SettingPanel] Music Volume changed to {value}");
         _setting.SetMusicVolume(value);
+        _setting.ApplySettings(); // Apply immediately to hear the change
     }
 
     private void OnSFXVolumeChanged(float value)
     {
         Debug.Log($"[SettingPanel] SFX Volume changed to {value}");
         _setting.SetSFXVolume(value);
-    }
-
-    private void OnApply()
-    {
-        Debug.Log("[SettingPanel] Applying Settings");
-        _setting.ApplySettings();
+        _setting.ApplySettings(); // Apply immediately to hear the change
     }
 }

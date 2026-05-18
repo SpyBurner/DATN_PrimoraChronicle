@@ -8,19 +8,27 @@ internal class LobbyMainController : ILobbyMainController
     [Inject] private readonly ILobbyMainModel _model;
     [Inject] private readonly ISceneLoaderSubsystem _sceneLoader;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
+    [Inject] private readonly IAuthSessionModel _authSessionModel;
 
     public async void Initialize()
     {
         try
         {
+            string userId = _authSessionModel.CurrentUserId.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _debugLogger.LogError("LobbyMain: Cannot load user profile without a current user id");
+                return;
+            }
+
             _debugLogger.Log("LobbyMain: Initializing — fetching user profile");
-            // Adjust to the right endpoint based on FastAPI definition, likely /api/users/me later
-            var profile = await _httpService.Get<UserProfileResponse>("/api/users/me");
+            string encodedUserId = Uri.EscapeDataString(userId);
+            var profile = await _httpService.Get<UserProfileResponse>($"/api/users/me?user_id={encodedUserId}");
 
             if (profile != null)
             {
                 _model.SetUsername(profile.username);
-                _model.SetLevel(profile.level);
+                _model.SetLevel(Math.Max(1, profile.level));
                 _model.SetGold(profile.gold);
                 _model.SetAvatarUrl(profile.avatarUrl);
                 _debugLogger.Log($"LobbyMain: Loaded profile for {profile.username}");

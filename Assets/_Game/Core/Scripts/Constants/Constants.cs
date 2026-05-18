@@ -7,6 +7,26 @@ public static class Constants
     /// <summary>
     /// UI Identifiers
     /// </summary>
+    public const int DECK_CARD_COUNT = 20;
+}
+
+public static class HttpErrors
+{
+    public const string DEFAULT = "An unexpected error occurred. Please try again.";
+    public const string TIMEOUT = "Request timed out. Please check your internet connection.";
+    public const string NETWORK_ERROR = "Cannot connect to server. Please check your internet connection.";
+    public const string UNAUTHORIZED = "Session expired. Please login again.";
+    public const string FORBIDDEN = "Access denied.";
+    public const string NOT_FOUND = "Requested resource not found.";
+    public const string SERVER_ERROR = "Server encountered an internal error. Please try again later.";
+
+    // Backend Specific Errors
+    public const string INVALID_CREDENTIALS = "Invalid username or password.";
+    public const string USERNAME_TAKEN = "Username is already registered.";
+    public const string DECK_SIZE_INVALID = "Deck must contain exactly 20 cards.";
+    public const string CARD_NOT_OWNED = "You do not own enough copies of one or more cards in this deck.";
+    public const string CARD_NOT_FOUND = "One or more cards in your deck do not exist.";
+    public const string CARD_INVALID_RARITY = "Only 'Common' rarity cards are allowed in this deck.";
 }
 
 public static class SceneNames
@@ -60,6 +80,7 @@ public enum UIIdentifier
     POPUP_TEXT_INPUT = 312,
     POPUP_DECK_ITEM_CONTEXT = 313,
     POPUP_SHOP_ITEM_CONTEXT = 314,
+    POPUP_SAVE_DECK_CONFIRM = 315,
 
     // Gameplay
     GAMEPLAY_SCENE = 400,

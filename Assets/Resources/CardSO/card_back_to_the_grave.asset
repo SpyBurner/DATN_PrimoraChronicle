@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72230e3324219524a86cebba66e4defd, type: 3}
+  m_Name: card_back_to_the_grave
+  m_EditorClassIdentifier: Core::Core.MainPhaseSpellSO
+  ID: 34a2846ea162e55468c09917188d68fa
+  StringID: card_back_to_the_grave
+  CardIllustration: {fileID: 21300000, guid: fb50b8fa53c1bc346a4c3e4ce2b7023e, type: 3}

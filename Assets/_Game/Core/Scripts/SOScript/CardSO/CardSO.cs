@@ -7,49 +7,26 @@ using UnityEditor;
 
 namespace Core
 {
-    [Serializable]
     public enum CardType
     {
         None,
         Champion,
         Troop,
-        Spell,
+        MainPhaseSpell,
+        EquipSpell,
     }
 
-    public enum CardNation
+    public abstract class CardSO : ScriptableObject
     {
-        None,
-        Hollow,
-        Verdant,
-        Ashen
-    }
-    public enum CardRarity
-    {
-        Common,
-        Rare,
-        Epic,
-        Legendary
-    }
+        [Header("GDS Identification")]
+        public string ID; // Unity Asset ID
+        public string StringID; // Universal bridge to GDS JSON
 
-    [CreateAssetMenu(fileName = "CardSO", menuName = "ScriptableObjects/CardSO")]
-    public class CardSO : ScriptableObject
-    {
-        [Header("Card Info")]
-        public string ID;
-        public string StringID; // Readable ID for backend sync
-        public CardType CardType;
-        public CardRarity Rarity;
-        public string CardName;
-        [TextArea(3, 10)]
-        public string Description;
-        public int Cost;
-        public CardNation CardNation;
+        [Header("Visual Assets")]
         public Sprite CardIllustration;
 
-        protected void EnsureCardSetup(CardType expectedCardType)
+        protected void EnsureCardSetup()
         {
-            CardType = expectedCardType;
-
 #if UNITY_EDITOR
             string assetGuid = GetAssetGuid();
             if (!string.IsNullOrWhiteSpace(assetGuid) && ID != assetGuid)

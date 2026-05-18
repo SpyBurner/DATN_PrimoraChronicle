@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72230e3324219524a86cebba66e4defd, type: 3}
+  m_Name: card_transplant
+  m_EditorClassIdentifier: Core::Core.MainPhaseSpellSO
+  ID: c60392f0db4ba47498495b9f9cd35e86
+  StringID: card_transplant
+  CardIllustration: {fileID: 0}
