@@ -31,6 +31,7 @@ internal class NetworkManagerController : INetworkManagerController, INetworkRun
                 var go = new GameObject("[NetworkRunner]");
                 GameObject.DontDestroyOnLoad(go);
                 Runner = go.AddComponent<NetworkRunner>();
+                go.AddComponent<NetworkSceneManagerDefault>();
                 Runner.ProvideInput = !Application.isBatchMode;
 
                 Runner.AddCallbacks(this);

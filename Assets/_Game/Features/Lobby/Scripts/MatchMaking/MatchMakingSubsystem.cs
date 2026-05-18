@@ -11,7 +11,10 @@ public class MatchMakingSubsystem : IMatchMakingSubsystem
 
     public event UnityAction<string> StatusChanged;
     public event UnityAction<int> TimerChanged;
-    
+    public event UnityAction<MatchMakingPhase> PhaseChanged;
+
+    public MatchMakingPhase CurrentPhase => _model.Phase.Value;
+
     public void Initialize()
     {
         if (_model?.Status != null)
@@ -19,15 +22,25 @@ public class MatchMakingSubsystem : IMatchMakingSubsystem
 
         if (_model?.Timer != null)
             _model.Timer.OnChanged += HandleConfirmationTimerChanged;
+
+        if (_model?.Phase != null)
+            _model.Phase.OnChanged += HandlePhaseChanged;
     }
 
     public void Dispose()
     {
+        if (_model?.Status != null)
+            _model.Status.OnChanged -= HandleStatusChanged;
+
         if (_model?.Timer != null)
             _model.Timer.OnChanged -= HandleConfirmationTimerChanged;
+
+        if (_model?.Phase != null)
+            _model.Phase.OnChanged -= HandlePhaseChanged;
     }
 
-    public Task StartMatchmaking() => _controller.StartMatchmaking();
+    public Task StartAsHost() => _controller.StartAsHost();
+    public Task StartAsClient(string sessionName) => _controller.StartAsClient(sessionName);
     public Task CancelMatchmaking() => _controller.CancelMatchmaking();
     public Task AcceptMatch() => _controller.AcceptMatch();
     public Task RejectMatch() => _controller.RejectMatch();
@@ -40,5 +53,10 @@ public class MatchMakingSubsystem : IMatchMakingSubsystem
     private void HandleConfirmationTimerChanged()
     {
         try { TimerChanged?.Invoke((int)MathF.Ceiling(_model.Timer.Value)); } catch { }
+    }
+
+    private void HandlePhaseChanged()
+    {
+        try { PhaseChanged?.Invoke(_model.Phase.Value); } catch { }
     }
 }

@@ -5,76 +5,168 @@ using Zenject;
 
 internal class MatchMakingController : IMatchMakingController
 {
-    [Inject] private readonly IDebugLogger _debugLogger;
-    [Inject] private readonly IMatchMakingModel _model;
-    [Inject] private readonly INetworkManagerSubsystem _networkSubsystem;
-    [Inject] private readonly ISceneLoaderSubsystem _sceneLoader;
+    [Inject] private readonly IDebugLogger             _debugLogger;
+    [Inject] private readonly IMatchMakingModel        _model;
+    [Inject] private readonly INetworkManagerSubsystem _networkManager;
+    [Inject] private readonly ISceneLoaderSubsystem    _sceneLoader;
+    [Inject] private readonly IBattleSetupSubsystem    _battleSetup;
 
-    public void Initialize() { }
-    public void Dispose() { }
+    public void Initialize()
+    {
+        _networkManager.RunnerStateChanged  += HandleRunnerStateChanged;
+        _networkManager.PlayerCountChanged  += HandlePlayerCountChanged;
+    }
 
-    public async Task StartMatchmaking()
+    public void Dispose()
+    {
+        _networkManager.RunnerStateChanged  -= HandleRunnerStateChanged;
+        _networkManager.PlayerCountChanged  -= HandlePlayerCountChanged;
+    }
+
+    public async Task StartAsHost()
     {
         try
         {
-            _debugLogger.Log("MatchMaking: Starting session via NetworkSubsystem");
-            _model.SetStatus("Connecting to Network...");
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Connecting,
+                Status = "Starting session..."
+            });
 
-            // Configure Fusion session args
             var args = new StartGameArgs
             {
-                GameMode = GameMode.Shared,
-                // SessionName = null, // Use null for random matchmaking in some modes, or a specific lobby
+                GameMode    = GameMode.Host,
+                PlayerCount = _battleSetup.PlayerCnt,
+                SessionName = GenerateSessionName(),
+                IsVisible   = true,
+                IsOpen      = true,
             };
 
-            bool success = await _networkSubsystem.StartSession(args);
+            bool success = await _networkManager.StartSession(args);
 
             if (success)
             {
-                _debugLogger.Log("MatchMaking: Session joined successfully.");
-                _model.SetStatus("Match Found!");
-                
-                // Start confirmation timer
-                await StartTimer(5);
+                _model.ApplyState(new MatchMakingStateData
+                {
+                    Phase  = MatchMakingPhase.Connected,
+                    Status = "Waiting for opponent..."
+                });
             }
             else
             {
-                _model.SetStatus("Matchmaking failed");
+                _model.ApplyState(new MatchMakingStateData
+                {
+                    Phase  = MatchMakingPhase.Failed,
+                    Status = $"Failed: {_networkManager.ErrorMessage}"
+                });
             }
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"MatchMaking: StartMatchmaking failed: {ex.Message}");
-            _model.SetStatus($"Error: {ex.Message}");
+            _debugLogger.LogError($"[MatchMaking] StartAsHost failed: {ex.Message}");
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Failed,
+                Status = $"Error: {ex.Message}"
+            });
         }
     }
 
-    private async Task StartTimer(int seconds)
+    private string GenerateSessionName()
+        => $"session_{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+    public async Task StartAsClient(string sessionName)
     {
-        for (int i = seconds; i >= 0; i--)
+        try
         {
-            _model.SetTimer(i);
-            await Task.Delay(1000);
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Connecting,
+                Status = $"Joining session {sessionName}..."
+            });
+
+            var args = new StartGameArgs
+            {
+                GameMode    = GameMode.Client,
+                SessionName = sessionName,
+            };
+
+            bool success = await _networkManager.StartSession(args);
+
+            if (success)
+            {
+                _model.ApplyState(new MatchMakingStateData
+                {
+                    Phase  = MatchMakingPhase.Connected,
+                    Status = "Connected!"
+                });
+            }
+            else
+            {
+                _model.ApplyState(new MatchMakingStateData
+                {
+                    Phase  = MatchMakingPhase.Failed,
+                    Status = $"Failed: {_networkManager.ErrorMessage}"
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _debugLogger.LogError($"[MatchMaking] StartAsClient failed: {ex.Message}");
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Failed,
+                Status = $"Error: {ex.Message}"
+            });
         }
     }
 
-    public async Task AcceptMatch()
+    private void HandleRunnerStateChanged(NetworkRunner.States state)
     {
-        _debugLogger.Log("MatchMaking: Match accepted, loading Gameplay scene");
-        _model.SetStatus("Joining match...");
-        
-        // In Fusion, scene loading is often handled by the Runner, 
-        // but here we follow the existing pattern of using SceneLoader if applicable,
-        // or let Fusion handle it if we passed Scene to StartGameArgs.
+        if (state == NetworkRunner.States.Running)
+        {
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Connected,
+                Status = "Connected!"
+            });
+            _sceneLoader.LoadScene(SceneToken.Gameplay);
+        }
+
+        if (state == NetworkRunner.States.Shutdown)
+        {
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Idle,
+                Status = string.Empty
+            });
+        }
+    }
+
+    private void HandlePlayerCountChanged(int count)
+    {
+        _model.ApplyState(new MatchMakingStateData
+        {
+            Phase             = _model.Phase.Value,
+            Status            = _model.Status.Value,
+            Timer             = _model.Timer.Value,
+            PlayerJoinedCount = count
+        });
+    }
+
+    public Task AcceptMatch()
+    {
+        return Task.CompletedTask;
     }
 
     public async Task RejectMatch()
     {
-        _debugLogger.Log("MatchMaking: Match rejected, shutting down network session");
-        _model.SetStatus("Match canceled");
-        await _networkSubsystem.ShutdownRunner();
-        await Task.Delay(1000);
-        _model.SetStatus(string.Empty);
+        await _networkManager.ShutdownRunner();
+        _model.ApplyState(new MatchMakingStateData
+        {
+            Phase  = MatchMakingPhase.Idle,
+            Status = string.Empty
+        });
     }
 
     public async Task CancelMatchmaking()
@@ -82,8 +174,12 @@ internal class MatchMakingController : IMatchMakingController
         try
         {
             _debugLogger.Log("MatchMaking: Canceling matchmaking");
-            await _networkSubsystem.ShutdownRunner();
-            _model.SetStatus(string.Empty);
+            await _networkManager.ShutdownRunner();
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Idle,
+                Status = string.Empty
+            });
         }
         catch (Exception ex)
         {
