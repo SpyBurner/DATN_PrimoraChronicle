@@ -15,6 +15,7 @@ public class NetworkSpawner : NetworkBehaviour
     public NetworkPrefabRef player1PiecePrefab;
     public NetworkPrefabRef player2PiecePrefab;
     public NetworkPrefabRef player3PiecePrefab; // Future addition
+    public NetworkPrefabRef playerStatePrefab;
     public GameObject hexTilePrefab;
     public GameObject boardPrefab; // Optional networked board parent prefab
 
@@ -159,6 +160,59 @@ public class NetworkSpawner : NetworkBehaviour
         if (!Runner.IsServer) return;
 #endif
         GenerateBoard();
+        SpawnAIPlayers();
+    }
+
+    private void SpawnAIPlayers()
+    {
+        if (Runner == null || !Runner.IsServer) return;
+
+        int aiCount = 0;
+        if (Runner.SessionInfo.Properties != null && Runner.SessionInfo.Properties.TryGetValue("ai_count", out var val))
+        {
+            aiCount = (int)val;
+        }
+
+        _debugLogger.Log($"[NetworkSpawner] Spawning {aiCount} AI Players based on SessionProperties.");
+
+        for (int i = 0; i < aiCount; i++)
+        {
+            // Spawn AI Player State
+            if (playerStatePrefab.IsValid)
+            {
+                var stateObj = Runner.Spawn(playerStatePrefab, Vector3.zero, Quaternion.identity);
+                var playerState = stateObj.GetComponent<NetworkPlayerState>();
+                if (playerState != null)
+                {
+                    playerState.Player = PlayerRef.None; // None designates AI or server-owned virtual player
+                    playerState.IsAI = true;
+                    
+                    // Simple GDS Mock Deck configuration
+                    playerState.SetupDeck("AI_Champion", new string[] { "card_strike", "card_defend" }, 100);
+
+                    if (NetworkGameplayManager.Instance != null)
+                    {
+                        NetworkGameplayManager.Instance.RegisterPlayerState(playerState);
+                    }
+                }
+            }
+
+            // Spawn AI Champion unit at virtual coordinate
+            if (playerPiecePrefab.IsValid)
+            {
+                // P-4 Q4 coordinate spawning
+                Vector3 aiSpawnPos = GetPlayerSpawnPosition(PlayerRef.None);
+                Quaternion aiSpawnRot = Quaternion.identity;
+                var pieceObj = Runner.Spawn(playerPiecePrefab, aiSpawnPos, aiSpawnRot);
+                var unit = pieceObj.GetComponent<NetworkUnit>();
+                if (unit != null)
+                {
+                    unit.InitializeUnit(PlayerRef.None, "AICrownChampion", 100, 3f, 1, 3, "Ashen", false);
+                    unit.P = -4;
+                    unit.Q = 4;
+                }
+            }
+        }
     }
 
     private void Start()
@@ -266,20 +320,36 @@ public class NetworkSpawner : NetworkBehaviour
             Vector3 spawnPos = GetPlayerSpawnPosition(player);
             Quaternion spawnRot = GetPlayerSpawnRotation(player, spawnPos);
 
-#if FUSION_SHARED_TEST
-            if (player != runner.LocalPlayer) return;
-            
-            // Spawn the piece and assign Input Authority to the joining player
-            NetworkObject spawnedObj = runner.Spawn(piecePrefab, spawnPos, spawnRot, player);
-            _spawnedPieces[player] = spawnedObj;
-#else
-            // Only the Host has the authority to spawn networked objects
             if (runner.IsServer)
             {
-                // Spawn the piece and assign Input Authority to the joining player
-                runner.Spawn(piecePrefab, spawnPos, spawnRot, player);
+                // Spawn player piece unit
+                var pieceObj = runner.Spawn(piecePrefab, spawnPos, spawnRot, player);
+                var unit = pieceObj.GetComponent<NetworkUnit>();
+                if (unit != null)
+                {
+                    unit.InitializeUnit(player, "PlayerCrownChampion", 100, 3f, 1, 3, "Verdant", false);
+                    unit.P = (player.PlayerId == 2) ? -4 : 4;
+                    unit.Q = (player.PlayerId == 2) ? 4 : -4;
+                }
+
+                // Spawn NetworkPlayerState for the player
+                if (playerStatePrefab.IsValid)
+                {
+                    var stateObj = runner.Spawn(playerStatePrefab, Vector3.zero, Quaternion.identity, player);
+                    var playerState = stateObj.GetComponent<NetworkPlayerState>();
+                    if (playerState != null)
+                    {
+                        playerState.Player = player;
+                        playerState.IsAI = false;
+                        playerState.SetupDeck("Player_Champion", new string[] { "card_strike", "card_defend" }, 100);
+
+                        if (NetworkGameplayManager.Instance != null)
+                        {
+                            NetworkGameplayManager.Instance.RegisterPlayerState(playerState);
+                        }
+                    }
+                }
             }
-#endif
         }
     }
 }

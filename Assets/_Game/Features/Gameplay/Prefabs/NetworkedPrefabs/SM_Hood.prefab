@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7881984378821439345}
   - component: {fileID: 1576246566847542970}
   - component: {fileID: -1210827120296831184}
+  - component: {fileID: 2371805335915179069}
   m_Layer: 0
   m_Name: SM_Hood
   m_TagString: Untagged
@@ -108,5 +109,45 @@ MonoBehaviour:
   ObjectInterest: 1
   Flags: 131073
   NestedObjects: []
-  NetworkedBehaviours: []
+  NetworkedBehaviours:
+  - {fileID: 2371805335915179069}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &2371805335915179069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8802513154591063603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 689f922a72eb84f4db8cfb3faed31644, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::NetworkUnit
+  _HP: 0
+  _MaxHP: 0
+  _Speed: 0
+  _DeathAnchor: 0
+  _HexMovementRange: 0
+  _P: 0
+  _Q: 0
+  _Faction:
+    _length: 0
+    _data:
+      Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  _UnitID:
+    _length: 0
+    _data:
+      Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  _IsPersistent:
+    _value: 0
+  _GrowthStacks: 0
+  _IsMyTurn:
+    _value: 0
+  _EquippedSpells: []
+  _ActiveSkills: []
+  _SkillCooldowns: 
+  seedlingPrefab: {fileID: 0}
+  saplingPrefab: {fileID: 0}
+  youngTreantPrefab: {fileID: 0}
+  thornColossusPrefab: {fileID: 0}
