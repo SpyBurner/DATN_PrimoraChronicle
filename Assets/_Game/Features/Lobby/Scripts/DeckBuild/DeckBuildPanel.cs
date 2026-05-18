@@ -22,6 +22,9 @@ public class DeckBuildPanel : UIPanel
     [SerializeField] private TMP_Text _championDescription;
     [SerializeField] private Button _saveButton;
     [SerializeField] private TMP_Text _errorText;
+    [SerializeField] private Button _championChoose;
+    [SerializeField] private GameObject _championChooseContainer;
+    [SerializeField] private GameObject _championChooseOverlay;
 
     protected override void OnEnable()
     {
@@ -34,6 +37,7 @@ public class DeckBuildPanel : UIPanel
         _deckBuild.ErrorMessageChanged += OnErrorMessageChanged;
 
         _saveButton?.onClick.AddListener(OnSave);
+        _championChoose?.onClick.AddListener(OnChampionChooseClicked);
 
         RefreshAll();
         _ = _deckBuild.LoadAvailableCards();
@@ -48,6 +52,7 @@ public class DeckBuildPanel : UIPanel
         _deckBuild.ErrorMessageChanged -= OnErrorMessageChanged;
 
         _saveButton?.onClick.RemoveListener(OnSave);
+        _championChoose?.onClick.RemoveListener(OnChampionChooseClicked);
 
         ClearAll();
         base.OnDisable();
@@ -183,6 +188,29 @@ public class DeckBuildPanel : UIPanel
                 button.onClick.AddListener(() => onClick.Invoke(card));
             }
         }
+    }
+
+    private void OnChampionChooseClicked()
+    {
+        if (_championChooseOverlay != null)
+            _championChooseOverlay.SetActive(true);
+
+        ClearContainer(_championChooseContainer);
+
+        var champions = _cardLoadingManager.GetChampionCardsList();
+        if (champions == null) return;
+
+        foreach (var champion in champions.Values)
+            CreateCardDisplay(champion, _championChooseContainer.transform, OnChampionSelected);
+    }
+
+    private void OnChampionSelected(CardSO card)
+    {
+        _deckBuild.AddCardToDeck(card);
+        ClearContainer(_championChooseContainer);
+
+        if (_championChooseOverlay != null)
+            _championChooseOverlay.SetActive(false);
     }
 
     private void HandleAvailableCardClicked(CardSO card)
