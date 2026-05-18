@@ -16,8 +16,8 @@ public class NetworkSpawner : NetworkBehaviour
     public NetworkPrefabRef player2PiecePrefab;
     public NetworkPrefabRef player3PiecePrefab; // Future addition
     public NetworkPrefabRef playerStatePrefab;
-    public GameObject hexTilePrefab;
-    public GameObject boardPrefab; // Optional networked board parent prefab
+    public NetworkPrefabRef hexTilePrefab;
+    public NetworkPrefabRef boardPrefab; // Optional networked board parent prefab
 
     [Header("Grid Settings")]
     public float horizontalSpacing = 1.732f;
@@ -235,24 +235,33 @@ public class NetworkSpawner : NetworkBehaviour
     {
         if (_boardParent == null)
         {
-            if (boardPrefab != null)
+            if (boardPrefab != null && boardPrefab.IsValid)
             {
                 NetworkObject boardObj = Runner.Spawn(boardPrefab, transform.position, transform.rotation);
                 _boardParent = boardObj.gameObject;
+                _debugLogger.Log("[NetworkSpawner] Spawned networked board from prefab.");
             }
             else
             {
+                if (boardPrefab == null || !boardPrefab.IsValid)
+                {
+                    _debugLogger.Log("[NetworkSpawner] WARNING: boardPrefab not assigned. Please assign a networked board prefab to ensure proper synchronization of child hex tiles.");
+                }
+
                 _boardParent = new GameObject("Board");
                 _boardParent.transform.position = transform.position;
                 _boardParent.transform.rotation = transform.rotation;
                 _boardParent.AddComponent<BoardManager>();
+
+                _boardParent.AddComponent<NetworkObject>();
+                _debugLogger.Log("[NetworkSpawner] Created networked board fallback with NetworkObject component.");
             }
         }
 
         if (hexTilePrefab == null) return;
 
         // Instantiate temporary tile at Euler(270, 0, 0) to query the bounding box on the Z axis
-        GameObject tempTile = Instantiate(hexTilePrefab, Vector3.zero, Quaternion.Euler(270f, 0f, 0f));
+        NetworkObject tempTile = Runner.Spawn(hexTilePrefab, Vector3.zero, Quaternion.Euler(270f, 0f, 0f));
         float zSize = 1f;
         var rComponent = tempTile.GetComponentInChildren<Renderer>();
         if (rComponent != null)
@@ -260,7 +269,7 @@ public class NetworkSpawner : NetworkBehaviour
             zSize = rComponent.bounds.size.z;
         }
 
-        Destroy(tempTile);
+        Runner.Despawn(tempTile);
 
         // Inradius (distance from center to the center of an edge).
         // Note: The forward direction (Z-axis) of this transform is the pointy top direction of the board.

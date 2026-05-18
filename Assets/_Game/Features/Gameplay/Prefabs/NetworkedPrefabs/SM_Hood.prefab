@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1576246566847542970}
   - component: {fileID: -1210827120296831184}
   - component: {fileID: 2371805335915179069}
+  - component: {fileID: -6978615594164419239}
   m_Layer: 0
   m_Name: SM_Hood
   m_TagString: Untagged
@@ -111,6 +112,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 2371805335915179069}
+  - {fileID: -6978615594164419239}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &2371805335915179069
 MonoBehaviour:
@@ -147,7 +149,26 @@ MonoBehaviour:
   _EquippedSpells: []
   _ActiveSkills: []
   _SkillCooldowns: 
+  _ActiveStatusEffects: []
+  _StatusEffectDurations: 
   seedlingPrefab: {fileID: 0}
   saplingPrefab: {fileID: 0}
   youngTreantPrefab: {fileID: 0}
   thornColossusPrefab: {fileID: 0}
+--- !u!114 &-6978615594164419239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8802513154591063603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 1
+  SyncParent: 1
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0

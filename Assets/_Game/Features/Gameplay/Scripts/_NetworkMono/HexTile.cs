@@ -1,10 +1,11 @@
+using Fusion;
 using UnityEngine;
 
-public class HexTile : MonoBehaviour
+public class HexTile : NetworkBehaviour
 {
     [Header("Axial Coordinates")]
-    public int p;
-    public int q;
+    [Networked] public int p { get; set; }
+    [Networked] public int q { get; set; }
 
     private Renderer _renderer;
     private Color _originalColor;

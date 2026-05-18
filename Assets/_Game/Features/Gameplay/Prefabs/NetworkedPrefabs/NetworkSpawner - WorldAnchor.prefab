@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 544417254600220594}
   - component: {fileID: 1751726261663690127}
   - component: {fileID: 4117140762922180325}
+  - component: {fileID: 2567984651941167486}
   m_Layer: 0
   m_Name: NetworkSpawner - WorldAnchor
   m_TagString: Untagged
@@ -53,8 +54,12 @@ MonoBehaviour:
     RawGuidValue: 6bc1dcb6afc09604699c10538af00b85
   player3PiecePrefab:
     RawGuidValue: dd39fd4e53129e143b4fcbb2835199fb
-  hexTilePrefab: {fileID: 3500014500800883115, guid: 61045e254b3b62c47a23f0ad302e3dd5, type: 3}
-  boardPrefab: {fileID: 0}
+  playerStatePrefab:
+    RawGuidValue: 00000000000000000000000000000000
+  hexTilePrefab:
+    RawGuidValue: 61045e254b3b62c47a23f0ad302e3dd5
+  boardPrefab:
+    RawGuidValue: 42403e2d77136984aa23330dfa7f4b85
   horizontalSpacing: 1.732
   verticalSpacing: 1.5
 --- !u!114 &4117140762922180325
@@ -75,4 +80,22 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 1751726261663690127}
+  - {fileID: 2567984651941167486}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &2567984651941167486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805050866114620390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 1
+  SyncParent: 1
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
