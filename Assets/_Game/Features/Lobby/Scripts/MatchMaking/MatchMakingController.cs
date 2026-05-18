@@ -12,9 +12,6 @@ internal class MatchMakingController : IMatchMakingController
     [Inject] private readonly ISceneLoaderSubsystem    _sceneLoader;
     [Inject] private readonly IBattleSetupSubsystem    _battleSetup;
 
-    [Inject] private readonly IHttpServiceSubsystem    _http;
-    [Inject] private readonly IAuthSessionSubsystem    _authSession;
-
     private System.Threading.CancellationTokenSource _pollingCts;
 
     public void Initialize()
@@ -56,10 +53,10 @@ internal class MatchMakingController : IMatchMakingController
             {
                 GameMode    = GameMode.Shared,
                 SessionName = "test-shared-session",
-                PlayerCount = 2,
+                PlayerCount = _battleSetup.PlayerCnt,
                 SessionProperties = new Dictionary<string, SessionProperty>
                 {
-                    { "ai_count", SessionProperty.Make(1) }
+                    { "ai_count", 1 }
                 }
             };
 
