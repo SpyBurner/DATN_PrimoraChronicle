@@ -72,8 +72,6 @@ public class MatchMakingPanel : UIPanel
         if (_findMatchButton != null) _findMatchButton.gameObject.SetActive(isIdle);
         if (_cancelButton != null) _cancelButton.gameObject.SetActive(isSearching || isConnecting || isConnected);
         
-        // MatchFound state could show accept/reject dialog. Since currently Accept/Reject is a stub,
-        // we can hide it for now or implement if you have the visual elements.
         if (_acceptButton != null) _acceptButton.gameObject.SetActive(isMatchFound);
         if (_rejectButton != null) _rejectButton.gameObject.SetActive(isMatchFound);
     }

@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 544417254600220594}
+  - component: {fileID: 1751726261663690127}
+  - component: {fileID: 4117140762922180325}
   m_Layer: 0
   m_Name: NetworkSpawner - WorldAnchor
   m_TagString: Untagged
@@ -24,10 +26,46 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8805050866114620390}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071067}
+  m_LocalRotation: {x: -0.7069834, y: 0, z: 0, w: 0.7072302}
   m_LocalPosition: {x: -0.00000017881393, y: 0.34787002, z: -0.000000029802322}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 0}
+--- !u!114 &1751726261663690127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805050866114620390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52576c343cf848b4e95870e581b566d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::NetworkSpawner
+  playerPiecePrefab:
+    RawGuidValue: af1b560bf42f956419fd189c8f9a4838
+  hexTilePrefab: {fileID: 3500014500800883115, guid: 61045e254b3b62c47a23f0ad302e3dd5, type: 3}
+  horizontalSpacing: 1.732
+  verticalSpacing: 1.5
+--- !u!114 &4117140762922180325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805050866114620390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3275420669
+  ObjectInterest: 1
+  Flags: 131073
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 1751726261663690127}
+  ForceRemoteRenderTimeframe: 0

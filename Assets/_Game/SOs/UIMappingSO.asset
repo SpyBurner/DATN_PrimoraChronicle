@@ -48,15 +48,15 @@ MonoBehaviour:
   - uiIdentifier: 401
     prefab: {fileID: -7274689697689511306, guid: 78aaa02a931eb38489f0d26e54e44050, type: 3}
   - uiIdentifier: 406
-    prefab: {fileID: 7312268226743733065, guid: cd26d509491f6f74497815132e2ae13e, type: 3}
+    prefab: {fileID: 0}
   - uiIdentifier: 407
-    prefab: {fileID: 3194670556817313285, guid: 8dafc1d3a82d2d048a48240dd03926bf, type: 3}
+    prefab: {fileID: 0}
   - uiIdentifier: 408
-    prefab: {fileID: 3886531493491737893, guid: 8add4c211d5514847b455c6c454a9958, type: 3}
+    prefab: {fileID: 0}
   - uiIdentifier: 409
-    prefab: {fileID: 920276383365724999, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
+    prefab: {fileID: 0}
   - uiIdentifier: 410
-    prefab: {fileID: 2027220541957821685, guid: bfa571fbb489a0e428a30d1e2ebd6c57, type: 3}
+    prefab: {fileID: 0}
   - uiIdentifier: 3041
     prefab: {fileID: 2638144179069587244, guid: c11bad256fa60a248850cc391f359b45, type: 3}
   - uiIdentifier: 315
@@ -71,4 +71,4 @@ MonoBehaviour:
   - sceneName: Lobby
     uiIdentifier: 301
   - sceneName: Gameplay
-    uiIdentifier: 401
+    uiIdentifier: 403

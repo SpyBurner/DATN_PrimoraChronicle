@@ -15,6 +15,7 @@ public class NetworkManagerSubsystem : INetworkManagerSubsystem
     public event UnityAction<string> ErrorMessageChanged;
     public event UnityAction<PlayerRef> PlayerJoined;
     public event UnityAction<PlayerRef> PlayerLeft;
+    public event UnityAction<bool> IsSceneLoadingChanged;
 
     public NetworkRunner.States RunnerState => _model.RunnerState.Value;
     public string SessionName => _model.SessionName.Value;
@@ -32,6 +33,7 @@ public class NetworkManagerSubsystem : INetworkManagerSubsystem
         _model.ErrorMessage.OnChanged += HandleErrorMessageChanged;
         _model.LastJoinedPlayer.OnChanged += HandleLastJoinedPlayerChanged;
         _model.LastLeftPlayer.OnChanged += HandleLastLeftPlayerChanged;
+        _model.IsSceneLoading.OnChanged += HandleIsSceneLoadingChanged;
     }
 
     public void Dispose()
@@ -42,6 +44,7 @@ public class NetworkManagerSubsystem : INetworkManagerSubsystem
         _model.ErrorMessage.OnChanged -= HandleErrorMessageChanged;
         _model.LastJoinedPlayer.OnChanged -= HandleLastJoinedPlayerChanged;
         _model.LastLeftPlayer.OnChanged -= HandleLastLeftPlayerChanged;
+        _model.IsSceneLoading.OnChanged -= HandleIsSceneLoadingChanged;
     }
 
     public Task<bool> StartSession(StartGameArgs args) => _controller.StartSession(args);
@@ -53,4 +56,5 @@ public class NetworkManagerSubsystem : INetworkManagerSubsystem
     private void HandleErrorMessageChanged() => ErrorMessageChanged?.Invoke(_model.ErrorMessage.Value);
     private void HandleLastJoinedPlayerChanged() => PlayerJoined?.Invoke(_model.LastJoinedPlayer.Value);
     private void HandleLastLeftPlayerChanged() => PlayerLeft?.Invoke(_model.LastLeftPlayer.Value);
+    private void HandleIsSceneLoadingChanged() => IsSceneLoadingChanged?.Invoke(_model.IsSceneLoading.Value);
 }

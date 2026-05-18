@@ -25,9 +25,10 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
         {
             _debugLogger.Log($"[NetworkController] Starting session — Mode: {args.GameMode}");
             _model.SetErrorMessage(string.Empty);
-
+            
             if (Runner == null)
             {
+                _debugLogger.Log($"[NetworkController] Initializing Runner...");
                 var go = new GameObject("[NetworkRunner]");
                 GameObject.DontDestroyOnLoad(go);
                 Runner = go.AddComponent<NetworkRunner>();
@@ -36,7 +37,7 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
 
                 Runner.AddCallbacks(this);
             }
-            
+
             var result = await Runner.StartGame(args);
 
             if (result.Ok)
@@ -131,8 +132,12 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
     public void OnObjectWordsChanged(NetworkRunner runner, NetworkObject obj, HashSet<PlayerRef> changedWordsPlayers) { }
-    public void OnSceneLoadDone(NetworkRunner runner) { }
-    public void OnSceneLoadStart(NetworkRunner runner) { }
+    public void OnSceneLoadDone(NetworkRunner runner) {
+        _model.SetIsSceneLoading(false);
+    }
+    public void OnSceneLoadStart(NetworkRunner runner) {
+        _model.SetIsSceneLoading(true);
+    }
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
 }

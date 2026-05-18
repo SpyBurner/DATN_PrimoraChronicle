@@ -10,6 +10,8 @@ public interface INetworkManagerSubsystem : ISubsystem
     event UnityAction<string> ErrorMessageChanged;
     event UnityAction<PlayerRef> PlayerJoined;
     event UnityAction<PlayerRef> PlayerLeft;
+    event UnityAction<bool> IsSceneLoadingChanged;
+
     NetworkRunner.States RunnerState { get; }
     string SessionName { get; }
     string Region { get; }

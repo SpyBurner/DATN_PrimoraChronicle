@@ -11,6 +11,7 @@ public interface INetworkManagerModel : IModel
     Observable<string> ErrorMessage { get; }
     Observable<PlayerRef> LastJoinedPlayer { get; }
     Observable<PlayerRef> LastLeftPlayer { get; }
+    Observable<bool> IsSceneLoading { get; }
 
     void SetRunnerState(NetworkRunner.States state);
     void SetSessionName(string sessionName);
@@ -20,4 +21,5 @@ public interface INetworkManagerModel : IModel
     void SetErrorMessage(string message);
     void SetLastJoinedPlayer(PlayerRef player);
     void SetLastLeftPlayer(PlayerRef player);
+    void SetIsSceneLoading(bool isLoading);
 }

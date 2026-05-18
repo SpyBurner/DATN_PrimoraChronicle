@@ -88,13 +88,5 @@ internal class CoreInstaller : MonoInstaller
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<BackendBridgeSubsystem>()
             .AsSingle().NonLazy();
-
-        // ServerSession
-        Container.BindInterfacesAndSelfTo<ServerSessionModel>()
-            .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<ServerSessionController>()
-            .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<ServerSessionSubsystem>()
-            .AsSingle().NonLazy();
     }
 }
