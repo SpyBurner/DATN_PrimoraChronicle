@@ -27,8 +27,8 @@ public class LocalInteractionController : MonoBehaviour
 
     private void Start()
     {
-        _boardManager = FindObjectOfType<BoardManager>();
-        _gameplayManager = FindObjectOfType<NetworkGameplayManager>();
+        _boardManager = FindFirstObjectByType<BoardManager>();
+        _gameplayManager = FindFirstObjectByType<NetworkGameplayManager>();
     }
 
     public void SelectSkill(GenericSkillBehaviorSO skill, NetworkUnit caster)

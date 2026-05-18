@@ -107,7 +107,7 @@ public class ParanoidMinimaxAI : MonoBehaviour
 
         // Received damage aggregated from all opponents (treating all opponents as a single unified coalition MIN)
         float d_received_sum = 0f;
-        foreach (var u in FindObjectsOfType<NetworkUnit>())
+        foreach (var u in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (u.Owner != aiUnit.Owner && u.HP > 0)
             {
@@ -125,7 +125,7 @@ public class ParanoidMinimaxAI : MonoBehaviour
         float sum = 0f;
         int nearestDist = 999;
         
-        foreach (var u in FindObjectsOfType<NetworkUnit>())
+        foreach (var u in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (u.Owner != aiUnit.Owner && u.HP > 0)
             {
@@ -179,7 +179,7 @@ public class ParanoidMinimaxAI : MonoBehaviour
         int totalOppHP = 0;
         int oppCount = 0;
 
-        foreach (var u in FindObjectsOfType<NetworkUnit>())
+        foreach (var u in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (u.Owner != aiUnit.Owner && u.HP > 0)
             {
@@ -207,13 +207,13 @@ public class ParanoidMinimaxAI : MonoBehaviour
     private List<AICandidateAction> GenerateCandidateActions(NetworkUnit aiUnit)
     {
         List<AICandidateAction> candidates = new List<AICandidateAction>();
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null) return candidates;
 
         // Find nearest enemy unit
         NetworkUnit nearestEnemy = null;
         int nearestDist = 999;
-        foreach (var u in FindObjectsOfType<NetworkUnit>())
+        foreach (var u in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (u.Owner != aiUnit.Owner && u.HP > 0)
             {
@@ -295,7 +295,7 @@ public class ParanoidMinimaxAI : MonoBehaviour
                 var skill = NetworkGameplayManager.Instance.skillBehaviors.Find(s => s.behaviorId == firstSkill);
                 if (skill != null)
                 {
-                    var targetTile = FindObjectOfType<BoardManager>().FindTile(action.TargetUnit.P, action.TargetUnit.Q);
+                    var targetTile = FindFirstObjectByType<BoardManager>().FindTile(action.TargetUnit.P, action.TargetUnit.Q);
                     if (targetTile != null)
                     {
                         skill.Execute(NetworkGameplayManager.Instance, aiUnit, targetTile);

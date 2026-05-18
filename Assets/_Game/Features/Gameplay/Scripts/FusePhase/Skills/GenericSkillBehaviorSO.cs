@@ -165,7 +165,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
         if (existing != null && existing.EffectType.ToString() == "Corrupted")
         {
             // Apply to 1 hex range area (aoe)
-            var board = FindObjectOfType<BoardManager>();
+            var board = FindFirstObjectByType<BoardManager>();
             if (board != null)
             {
                 foreach (var tile in GetAdjacentTiles(board, targetTile.p, targetTile.q))
@@ -192,7 +192,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void ApplyDeathsToll(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
     {
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null) return;
 
         foreach (var tile in board.GetComponentsInChildren<HexTile>())
@@ -236,7 +236,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
             }
 
             // Level 2: Heal 20 HP to all allies in range 1
-            var board = FindObjectOfType<BoardManager>();
+            var board = FindFirstObjectByType<BoardManager>();
             if (board != null)
             {
                 foreach (var tile in GetAdjacentTiles(board, targetTile.p, targetTile.q))
@@ -264,7 +264,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void ApplyBloom(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
     {
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null) return;
 
         caster.Heal(10);
@@ -289,7 +289,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void ApplyDeepWoodsEntangle(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
     {
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null) return;
 
         foreach (var tile in GetAdjacentTiles(board, caster.P, caster.Q))
@@ -341,7 +341,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void ApplySporeBurst(NetworkGameplayManager gameplayManager, NetworkUnit caster)
     {
-        foreach (var u in FindObjectsOfType<NetworkUnit>())
+        foreach (var u in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (u.Owner != caster.Owner)
             {
@@ -365,7 +365,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void SummonSeedling(NetworkGameplayManager gameplayManager, NetworkUnit caster)
     {
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null || seedlingPrefab == null) return;
 
         var adjacent = GetAdjacentTiles(board, caster.P, caster.Q);
@@ -389,7 +389,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void ApplyMasteryOfFlame(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
     {
-        foreach (var u in FindObjectsOfType<NetworkUnit>())
+        foreach (var u in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (u.HP > 0)
             {
@@ -414,7 +414,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void ApplyMoltenDive(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
     {
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null) return;
 
         // Move caster (ignore pathfinding)
@@ -436,7 +436,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void ApplyCurseOfAsh(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
     {
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null) return;
 
         SpawnTileEffect(gameplayManager, targetTile.p, targetTile.q, "AshCloud", 7, caster.Owner);
@@ -449,7 +449,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
     private void ApplyLegionsLastStand(NetworkGameplayManager gameplayManager, NetworkUnit caster)
     {
         int removedCount = 0;
-        foreach (var u in FindObjectsOfType<NetworkUnit>())
+        foreach (var u in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (u.Owner == caster.Owner && u != caster && !u.IsPersistent)
             {
@@ -467,7 +467,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void SummonAshSoldiers(NetworkGameplayManager gameplayManager, NetworkUnit caster)
     {
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null || ashSoldierPrefab == null) return;
 
         int spawned = 0;

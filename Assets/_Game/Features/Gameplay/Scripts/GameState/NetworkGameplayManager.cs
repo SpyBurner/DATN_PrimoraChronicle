@@ -161,7 +161,7 @@ public class NetworkGameplayManager : NetworkBehaviour
 
     private void ResetOneTimeSkillsForCycle()
     {
-        foreach (var unit in FindObjectsOfType<NetworkUnit>())
+        foreach (var unit in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (unit.Object != null && unit.Object.HasStateAuthority)
             {
@@ -221,7 +221,7 @@ public class NetworkGameplayManager : NetworkBehaviour
     private void ClearDeployAreas()
     {
         // Clears Deploy Area tiles of all units and effects
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null) return;
 
         for (int i = 0; i < PlayerStates.Length; i++)
@@ -259,7 +259,7 @@ public class NetworkGameplayManager : NetworkBehaviour
     private void BuildCombatActionQueue()
     {
         List<NetworkUnit> units = new List<NetworkUnit>();
-        foreach (var unit in FindObjectsOfType<NetworkUnit>())
+        foreach (var unit in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (unit.Object != null && unit.Object.IsValid)
             {
@@ -355,7 +355,7 @@ public class NetworkGameplayManager : NetworkBehaviour
         if (!Object.HasStateAuthority) return;
 
         // Board clear triggers when only one player's units remain on the board (non-persistent units)
-        var units = FindObjectsOfType<NetworkUnit>();
+        var units = FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None);
         HashSet<PlayerRef> uniquePlayers = new HashSet<PlayerRef>();
         List<NetworkUnit> playerUnits = new List<NetworkUnit>();
 
@@ -463,7 +463,7 @@ public class NetworkGameplayManager : NetworkBehaviour
     private void EliminatePlayer(PlayerRef player)
     {
         // Destroy all units belonging to the player
-        foreach (var u in FindObjectsOfType<NetworkUnit>())
+        foreach (var u in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (u.Owner == player)
             {
@@ -572,7 +572,7 @@ public class NetworkGameplayManager : NetworkBehaviour
         if (!unit.IsMyTurn) return;
 
         // 3. Find target tile
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null) return;
         var tile = board.FindTile(targetP, targetQ);
         if (tile == null) return;
@@ -634,7 +634,7 @@ public class NetworkGameplayManager : NetworkBehaviour
 
     public NetworkUnit FindUnitAtTile(int p, int q)
     {
-        foreach (var u in FindObjectsOfType<NetworkUnit>())
+        foreach (var u in FindObjectsByType<NetworkUnit>(FindObjectsSortMode.None))
         {
             if (u.P == p && u.Q == q) return u;
         }
@@ -643,7 +643,7 @@ public class NetworkGameplayManager : NetworkBehaviour
 
     public NetworkTileEffect FindTileEffectAt(int p, int q)
     {
-        foreach (var e in FindObjectsOfType<NetworkTileEffect>())
+        foreach (var e in FindObjectsByType<NetworkTileEffect>(FindObjectsSortMode.None))
         {
             if (e.TileP == p && e.TileQ == q) return e;
         }

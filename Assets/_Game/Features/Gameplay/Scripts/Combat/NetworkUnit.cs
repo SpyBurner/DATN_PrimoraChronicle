@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Fusion;
 using UnityEngine;
 
@@ -147,7 +148,7 @@ public class NetworkUnit : NetworkBehaviour
             }
 
             // Severed Tail effect: deal damage to all units within 2-hex range of any SeveredTail tile effect!
-            foreach (var effect in FindObjectsOfType<NetworkTileEffect>())
+            foreach (var effect in FindObjectsByType<NetworkTileEffect>(FindObjectsSortMode.None))
             {
                 if (effect.EffectType.ToString() == "SeveredTail")
                 {
@@ -250,7 +251,7 @@ public class NetworkUnit : NetworkBehaviour
         if (!Object.HasStateAuthority) return false;
         if (!IsMyTurn) return false;
 
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board == null) return false;
 
         // Check bounds / target tile validity
@@ -280,11 +281,12 @@ public class NetworkUnit : NetworkBehaviour
         P = targetP;
         Q = targetQ;
 
-        // Snap physical position to hex position
+        // Animate physical position to hex position
         Vector3 worldPos = board.ResolveCoordinateToPosition(P, Q);
         if (worldPos != Vector3.zero)
         {
-            transform.position = new Vector3(worldPos.x, transform.position.y, worldPos.z);
+            Vector3 target = new Vector3(worldPos.x, transform.position.y, worldPos.z);
+            transform.DOMove(target, 0.3f).SetEase(Ease.OutCubic);
         }
 
         // Leave a trail of Scorching Ground if burning_trail is active

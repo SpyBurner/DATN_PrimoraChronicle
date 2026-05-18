@@ -20,7 +20,7 @@ public class NetworkTileEffect : NetworkBehaviour
         OwnerPlayerRef = owner;
 
         // Position on hex flat surface
-        var board = FindObjectOfType<BoardManager>();
+        var board = FindFirstObjectByType<BoardManager>();
         if (board != null)
         {
             Vector3 worldPos = board.ResolveCoordinateToPosition(p, q);

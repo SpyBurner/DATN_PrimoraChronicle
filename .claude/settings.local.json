@@ -10,7 +10,9 @@
       "Bash(git commit *)",
       "Bash(powershell -Command ' *)",
       "mcp__mcp-unity__recompile_scripts",
-      "mcp__mcp-unity__get_console_logs"
+      "mcp__mcp-unity__get_console_logs",
+      "Skill(unity-mcp-skill)",
+      "Skill(unity-mcp-skill:*)"
     ]
   }
 }
