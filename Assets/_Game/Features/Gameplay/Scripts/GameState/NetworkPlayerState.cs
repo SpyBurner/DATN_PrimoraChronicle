@@ -1,6 +1,7 @@
 using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
+using Core.GDS;
 
 public class NetworkPlayerState : NetworkBehaviour
 {
@@ -59,6 +60,45 @@ public class NetworkPlayerState : NetworkBehaviour
         DeckCount = index;
         HandCount = 0;
         DiscardCount = 0;
+    }
+
+    public void AddGrantedCards(List<CardGrantRef> grantedCards)
+    {
+        if (!Object.HasStateAuthority) return;
+        if (grantedCards == null || grantedCards.Count == 0) return;
+
+        // Rulebook Section 3: "At match start, a Champion's grants_cards entries are shuffled directly into the player's 20-card deck.
+        // The final deck size equals 20 plus the total quantity of all granted cards."
+        foreach (var grant in grantedCards)
+        {
+            for (int i = 0; i < grant.quantity; i++)
+            {
+                if (DeckCount < 40)
+                {
+                    Deck.Set(DeckCount, grant.string_id);
+                    DeckCount++;
+                }
+            }
+        }
+
+        // Shuffle deck to randomize positions (Fisher-Yates)
+        ShuffleDeck();
+    }
+
+    private void ShuffleDeck()
+    {
+        if (!Object.HasStateAuthority) return;
+
+        System.Random rand = new System.Random();
+        for (int i = DeckCount - 1; i > 0; i--)
+        {
+            int randomIndex = rand.Next(i + 1);
+
+            // Swap
+            string temp = Deck.Get(i).ToString();
+            Deck.Set(i, Deck.Get(randomIndex));
+            Deck.Set(randomIndex, temp);
+        }
     }
 
     public void DrawCards(int count)
