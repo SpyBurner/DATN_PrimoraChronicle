@@ -24,6 +24,7 @@ public class NetworkSpawner : NetworkBehaviour
     public float verticalSpacing = 1.5f;
 
     private GameObject _boardParent;
+    private bool _boardReady = false;
 
 #if FUSION_SHARED_TEST
     private readonly Dictionary<PlayerRef, NetworkObject> _spawnedPieces = new Dictionary<PlayerRef, NetworkObject>();
@@ -132,40 +133,45 @@ public class NetworkSpawner : NetworkBehaviour
         // Try to resolve position via BoardManager
         if (_boardParent != null)
         {
-            var boardManager = _boardParent.GetComponent<BoardManager>();
-            if (boardManager != null)
+            if (_boardParent.TryGetComponent<BoardManager>(out var boardManager))
             {
                 Vector3 resolvedPos = boardManager.ResolveCoordinateToPosition(p, q);
                 if (resolvedPos != Vector3.zero)
                 {
+                    _debugLogger.Log($"[NetworkSpawner] Resolved player {player} position from BoardManager: P={p}, Q={q} -> {resolvedPos}");
                     return resolvedPos;
+                }
+                else
+                {
+                    _debugLogger.Log($"[NetworkSpawner] WARNING: BoardManager returned zero for P={p}, Q={q}. Tile may not be registered.");
                 }
             }
         }
 
-        // Fallback calculations
+        // Fallback calculations - use the SAME coordinate calculation as tile spawning
+        // Tiles are spawned relative to transform, so we must use the same formula
         float x = (c - (9 - Math.Abs(r) - 1) / 2f) * horizontalSpacing;
         float z = r * verticalSpacing;
 
-        // Spawn piece 1 unit above the hex tile flat surface
-        Vector3 localPos = new Vector3(x, 1f, z);
-        return transform.position + transform.rotation * localPos;
+        Vector3 localPos = new Vector3(x, 0f, z);
+        Vector3 fallbackPos = _boardParent.transform.position + _boardParent.transform.rotation * localPos;
+        fallbackPos.y = _boardParent.transform.position.y + 1f;
+
+        _debugLogger.Log($"[NetworkSpawner] Using fallback spawn position for player {player}: P={p}, Q={q}, localPos={localPos} -> world={fallbackPos}");
+        return fallbackPos;
     }
 
     public override void Spawned()
     {
-#if FUSION_SHARED_TEST
-        if (!Runner.IsSharedModeMasterClient) return;
-#else
-        if (!Runner.IsServer) return;
-#endif
+        if (!Runner.IsSharedModeMasterClient && !Runner.IsServer) return;
+
         GenerateBoard();
         SpawnAIPlayers();
     }
 
     private void SpawnAIPlayers()
     {
-        if (Runner == null || !Runner.IsServer) return;
+        if (Runner == null || !Runner.IsServer || !Runner.IsSharedModeMasterClient) return;
 
         int aiCount = 0;
         if (Runner.SessionInfo.Properties != null && Runner.SessionInfo.Properties.TryGetValue("ai_count", out var val))
@@ -292,7 +298,9 @@ public class NetworkSpawner : NetworkBehaviour
                 float z = r * verticalSpacing;
 
                 Vector3 localPos = new Vector3(x, 0f, z);
-                Vector3 spawnPos = transform.position + transform.rotation * localPos;
+                Vector3 spawnPos = transform.position;
+                spawnPos.y = 0;
+                spawnPos += transform.rotation * localPos;
 
                 NetworkObject tileObj = Runner.Spawn(hexTilePrefab, spawnPos, tileRotation);
                 if (tileObj != null)
@@ -318,45 +326,69 @@ public class NetworkSpawner : NetworkBehaviour
             }
         }
         _debugLogger.Log($"[NetworkSpawner] Generated board with {spawnedCount} hex tiles on state authority.");
+        _boardReady = true;
     }
 
     private void HandlePlayerJoined(PlayerRef player)
     {
         NetworkRunner runner = _networkManager.Runner;
+        if (runner == null || !_boardReady)
+        {
+            if (!_boardReady)
+            {
+                _debugLogger.Log($"[NetworkSpawner] Player {player} joined but board not ready yet. Retrying next frame.");
+                StartCoroutine(SpawnPlayerWhenBoardReady(player));
+            }
+            return;
+        }
+
+        SpawnPlayerPiece(player, runner);
+    }
+
+    private System.Collections.IEnumerator SpawnPlayerWhenBoardReady(PlayerRef player)
+    {
+        NetworkRunner runner = _networkManager.Runner;
+        while (!_boardReady && runner != null)
+        {
+            _debugLogger.Log($"[NetworkSpawner] Waiting for board to be ready for player {player}.");
+            yield return null;
+        }
+
         if (runner != null)
         {
-            NetworkPrefabRef piecePrefab = GetPlayerPiecePrefab(player);
-            Vector3 spawnPos = GetPlayerSpawnPosition(player);
-            Quaternion spawnRot = GetPlayerSpawnRotation(player, spawnPos);
+            SpawnPlayerPiece(player, runner);
+        }
+    }
 
-            if (runner.IsServer)
+    private void SpawnPlayerPiece(PlayerRef player, NetworkRunner runner)
+    {
+        if (!runner.IsServer && !runner.IsSharedModeMasterClient) return;
+
+        NetworkPrefabRef piecePrefab = GetPlayerPiecePrefab(player);
+        Vector3 spawnPos = GetPlayerSpawnPosition(player);
+        Quaternion spawnRot = GetPlayerSpawnRotation(player, spawnPos);
+
+        var pieceObj = runner.Spawn(piecePrefab, spawnPos, spawnRot, player);
+        if (pieceObj.TryGetComponent<NetworkUnit>(out var unit))
+        {
+            unit.InitializeUnit(player, "PlayerCrownChampion", 100, 3f, 1, 3, "Verdant", false);
+            unit.P = (player.PlayerId == 2) ? -4 : 4;
+            unit.Q = (player.PlayerId == 2) ? 4 : -4;
+        }
+
+        // Spawn NetworkPlayerState for the player
+        if (playerStatePrefab.IsValid)
+        {
+            var stateObj = runner.Spawn(playerStatePrefab, Vector3.zero, Quaternion.identity, player);
+            if (stateObj.TryGetComponent<NetworkPlayerState>(out var playerState))
             {
-                // Spawn player piece unit
-                var pieceObj = runner.Spawn(piecePrefab, spawnPos, spawnRot, player);
-                var unit = pieceObj.GetComponent<NetworkUnit>();
-                if (unit != null)
-                {
-                    unit.InitializeUnit(player, "PlayerCrownChampion", 100, 3f, 1, 3, "Verdant", false);
-                    unit.P = (player.PlayerId == 2) ? -4 : 4;
-                    unit.Q = (player.PlayerId == 2) ? 4 : -4;
-                }
+                playerState.Player = player;
+                playerState.IsAI = false;
+                playerState.SetupDeck("Player_Champion", new string[] { "card_strike", "card_defend" }, 100);
 
-                // Spawn NetworkPlayerState for the player
-                if (playerStatePrefab.IsValid)
+                if (NetworkGameplayManager.Instance != null)
                 {
-                    var stateObj = runner.Spawn(playerStatePrefab, Vector3.zero, Quaternion.identity, player);
-                    var playerState = stateObj.GetComponent<NetworkPlayerState>();
-                    if (playerState != null)
-                    {
-                        playerState.Player = player;
-                        playerState.IsAI = false;
-                        playerState.SetupDeck("Player_Champion", new string[] { "card_strike", "card_defend" }, 100);
-
-                        if (NetworkGameplayManager.Instance != null)
-                        {
-                            NetworkGameplayManager.Instance.RegisterPlayerState(playerState);
-                        }
-                    }
+                    NetworkGameplayManager.Instance.RegisterPlayerState(playerState);
                 }
             }
         }
