@@ -5,6 +5,9 @@
       "args": [
         "D:/UnityProjects/DATN_PrimoraChronicle/Library/PackageCache/com.gamelovers.mcp-unity@a32e47d4ec87/Server~/build/index.js"
       ]
+    },
+    "mcp-local": {
+      "url": "http://localhost:8090"
     }
   }
 }

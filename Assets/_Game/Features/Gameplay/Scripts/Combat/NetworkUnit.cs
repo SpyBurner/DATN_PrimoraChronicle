@@ -22,6 +22,7 @@ public class NetworkUnit : NetworkBehaviour
     [Networked, Capacity(4)] public NetworkArray<int> SkillCooldowns { get; }
     [Networked, Capacity(4)] public NetworkArray<NetworkString<_16>> ActiveStatusEffects { get; }
     [Networked, Capacity(4)] public NetworkArray<int> StatusEffectDurations { get; }
+    [Networked] public int FusionSlotCount { get; set; }
 
     [Header("Evolution Prefabs (Verdant dominion)")]
     public GameObject seedlingPrefab;
@@ -51,6 +52,17 @@ public class NetworkUnit : NetworkBehaviour
         UnitID = unitId;
         IsPersistent = isPersistent;
         GrowthStacks = 0;
+        FusionSlotCount = 0;
+    }
+
+    public bool FuseEquipSpell(string equipSpellId)
+    {
+        if (!Object.HasStateAuthority) return false;
+        if (FusionSlotCount >= 4) return false;
+
+        EquippedSpells.Set(FusionSlotCount, equipSpellId);
+        FusionSlotCount++;
+        return true;
     }
 
     public void StartTurn()
@@ -201,6 +213,16 @@ public class NetworkUnit : NetworkBehaviour
         return false;
     }
 
+    public void ModifyMaxHP(int delta)
+    {
+        if (!Object.HasStateAuthority) return;
+
+        // Rule: Any effect that modifies Max HP also modifies current HP by the same delta
+        MaxHP += delta;
+        HP += delta;
+        HP = Mathf.Max(0, HP); // Ensure HP doesn't go negative
+    }
+
     public void Heal(int amount)
     {
         if (!Object.HasStateAuthority) return;
@@ -295,17 +317,17 @@ public class NetworkUnit : NetworkBehaviour
     {
         if (!Object.HasStateAuthority) return;
 
-        // Modifiers aggregated / intercepted / committed
-        // We will execute the three strict passes:
-        // 1. Aggregate: Gather raw stats
-        // 2. Intercept: Defensive changes
-        // 3. Commit: Write to current stats
-        int finalDamage = amount;
+        // Damage Pipeline: 3-pass system per rulebook section 8
+        // Pass 1: Aggregate - gather all modifiers
+        int aggregatedDamage = amount;
 
-        // Check lingering tile effects or unit defensive status
-        finalDamage = InterceptDamage(finalDamage);
+        // Pass 2: Intercept - defensive effects modify values
+        // Tile effects evaluated first, then Unit effects
+        int interceptedDamage = InterceptDamageFromTileEffects(aggregatedDamage);
+        interceptedDamage = InterceptDamageFromUnitEffects(interceptedDamage);
 
-        HP -= finalDamage;
+        // Pass 3: Commit - write final value
+        HP -= interceptedDamage;
         if (HP <= 0)
         {
             HP = 0;
@@ -313,7 +335,7 @@ public class NetworkUnit : NetworkBehaviour
         }
     }
 
-    private int InterceptDamage(int rawDamage)
+    private int InterceptDamageFromTileEffects(int rawDamage)
     {
         if (NetworkGameplayManager.Instance == null) return rawDamage;
 
@@ -330,6 +352,11 @@ public class NetworkUnit : NetworkBehaviour
             }
         }
 
+        return rawDamage;
+    }
+
+    private int InterceptDamageFromUnitEffects(int rawDamage)
+    {
         // Barkskin ward reduces incoming damage by 15
         if (HasStatusEffect("barkskin_ward"))
         {

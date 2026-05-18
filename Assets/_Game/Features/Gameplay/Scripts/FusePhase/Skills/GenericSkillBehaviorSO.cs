@@ -9,6 +9,8 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
     public int range = 1;
     public int aoe = 0;
     public int targetCondition = 1; // 1: Enemy, 2: Ally, 4: EmptyTile (Bitmask)
+    public bool ignorePathfinding = false; // If true, movement doesn't check intermediate tiles
+    public bool ignoreFriendlyFire = false; // If true, skill affects allies too
 
     [Header("Prefab References for Summons")]
     public GameObject seedlingPrefab;

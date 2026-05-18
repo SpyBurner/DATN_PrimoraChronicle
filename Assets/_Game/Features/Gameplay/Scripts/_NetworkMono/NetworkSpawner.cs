@@ -195,8 +195,20 @@ public class NetworkSpawner : NetworkBehaviour
 
         _debugLogger.Log($"[NetworkSpawner] Spawning {aiCount} AI Players based on SessionProperties.");
 
+        // Count active human players to determine AI player indices
+        int humanPlayerCount = 0;
+        if (Runner != null)
+        {
+            foreach (var _ in Runner.ActivePlayers)
+            {
+                humanPlayerCount++;
+            }
+        }
+
         for (int i = 0; i < aiCount; i++)
         {
+            int aiPlayerIndex = humanPlayerCount + i;
+
             // Spawn AI Player State
             if (playerStatePrefab.IsValid)
             {
@@ -206,9 +218,9 @@ public class NetworkSpawner : NetworkBehaviour
                 {
                     playerState.Player = PlayerRef.None; // None designates AI or server-owned virtual player
                     playerState.IsAI = true;
-                    
-                    // Simple GDS Mock Deck configuration
-                    playerState.SetupDeck("AI_Champion", new string[] { "card_strike", "card_defend" }, 100);
+
+                    // Simple GDS Mock Deck configuration with player index for Deploy Area
+                    playerState.SetupDeck("AI_Champion", new string[] { "card_strike", "card_defend" }, 100, aiPlayerIndex);
 
                     if (NetworkGameplayManager.Instance != null)
                     {
@@ -378,6 +390,22 @@ public class NetworkSpawner : NetworkBehaviour
     {
         if (!runner.IsServer && !runner.IsSharedModeMasterClient) return;
 
+        // Determine player index in active players
+        int playerIndex = 0;
+        if (runner != null)
+        {
+            int index = 0;
+            foreach (var activePlayer in runner.ActivePlayers)
+            {
+                if (activePlayer == player)
+                {
+                    playerIndex = index;
+                    break;
+                }
+                index++;
+            }
+        }
+
         NetworkPrefabRef piecePrefab = GetPlayerPiecePrefab(player);
         Vector3 spawnPos = GetPlayerSpawnPosition(player);
         Quaternion spawnRot = GetPlayerSpawnRotation(player, spawnPos);
@@ -398,7 +426,7 @@ public class NetworkSpawner : NetworkBehaviour
             {
                 playerState.Player = player;
                 playerState.IsAI = false;
-                playerState.SetupDeck("Player_Champion", new string[] { "card_strike", "card_defend" }, 100);
+                playerState.SetupDeck("Player_Champion", new string[] { "card_strike", "card_defend" }, 100, playerIndex);
 
                 if (NetworkGameplayManager.Instance != null)
                 {

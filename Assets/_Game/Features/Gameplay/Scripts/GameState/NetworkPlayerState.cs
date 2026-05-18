@@ -23,7 +23,7 @@ public class NetworkPlayerState : NetworkBehaviour
     [Networked] public int DeployAreaP { get; set; }
     [Networked] public int DeployAreaQ { get; set; }
 
-    public void SetupDeck(string championId, string[] cardIds, int initialHP)
+    public void SetupDeck(string championId, string[] cardIds, int initialHP, int playerIndex = 0)
     {
         if (!Object.HasStateAuthority) return;
 
@@ -33,7 +33,20 @@ public class NetworkPlayerState : NetworkBehaviour
         IsAlive = true;
         IsReady = true;
 
-        // Populate deck
+        // Assign Deploy Area based on player index
+        // P1 (index 0): P4 Q-4, P2 (index 1): P-4 Q4
+        if (playerIndex == 1)
+        {
+            DeployAreaP = -4;
+            DeployAreaQ = 4;
+        }
+        else
+        {
+            DeployAreaP = 4;
+            DeployAreaQ = -4;
+        }
+
+        // Populate deck (20 base cards + granted cards)
         int index = 0;
         foreach (var cardId in cardIds)
         {
