@@ -152,8 +152,25 @@ public class NetworkGameplayManager : NetworkBehaviour
         CurrentPhase = GameplayPhase.CombatPhase;
         PhaseTimer = TickTimer.None; // Combat runs until resolved, not by duration timer
 
+        // Reset one_time skill usage flags for this combat cycle
+        ResetOneTimeSkillsForCycle();
+
         BuildCombatActionQueue();
         StartNextCombatTurn();
+    }
+
+    private void ResetOneTimeSkillsForCycle()
+    {
+        foreach (var unit in FindObjectsOfType<NetworkUnit>())
+        {
+            if (unit.Object != null && unit.Object.HasStateAuthority)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    unit.SkillUsedThisCycle.Set(i, false);
+                }
+            }
+        }
     }
 
     private void TransitionToDrawPhase()
@@ -583,17 +600,35 @@ public class NetworkGameplayManager : NetworkBehaviour
             return;
         }
 
-        // 7. Execute!
-        skill.Execute(this, unit, tile);
-
-        // Deduct/cooldown logic if applicable
+        // Find skill index for cooldown/one_time tracking
+        int skillIndex = -1;
         for (int i = 0; i < 4; i++)
         {
             if (unit.ActiveSkills.Get(i).ToString() == skillId)
             {
-                unit.SkillCooldowns.Set(i, 3); // Standard 3-turn cooldown
+                skillIndex = i;
                 break;
             }
+        }
+
+        // 7. Check if one_time skill has already been used this cycle
+        if (skill.one_time && skillIndex >= 0 && unit.SkillUsedThisCycle.Get(skillIndex))
+        {
+            Debug.LogWarning($"[NetworkGameplayManager] One-time skill {skillId} has already been used this cycle!");
+            return;
+        }
+
+        // 8. Execute!
+        skill.Execute(this, unit, tile);
+
+        // Mark one_time skill as used and set cooldown
+        if (skillIndex >= 0)
+        {
+            if (skill.one_time)
+            {
+                unit.SkillUsedThisCycle.Set(skillIndex, true);
+            }
+            unit.SkillCooldowns.Set(skillIndex, 3); // Standard 3-turn cooldown
         }
     }
 

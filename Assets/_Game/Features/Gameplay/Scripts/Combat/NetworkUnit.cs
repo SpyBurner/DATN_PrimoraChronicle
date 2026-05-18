@@ -20,6 +20,7 @@ public class NetworkUnit : NetworkBehaviour
     [Networked, Capacity(4)] public NetworkArray<NetworkString<_16>> EquippedSpells { get; }
     [Networked, Capacity(4)] public NetworkArray<NetworkString<_16>> ActiveSkills { get; }
     [Networked, Capacity(4)] public NetworkArray<int> SkillCooldowns { get; }
+    [Networked, Capacity(4)] public NetworkArray<NetworkBool> SkillUsedThisCycle { get; }
     [Networked, Capacity(4)] public NetworkArray<NetworkString<_16>> ActiveStatusEffects { get; }
     [Networked, Capacity(4)] public NetworkArray<int> StatusEffectDurations { get; }
     [Networked] public int FusionSlotCount { get; set; }

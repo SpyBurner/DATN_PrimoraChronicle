@@ -5,6 +5,7 @@ public abstract class SkillBehaviorSO : ScriptableObject
 {
     [Header("Behavior Settings")]
     public string behaviorId;
+    public bool one_time = false;
 
     /// <summary>
     /// Executes the gameplay effect of the skill.
