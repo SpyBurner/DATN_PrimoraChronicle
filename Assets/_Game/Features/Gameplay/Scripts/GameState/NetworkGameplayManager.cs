@@ -539,6 +539,7 @@ public class NetworkGameplayManager : NetworkBehaviour
     // Helpers
     [Header("Skill Behavior Assets")]
     public List<GenericSkillBehaviorSO> skillBehaviors = new List<GenericSkillBehaviorSO>();
+    public GameObject tileEffectPrefab;
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_RequestSkillExecution(NetworkId unitId, string skillId, int targetP, int targetQ)
@@ -612,5 +613,34 @@ public class NetworkGameplayManager : NetworkBehaviour
             if (e.TileP == p && e.TileQ == q) return e;
         }
         return null;
+    }
+
+    public void SpawnTileEffect(int p, int q, string effectType, int duration, PlayerRef owner)
+    {
+        if (!Object.HasStateAuthority) return;
+
+        var existing = FindTileEffectAt(p, q);
+        if (existing != null)
+        {
+            if (existing.EffectType.ToString() == effectType)
+            {
+                existing.RemainingDuration = Mathf.Max(existing.RemainingDuration, duration);
+                return;
+            }
+            else
+            {
+                Runner.Despawn(existing.Object);
+            }
+        }
+
+        if (tileEffectPrefab != null)
+        {
+            var effectObj = Runner.Spawn(tileEffectPrefab, Vector3.zero, Quaternion.identity, owner);
+            var effect = effectObj.GetComponent<NetworkTileEffect>();
+            if (effect != null)
+            {
+                effect.ApplyEffect(p, q, effectType, duration, owner);
+            }
+        }
     }
 }

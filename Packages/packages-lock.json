@@ -1,12 +1,5 @@
 {
   "dependencies": {
-    "com.antigravity.ide": {
-      "version": "https://github.com/billythekidz/UnityAntigravityIDE.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "3520075082911bf236ade261e544078a3f9bed65"
-    },
     "com.coplaydev.unity-mcp": {
       "version": "file:com.coplaydev.unity-mcp",
       "depth": 0,
@@ -105,7 +98,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.26",
+      "version": "2.0.27",
       "depth": 0,
       "source": "registry",
       "dependencies": {

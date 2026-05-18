@@ -89,6 +89,63 @@ public class NetworkUnit : NetworkBehaviour
                 }
             }
         }
+
+        // Resolve Tile Effects at start of turn
+        if (NetworkGameplayManager.Instance != null)
+        {
+            var tileEffect = NetworkGameplayManager.Instance.FindTileEffectAt(P, Q);
+            if (tileEffect != null)
+            {
+                string type = tileEffect.EffectType.ToString();
+                if (type == "ScorchingGround")
+                {
+                    if (HasStatusEffect("burning"))
+                    {
+                        ApplyStatusEffect("burning", 2);
+                    }
+                    else if (HasStatusEffect("smoldering"))
+                    {
+                        RemoveStatusEffect("smoldering");
+                        ApplyStatusEffect("burning", 2);
+                    }
+                    else
+                    {
+                        ApplyStatusEffect("smoldering", 2);
+                    }
+                }
+                else if (type == "Melting")
+                {
+                    TakeDamage(20, Owner); // Melting tick
+                }
+                else if (type == "Seeded")
+                {
+                    if (tileEffect.OwnerPlayerRef == Owner) // Ally
+                    {
+                        AddGrowthStack(1);
+                    }
+                }
+                else if (type == "Corrupted")
+                {
+                    if (tileEffect.OwnerPlayerRef != Owner) // Enemy
+                    {
+                        TakeDamage(10, Owner);
+                    }
+                }
+            }
+
+            // Severed Tail effect: deal damage to all units within 2-hex range of any SeveredTail tile effect!
+            foreach (var effect in FindObjectsOfType<NetworkTileEffect>())
+            {
+                if (effect.EffectType.ToString() == "SeveredTail")
+                {
+                    int dist = GetDistance(P, Q, effect.TileP, effect.TileQ);
+                    if (dist <= 2)
+                    {
+                        TakeDamage(20, Owner);
+                    }
+                }
+            }
+        }
     }
 
     public void ApplyStatusEffect(string effect, int duration)
@@ -192,6 +249,9 @@ public class NetworkUnit : NetworkBehaviour
             if (!IsPathClear(P, Q, targetP, targetQ)) return false;
         }
 
+        int oldP = P;
+        int oldQ = Q;
+
         // Update coordinate
         P = targetP;
         Q = targetQ;
@@ -201,6 +261,12 @@ public class NetworkUnit : NetworkBehaviour
         if (worldPos != Vector3.zero)
         {
             transform.position = new Vector3(worldPos.x, transform.position.y, worldPos.z);
+        }
+
+        // Leave a trail of Scorching Ground if burning_trail is active
+        if (HasStatusEffect("burning_trail") && NetworkGameplayManager.Instance != null)
+        {
+            NetworkGameplayManager.Instance.SpawnTileEffect(oldP, oldQ, "ScorchingGround", 3, Owner);
         }
 
         return true;

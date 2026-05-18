@@ -154,31 +154,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void SpawnTileEffect(NetworkGameplayManager gameplayManager, int p, int q, string effectType, int duration, PlayerRef owner)
     {
-        // First, check if effect already exists to avoid duplication
-        var existing = gameplayManager.FindTileEffectAt(p, q);
-        if (existing != null)
-        {
-            if (existing.EffectType.ToString() == effectType)
-            {
-                existing.RemainingDuration = Mathf.Max(existing.RemainingDuration, duration);
-                return;
-            }
-            else
-            {
-                // Overwrite old effect
-                gameplayManager.Runner.Despawn(existing.Object);
-            }
-        }
-
-        if (tileEffectPrefab != null)
-        {
-            var effectObj = gameplayManager.Runner.Spawn(tileEffectPrefab, Vector3.zero, Quaternion.identity, owner);
-            var effect = effectObj.GetComponent<NetworkTileEffect>();
-            if (effect != null)
-            {
-                effect.ApplyEffect(p, q, effectType, duration, owner);
-            }
-        }
+        gameplayManager.SpawnTileEffect(p, q, effectType, duration, owner);
     }
 
     private void ApplyCorruptedCrest(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
@@ -411,29 +387,27 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
 
     private void ApplyMasteryOfFlame(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
     {
-        var targetUnit = gameplayManager.FindUnitAtTile(targetTile.p, targetTile.q);
-        if (targetUnit != null)
+        foreach (var u in FindObjectsOfType<NetworkUnit>())
         {
-            if (targetUnit.HasStatusEffect("burning"))
+            if (u.HP > 0)
             {
-                targetUnit.ApplyStatusEffect("melting", 3);
-            }
-            else
-            {
-                targetUnit.ApplyStatusEffect("burning", 3);
+                if (u.HasStatusEffect("burning"))
+                {
+                    SpawnTileEffect(gameplayManager, u.P, u.Q, "Melting", 9999, caster.Owner);
+                }
+                else
+                {
+                    u.ApplyStatusEffect("burning", 3);
+                }
             }
         }
     }
 
     private void ApplySeveredTail(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
     {
-        var targetUnit = gameplayManager.FindUnitAtTile(targetTile.p, targetTile.q);
-        if (targetUnit != null && targetUnit.Owner != caster.Owner)
-        {
-            targetUnit.TakeDamage(30, caster.Owner);
-            caster.MaxHP = Mathf.Max(10, caster.MaxHP - 6);
-            caster.HP = Mathf.Min(caster.HP, caster.MaxHP);
-        }
+        SpawnTileEffect(gameplayManager, targetTile.p, targetTile.q, "SeveredTail", 9999, caster.Owner);
+        caster.MaxHP = Mathf.Max(10, caster.MaxHP - 6);
+        caster.HP = Mathf.Min(caster.HP, caster.MaxHP);
     }
 
     private void ApplyMoltenDive(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
