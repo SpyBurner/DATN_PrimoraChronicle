@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Zenject;
 
-internal class GameplayDeckChooseController : IGameplayDeckChooseController
+public class GameplayDeckChooseController : IGameplayDeckChooseController
 {
     [Inject] private readonly IGameplayDeckChooseModel _model;
     [Inject] private readonly IDebugLogger _logger;
@@ -111,15 +111,18 @@ internal class GameplayDeckChooseController : IGameplayDeckChooseController
     {
         if (NetworkGameplayManager.Instance == null) return 0;
 
-        string userId = _authSession?.CurrentUserId?.Value ?? string.Empty;
+        var runner = NetworkGameplayManager.Instance.Runner;
+        if (runner == null) return 0;
+
+        PlayerRef localPlayer = runner.LocalPlayer;
         for (int i = 0; i < NetworkGameplayManager.Instance.PlayerStates.Length; i++)
         {
             var stateId = NetworkGameplayManager.Instance.PlayerStates.Get(i);
             if (!stateId.IsValid) continue;
-            if (NetworkGameplayManager.Instance.Runner.TryFindObject(stateId, out var obj))
+            if (runner.TryFindObject(stateId, out var obj))
             {
                 var ps = obj.GetComponent<NetworkPlayerState>();
-                if (ps != null && ps.Player.PlayerId == i)
+                if (ps != null && ps.Player == localPlayer)
                     return i;
             }
         }

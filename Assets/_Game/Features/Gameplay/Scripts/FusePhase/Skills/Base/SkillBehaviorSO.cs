@@ -6,6 +6,7 @@ public abstract class SkillBehaviorSO : ScriptableObject
     [Header("Behavior Settings")]
     public string behaviorId;
     public bool one_time = false;
+    public int cooldown = 3;
 
     /// <summary>
     /// Executes the gameplay effect of the skill.
@@ -19,6 +20,10 @@ public abstract class SkillBehaviorSO : ScriptableObject
     public virtual bool IsTileValidTarget(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile, int targetCondition)
     {
         if (targetTile == null) return false;
+
+        // targetCondition 0: self-only — valid only when target is the caster's own tile
+        if (targetCondition == 0)
+            return targetTile.p == caster.P && targetTile.q == caster.Q;
 
         // Find unit at tile
         NetworkUnit targetUnit = gameplayManager.FindUnitAtTile(targetTile.p, targetTile.q);

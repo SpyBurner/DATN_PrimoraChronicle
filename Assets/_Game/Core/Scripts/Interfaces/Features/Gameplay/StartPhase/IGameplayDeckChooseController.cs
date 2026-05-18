@@ -1,10 +1,7 @@
 using System.Threading.Tasks;
 
-internal interface IGameplayDeckChooseController
+public interface IGameplayDeckChooseController : IController
 {
-    void Initialize();
-    void Dispose();
-
     void StageSelection(DeckSummaryData summary);
     Task ConfirmSelection();
     Task AutoConfirmLastDeck();

@@ -86,6 +86,14 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
         SelectedDeckId = string.Empty;
     }
 
+    // ── Server-side auto-confirm (called by NetworkGameplayManager on timer expiry) ──
+
+    public void ServerAutoConfirm(int playerIndex)
+    {
+        if (!HasStateAuthority || IsReady) return;
+        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds, playerIndex);
+    }
+
     // ── Downstream: server → all clients ─────────────────────────────────
 
     public override void Render()

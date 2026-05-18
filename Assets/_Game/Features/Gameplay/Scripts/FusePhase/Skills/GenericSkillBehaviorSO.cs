@@ -378,7 +378,7 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
                 var unit = seedlingObj.GetComponent<NetworkUnit>();
                 if (unit != null)
                 {
-                    unit.InitializeUnit(caster.Owner, "Seedling", 40, 2f, 1, 2, caster.Faction.ToString(), false);
+                    unit.InitializeUnit(caster.Owner, "Seedling", 40, 2f, 1, 2, caster.Faction.ToString(), true);
                     unit.P = tile.p;
                     unit.Q = tile.q;
                 }
@@ -408,8 +408,9 @@ public class GenericSkillBehaviorSO : SkillBehaviorSO
     private void ApplySeveredTail(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)
     {
         SpawnTileEffect(gameplayManager, targetTile.p, targetTile.q, "SeveredTail", 9999, caster.Owner);
-        caster.MaxHP = Mathf.Max(10, caster.MaxHP - 6);
-        caster.HP = Mathf.Min(caster.HP, caster.MaxHP);
+        // Rule §11: modifying Max HP also modifies current HP by the same delta
+        int delta = Mathf.Min(-6, 10 - caster.MaxHP); // clamp so MaxHP never goes below 10
+        caster.ModifyMaxHP(delta);
     }
 
     private void ApplyMoltenDive(NetworkGameplayManager gameplayManager, NetworkUnit caster, HexTile targetTile)

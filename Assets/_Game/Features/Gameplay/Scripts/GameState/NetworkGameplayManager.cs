@@ -119,6 +119,8 @@ public class NetworkGameplayManager : NetworkBehaviour
 
     private void AutoConfirmDecks()
     {
+        var deckChooseViews = FindObjectsByType<GameplayDeckChooseNetworkView>(FindObjectsSortMode.None);
+
         for (int i = 0; i < PlayerStates.Length; i++)
         {
             NetworkId stateId = PlayerStates.Get(i);
@@ -127,11 +129,26 @@ public class NetworkGameplayManager : NetworkBehaviour
             if (Runner.TryFindObject(stateId, out var stateObj))
             {
                 var playerState = stateObj.GetComponent<NetworkPlayerState>();
-                if (playerState != null && !playerState.IsReady)
+                if (playerState == null || playerState.IsReady) continue;
+
+                GameplayDeckChooseNetworkView view = null;
+                foreach (var v in deckChooseViews)
                 {
-                    // Fallback to default/most recent deck
-                    string[] defaultCards = new string[] { "troop_scout", "troop_warrior", "equip_sword", "spell_fireball" };
-                    playerState.SetupDeck("champ_hero", defaultCards, 100);
+                    if (v.Object.InputAuthority == playerState.Player)
+                    {
+                        view = v;
+                        break;
+                    }
+                }
+
+                if (view != null)
+                {
+                    view.ServerAutoConfirm(i);
+                }
+                else
+                {
+                    string[] defaultCards = { "troop_scout", "troop_warrior", "equip_sword", "spell_fireball" };
+                    playerState.SetupDeck("champ_hero", defaultCards, 100, i);
                     playerState.DrawCards(6);
                 }
             }
@@ -175,6 +192,10 @@ public class NetworkGameplayManager : NetworkBehaviour
 
     private void TransitionToDrawPhase()
     {
+        // Tick tile effect durations once per combat cycle (while still in CombatPhase)
+        foreach (var effect in FindObjectsByType<NetworkTileEffect>(FindObjectsSortMode.None))
+            effect.TickTurn();
+
         CurrentRound++;
         CurrentPhase = GameplayPhase.DrawPhase;
         PhaseTimer = TickTimer.CreateFromSeconds(Runner, drawPhaseDuration);
@@ -611,24 +632,30 @@ public class NetworkGameplayManager : NetworkBehaviour
             }
         }
 
-        // 7. Check if one_time skill has already been used this cycle
+        // 7. Check cooldown
+        if (skillIndex >= 0 && unit.SkillCooldowns.Get(skillIndex) > 0)
+        {
+            Debug.LogWarning($"[NetworkGameplayManager] Skill {skillId} is on cooldown ({unit.SkillCooldowns.Get(skillIndex)} turns left).");
+            return;
+        }
+
+        // 8. Check if one_time skill has already been used this cycle
         if (skill.one_time && skillIndex >= 0 && unit.SkillUsedThisCycle.Get(skillIndex))
         {
             Debug.LogWarning($"[NetworkGameplayManager] One-time skill {skillId} has already been used this cycle!");
             return;
         }
 
-        // 8. Execute!
+        // 9. Execute!
         skill.Execute(this, unit, tile);
 
-        // Mark one_time skill as used and set cooldown
+        // Mark one_time skill as used and reset cooldown
         if (skillIndex >= 0)
         {
             if (skill.one_time)
-            {
                 unit.SkillUsedThisCycle.Set(skillIndex, true);
-            }
-            unit.SkillCooldowns.Set(skillIndex, 3); // Standard 3-turn cooldown
+
+            unit.SkillCooldowns.Set(skillIndex, skill.cooldown > 0 ? skill.cooldown : 3);
         }
     }
 

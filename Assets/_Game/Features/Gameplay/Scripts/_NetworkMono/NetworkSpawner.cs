@@ -16,6 +16,7 @@ public class NetworkSpawner : NetworkBehaviour
     public NetworkPrefabRef player2PiecePrefab;
     public NetworkPrefabRef player3PiecePrefab; // Future addition
     public NetworkPrefabRef playerStatePrefab;
+    public NetworkPrefabRef deckChooseViewPrefab;
     public NetworkPrefabRef hexTilePrefab;
     public NetworkPrefabRef boardPrefab; // Optional networked board parent prefab
 
@@ -426,13 +427,18 @@ public class NetworkSpawner : NetworkBehaviour
             {
                 playerState.Player = player;
                 playerState.IsAI = false;
-                playerState.SetupDeck("Player_Champion", new string[] { "card_strike", "card_defend" }, 100, playerIndex);
 
                 if (NetworkGameplayManager.Instance != null)
                 {
                     NetworkGameplayManager.Instance.RegisterPlayerState(playerState);
                 }
             }
+        }
+
+        // Spawn DeckChoose NetworkView — one per player, input authority = that player
+        if (deckChooseViewPrefab.IsValid)
+        {
+            runner.Spawn(deckChooseViewPrefab, Vector3.zero, Quaternion.identity, player);
         }
     }
 }
