@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4169607827435295878}
   - component: {fileID: 604281046184322746}
+  - component: {fileID: 8244226610400463027}
   m_Layer: 0
   m_Name: HandPanelAnchor
   m_TagString: Untagged
@@ -46,6 +47,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 281098223847781562}
   m_CullTransparentMesh: 1
+--- !u!114 &8244226610400463027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 281098223847781562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a9e58197a62f1b4fbffdee370d7abb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::PanelDrawer
+  _panel: {fileID: 6138062530488412524}
+  _toggle: {fileID: 3121840304515248948}
+  _duration: 0.25
+  _ease: 9
 --- !u!1 &4341324865565689043
 GameObject:
   m_ObjectHideFlags: 0
@@ -523,6 +540,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bfa571fbb489a0e428a30d1e2ebd6c57, type: 3}
+--- !u!114 &3121840304515248948 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4112587006902831968, guid: bfa571fbb489a0e428a30d1e2ebd6c57, type: 3}
+  m_PrefabInstance: {fileID: 1315571300222400596}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
 --- !u!224 &6138062530488412524 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5147366405633593656, guid: bfa571fbb489a0e428a30d1e2ebd6c57, type: 3}

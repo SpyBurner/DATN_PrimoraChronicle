@@ -6,13 +6,13 @@ using UnityEngine.UI;
 /// Slides a panel between its closed position (anchoredPosition zero) and an open
 /// position defined by a child GameObject named "OpenPosition".
 /// Attach to the anchor prefab (HandPanelAnchor, SkillPanelAnchor, TurnOrderPanelAnchor).
-/// Wire _panel to the RectTransform that should move; wire _toggleButton to whatever opens/closes it.
+/// Wire _panel to the RectTransform that should move; wire _toggle to the Toggle that opens/closes it.
 /// </summary>
 public class PanelDrawer : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private RectTransform _panel;
-    [SerializeField] private Button _toggleButton;
+    [SerializeField] private Toggle _toggle;
 
     [Header("Settings")]
     [SerializeField] private float _duration = 0.25f;
@@ -39,13 +39,15 @@ public class PanelDrawer : MonoBehaviour
             _panel.anchoredPosition = _closedPosition;
     }
 
-    private void OnEnable()  => _toggleButton?.onClick.AddListener(Toggle);
-    private void OnDisable() => _toggleButton?.onClick.RemoveListener(Toggle);
+    private void OnEnable()  => _toggle?.onValueChanged.AddListener(OnToggleChanged);
+    private void OnDisable() => _toggle?.onValueChanged.RemoveListener(OnToggleChanged);
 
-    public void Toggle()              => SetOpen(!_isOpen);
-    public void Open()                => SetOpen(true);
-    public void Close()               => SetOpen(false);
-    public bool IsOpen                => _isOpen;
+    private void OnToggleChanged(bool isOn) => SetOpen(isOn);
+
+    public void Toggle()   => SetOpen(!_isOpen);
+    public void Open()     => SetOpen(true);
+    public void Close()    => SetOpen(false);
+    public bool IsOpen     => _isOpen;
 
     public void SetOpen(bool open, bool instant = false)
     {
@@ -61,6 +63,11 @@ public class PanelDrawer : MonoBehaviour
             return;
         }
 
-        _activeTween = _panel.DOAnchorPos(target, _duration).SetEase(_ease).SetUpdate(true);
+        _activeTween = DOTween.To(
+            () => _panel.anchoredPosition,
+            x => _panel.anchoredPosition = x,
+            target,
+            _duration
+        ).SetEase(_ease).SetUpdate(true);
     }
 }

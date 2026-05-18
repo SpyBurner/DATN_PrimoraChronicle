@@ -18,7 +18,7 @@
   <Project Path="Core.Scripts.DI.csproj" />
   <Project Path="com.IvanMurzak.Unity.Theme.Installer.csproj" />
   <Project Path="GameplayFeatures.csproj" />
-  <Project Path="Assembly-CSharp-firstpass.csproj" />
+  <Project Path="DOTween.Runtime.csproj" />
   <Project Path="Fusion.Unity.csproj" />
   <Project Path="Zenject-TestFramework.csproj" />
   <Project Path="Core.Scripts.UI.SubSystem.HttpService.csproj" />
