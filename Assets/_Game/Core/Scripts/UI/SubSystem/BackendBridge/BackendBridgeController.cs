@@ -217,4 +217,21 @@ internal class BackendBridgeController : IBackendBridgeController
             _logger.LogError($"[BackendBridge] Failed to report player disconnect: {ex.Message}");
         }
     }
+
+    public async Task NotifyMatchCreatedAsync(string sessionName, string player1UserId, string player2UserId)
+    {
+        _logger.Log($"[BackendBridge] Notifying match created for session: {sessionName}");
+        try
+        {
+            await _http.Post("/api/matchmaking/notify", new {
+                player1UserID = player1UserId,
+                player2UserID = player2UserId,
+                sessionName   = sessionName
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[BackendBridge] Failed to notify match created: {ex.Message}");
+        }
+    }
 }

@@ -11,6 +11,11 @@ internal class MatchMakingController : IMatchMakingController
     [Inject] private readonly ISceneLoaderSubsystem    _sceneLoader;
     [Inject] private readonly IBattleSetupSubsystem    _battleSetup;
 
+    [Inject] private readonly IHttpServiceSubsystem    _http;
+    [Inject] private readonly IAuthSessionSubsystem    _authSession;
+
+    private System.Threading.CancellationTokenSource _pollingCts;
+
     public void Initialize()
     {
         _networkManager.RunnerStateChanged  += HandleRunnerStateChanged;
@@ -23,64 +28,76 @@ internal class MatchMakingController : IMatchMakingController
         _networkManager.PlayerCountChanged  -= HandlePlayerCountChanged;
     }
 
-    public async Task StartAsHost()
+    public async Task JoinQueue()
     {
         try
         {
-            _model.ApplyState(new MatchMakingStateData
-            {
-                Phase  = MatchMakingPhase.Connecting,
-                Status = "Starting session..."
+            _model.ApplyState(new MatchMakingStateData {
+                Phase  = MatchMakingPhase.Searching,
+                Status = "Finding opponent..."
             });
 
-            var args = new StartGameArgs
-            {
-                GameMode    = GameMode.Host,
-                PlayerCount = _battleSetup.PlayerCnt,
-                SessionName = GenerateSessionName(),
-                IsVisible   = true,
-                IsOpen      = true,
-            };
+            var response = await _http.Post<QueueJoinResponse, object>(
+                "/api/matchmaking/queue", new { userID = _authSession.UserId });
 
-            bool success = await _networkManager.StartSession(args);
-
-            if (success)
+            if (response == null)
             {
-                _model.ApplyState(new MatchMakingStateData
-                {
-                    Phase  = MatchMakingPhase.Connected,
-                    Status = "Waiting for opponent..."
-                });
-            }
-            else
-            {
-                _model.ApplyState(new MatchMakingStateData
-                {
+                _model.ApplyState(new MatchMakingStateData {
                     Phase  = MatchMakingPhase.Failed,
-                    Status = $"Failed: {_networkManager.ErrorMessage}"
+                    Status = "Could not join queue."
                 });
+                return;
             }
+
+            _pollingCts = new System.Threading.CancellationTokenSource();
+            _ = PollForMatch();
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"[MatchMaking] StartAsHost failed: {ex.Message}");
-            _model.ApplyState(new MatchMakingStateData
-            {
+            _debugLogger.LogError($"[MatchMaking] JoinQueue failed: {ex.Message}");
+            _model.ApplyState(new MatchMakingStateData {
                 Phase  = MatchMakingPhase.Failed,
                 Status = $"Error: {ex.Message}"
             });
         }
     }
 
-    private string GenerateSessionName()
-        => $"session_{Guid.NewGuid().ToString().Substring(0, 8)}";
+    public async Task PollForMatch()
+    {
+        var token = _pollingCts.Token;
 
-    public async Task StartAsClient(string sessionName)
+        while (!token.IsCancellationRequested && _model.Phase.Value == MatchMakingPhase.Searching)
+        {
+            try
+            {
+                await Task.Delay(2000, token);
+                if (token.IsCancellationRequested) break;
+
+                var statusRes = await _http.Get<QueueStatusResponse>("/api/matchmaking/status");
+                if (statusRes != null && statusRes.status == "matched")
+                {
+                    _model.ApplyState(new MatchMakingStateData {
+                        Phase  = MatchMakingPhase.MatchFound,
+                        Status = "Match found! Connecting..."
+                    });
+                    
+                    await ConnectToSession(statusRes.session_name);
+                    break;
+                }
+            }
+            catch (TaskCanceledException) { break; }
+            catch (Exception ex)
+            {
+                _debugLogger.LogWarning($"[MatchMaking] Polling error: {ex.Message}");
+            }
+        }
+    }
+
+    public async Task ConnectToSession(string sessionName)
     {
         try
         {
-            _model.ApplyState(new MatchMakingStateData
-            {
+            _model.ApplyState(new MatchMakingStateData {
                 Phase  = MatchMakingPhase.Connecting,
                 Status = $"Joining session {sessionName}..."
             });
@@ -95,16 +112,14 @@ internal class MatchMakingController : IMatchMakingController
 
             if (success)
             {
-                _model.ApplyState(new MatchMakingStateData
-                {
+                _model.ApplyState(new MatchMakingStateData {
                     Phase  = MatchMakingPhase.Connected,
                     Status = "Connected!"
                 });
             }
             else
             {
-                _model.ApplyState(new MatchMakingStateData
-                {
+                _model.ApplyState(new MatchMakingStateData {
                     Phase  = MatchMakingPhase.Failed,
                     Status = $"Failed: {_networkManager.ErrorMessage}"
                 });
@@ -112,9 +127,8 @@ internal class MatchMakingController : IMatchMakingController
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"[MatchMaking] StartAsClient failed: {ex.Message}");
-            _model.ApplyState(new MatchMakingStateData
-            {
+            _debugLogger.LogError($"[MatchMaking] ConnectToSession failed: {ex.Message}");
+            _model.ApplyState(new MatchMakingStateData {
                 Phase  = MatchMakingPhase.Failed,
                 Status = $"Error: {ex.Message}"
             });
@@ -130,7 +144,7 @@ internal class MatchMakingController : IMatchMakingController
                 Phase  = MatchMakingPhase.Connected,
                 Status = "Connected!"
             });
-            _sceneLoader.LoadScene(SceneToken.Gameplay);
+            _sceneLoader.LoadNetworkedScene(_networkManager.Runner, SceneNames.GAMEPLAY);
         }
 
         if (state == NetworkRunner.States.Shutdown)
@@ -174,6 +188,16 @@ internal class MatchMakingController : IMatchMakingController
         try
         {
             _debugLogger.Log("MatchMaking: Canceling matchmaking");
+            
+            if (_pollingCts != null)
+            {
+                _pollingCts.Cancel();
+                _pollingCts.Dispose();
+                _pollingCts = null;
+            }
+
+            try { await _http.Delete("/api/matchmaking/queue"); } catch { }
+
             await _networkManager.ShutdownRunner();
             _model.ApplyState(new MatchMakingStateData
             {

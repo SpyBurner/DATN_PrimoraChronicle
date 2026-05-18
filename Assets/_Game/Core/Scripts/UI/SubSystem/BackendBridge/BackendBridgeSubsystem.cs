@@ -38,4 +38,9 @@ public class BackendBridgeSubsystem : IBackendBridgeSubsystem
     {
         return _controller.ReportPlayerDisconnectedAsync(userId);
     }
+
+    public Task NotifyMatchCreatedAsync(string sessionName, string player1UserId, string player2UserId)
+    {
+        return _controller.NotifyMatchCreatedAsync(sessionName, player1UserId, player2UserId);
+    }
 }

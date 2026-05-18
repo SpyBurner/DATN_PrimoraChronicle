@@ -38,6 +38,8 @@ public class HttpServiceSubsystem : IHttpServiceSubsystem
 
     public Task<string> Post<TRequest>(string url, TRequest payload) where TRequest : class => _controller.Post<TRequest>(url, payload);
 
+    public Task<string> Delete(string url) => _controller.Delete(url);
+
     public void SetAuthToken(string token) => _controller.SetAuthToken(token);
 
     private void HandleRequestQueueCountChanged()

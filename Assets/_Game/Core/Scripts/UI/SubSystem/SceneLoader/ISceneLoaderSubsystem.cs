@@ -12,5 +12,6 @@ public interface ISceneLoaderSubsystem : ISubsystem
 
     // Controller methods (forwarded by the subsystem)
     Task LoadScene(string sceneName);
+    Task LoadNetworkedScene(Fusion.NetworkRunner runner, string sceneName);
     Task ReloadScene();
 }

@@ -8,9 +8,7 @@ public class MatchMakingPanel : UIPanel
     [Inject] private readonly IMatchMakingSubsystem _matchMaking;
     [Inject] private readonly IUIManagerSubsystem _uiManager;
 
-    [SerializeField] private Button           _hostButton;
-    [SerializeField] private Button           _joinButton;
-    [SerializeField] private TMP_InputField   _sessionNameInput;
+    [SerializeField] private Button           _findMatchButton;
 
     [SerializeField] private TextMeshProUGUI _statusText;
     [SerializeField] private Button _cancelButton;
@@ -21,8 +19,7 @@ public class MatchMakingPanel : UIPanel
     protected override void OnEnable()
     {
         base.OnEnable();
-        _hostButton?.onClick.AddListener(OnHost);
-        _joinButton?.onClick.AddListener(OnJoin);
+        _findMatchButton?.onClick.AddListener(OnFindMatch);
         _cancelButton?.onClick.AddListener(OnCancel);
         _acceptButton?.onClick.AddListener(OnAccept);
         _rejectButton?.onClick.AddListener(OnReject);
@@ -37,8 +34,7 @@ public class MatchMakingPanel : UIPanel
     protected override void OnDisable()
     {
         base.OnDisable();
-        _hostButton?.onClick.RemoveListener(OnHost);
-        _joinButton?.onClick.RemoveListener(OnJoin);
+        _findMatchButton?.onClick.RemoveListener(OnFindMatch);
         _cancelButton?.onClick.RemoveListener(OnCancel);
         _acceptButton?.onClick.RemoveListener(OnAccept);
         _rejectButton?.onClick.RemoveListener(OnReject);
@@ -48,8 +44,7 @@ public class MatchMakingPanel : UIPanel
         _matchMaking.PhaseChanged -= OnPhaseChanged;
     }
 
-    private void OnHost() => _matchMaking.StartAsHost();
-    private void OnJoin() => _matchMaking.StartAsClient(_sessionNameInput.text);
+    private void OnFindMatch() => _matchMaking.JoinQueue();
     private void OnCancel() => _matchMaking.CancelMatchmaking();
     private void OnAccept() => _matchMaking.AcceptMatch();
     private void OnReject() => _matchMaking.RejectMatch();
@@ -68,15 +63,18 @@ public class MatchMakingPanel : UIPanel
 
     private void UpdateVisuals(MatchMakingPhase phase)
     {
-        bool isIdle        = phase == MatchMakingPhase.Idle;
+        bool isIdle        = phase == MatchMakingPhase.Idle || phase == MatchMakingPhase.Failed || phase == MatchMakingPhase.Cancelled;
+        bool isSearching   = phase == MatchMakingPhase.Searching;
+        bool isMatchFound  = phase == MatchMakingPhase.MatchFound;
         bool isConnecting  = phase == MatchMakingPhase.Connecting;
         bool isConnected   = phase == MatchMakingPhase.Connected;
 
-        if (_hostButton != null) _hostButton.gameObject.SetActive(isIdle);
-        if (_joinButton != null) _joinButton.gameObject.SetActive(isIdle);
-        if (_sessionNameInput != null) _sessionNameInput.gameObject.SetActive(isIdle);
-        if (_cancelButton != null) _cancelButton.gameObject.SetActive(isConnecting || isConnected);
-        if (_acceptButton != null) _acceptButton.gameObject.SetActive(false);
-        if (_rejectButton != null) _rejectButton.gameObject.SetActive(false);
+        if (_findMatchButton != null) _findMatchButton.gameObject.SetActive(isIdle);
+        if (_cancelButton != null) _cancelButton.gameObject.SetActive(isSearching || isConnecting || isConnected);
+        
+        // MatchFound state could show accept/reject dialog. Since currently Accept/Reject is a stub,
+        // we can hide it for now or implement if you have the visual elements.
+        if (_acceptButton != null) _acceptButton.gameObject.SetActive(isMatchFound);
+        if (_rejectButton != null) _rejectButton.gameObject.SetActive(isMatchFound);
     }
 }

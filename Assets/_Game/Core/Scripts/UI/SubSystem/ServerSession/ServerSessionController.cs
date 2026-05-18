@@ -63,6 +63,8 @@ internal class ServerSessionController : IServerSessionController
         
         if (success)
         {
+            await _backendBridge.NotifyMatchCreatedAsync(cmd.SessionName, cmd.Player1UserId, cmd.Player2UserId);
+
             _model.ApplyState(new ServerSessionStateData
             {
                 ActiveSessionName = cmd.SessionName,

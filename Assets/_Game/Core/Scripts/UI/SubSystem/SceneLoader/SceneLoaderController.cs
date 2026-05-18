@@ -56,6 +56,35 @@ internal class SceneLoaderController : ISceneLoaderController
         _sceneModel.IsLoading.Value = false;
     }
 
+    public async Task LoadNetworkedScene(Fusion.NetworkRunner runner, string sceneName)
+    {
+        if (_sceneModel.IsLoading.Value)
+        {
+            _debugLogger.LogWarning($"Scene load already in progress. Ignoring request to load networked scene '{sceneName}'.");
+            return;
+        }
+
+        _sceneModel.IsLoading.Value = true;
+
+        _debugLogger.Log($"Starting to load networked scene '{sceneName}'.");
+        await _uiManager.FadeOut();
+        _debugLogger.Log($"Fade out completed. Loading networked scene '{sceneName}'.");
+
+        await runner.LoadScene(sceneName);
+
+        // Fading in and setting IsLoading to false will be handled either by network callbacks or we do it immediately.
+        // For simplicity and matching standard scene load as much as possible:
+        await Task.Delay(500); // Give Fusion a moment to start loading before we consider our part "done"
+
+        await _uiManager.FadeIn();
+        _debugLogger.Log($"Fade in completed for networked scene '{sceneName}'.");
+        
+        // Show the default screen for the newly loaded scene
+        await _uiManager.ShowDefaultScreenForScene(sceneName);
+
+        _sceneModel.IsLoading.Value = false;
+    }
+
     public Task ReloadScene()
     {
         if (_sceneModel.IsLoading.Value)

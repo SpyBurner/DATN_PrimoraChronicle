@@ -39,8 +39,7 @@ public class MatchMakingSubsystem : IMatchMakingSubsystem
             _model.Phase.OnChanged -= HandlePhaseChanged;
     }
 
-    public Task StartAsHost() => _controller.StartAsHost();
-    public Task StartAsClient(string sessionName) => _controller.StartAsClient(sessionName);
+    public Task JoinQueue() => _controller.JoinQueue();
     public Task CancelMatchmaking() => _controller.CancelMatchmaking();
     public Task AcceptMatch() => _controller.AcceptMatch();
     public Task RejectMatch() => _controller.RejectMatch();

@@ -9,8 +9,7 @@ public interface IMatchMakingSubsystem : ISubsystem
 
     MatchMakingPhase CurrentPhase { get; }
 
-    Task StartAsHost();
-    Task StartAsClient(string sessionName);
+    Task JoinQueue();
     Task CancelMatchmaking();
     Task AcceptMatch();
     Task RejectMatch();

@@ -161,6 +161,47 @@ internal class HttpServiceController : IHttpServiceController
         }
     }
 
+    public async Task<string> Delete(string url)
+    {
+        string formattedUrl = FormatUrl(url);
+        _model.IsRequesting.Value = true;
+        _model.RequestQueueCount.Value++;
+
+        try
+        {
+            using (UnityWebRequest request = UnityWebRequest.Delete(formattedUrl))
+            {
+                request.downloadHandler = new DownloadHandlerBuffer();
+                AddAuthHeader(request);
+                var operation = request.SendWebRequest();
+
+                while (!operation.isDone)
+                {
+                    await Task.Yield();
+                }
+
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    string errorDetail = request.downloadHandler?.text;
+                    string readableError = InterceptError(request, errorDetail);
+                    _debugLogger.LogError($"HttpService DELETE failed: {formattedUrl} - {request.error}\nDetail: {errorDetail}\nReadable: {readableError}");
+                    throw new Exception(readableError);
+                }
+
+                _debugLogger.Log($"HttpService DELETE success: {formattedUrl}");
+                return request.downloadHandler?.text ?? "";
+            }
+        }
+        finally
+        {
+            _model.RequestQueueCount.Value--;
+            if (_model.RequestQueueCount.Value == 0)
+            {
+                _model.IsRequesting.Value = false;
+            }
+        }
+    }
+
     private void AddAuthHeader(UnityWebRequest request)
     {
         if (!string.IsNullOrEmpty(_authToken))
