@@ -47,7 +47,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: GameplayFeatures::NetworkSpawner
   playerPiecePrefab:
     RawGuidValue: af1b560bf42f956419fd189c8f9a4838
+  player1PiecePrefab:
+    RawGuidValue: af1b560bf42f956419fd189c8f9a4838
+  player2PiecePrefab:
+    RawGuidValue: 6bc1dcb6afc09604699c10538af00b85
+  player3PiecePrefab:
+    RawGuidValue: dd39fd4e53129e143b4fcbb2835199fb
   hexTilePrefab: {fileID: 3500014500800883115, guid: 61045e254b3b62c47a23f0ad302e3dd5, type: 3}
+  boardPrefab: {fileID: 0}
   horizontalSpacing: 1.732
   verticalSpacing: 1.5
 --- !u!114 &4117140762922180325
