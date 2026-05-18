@@ -130,7 +130,7 @@ public class NetworkSpawner : NetworkBehaviour
         int p = -r;
         int q = c - 4 + Mathf.Max(0, r);
 
-        // Try to resolve position via BoardManager
+        // Try to resolve position via BoardManager and get surface height from tile child
         if (_boardParent != null)
         {
             if (_boardParent.TryGetComponent<BoardManager>(out var boardManager))
@@ -138,6 +138,20 @@ public class NetworkSpawner : NetworkBehaviour
                 Vector3 resolvedPos = boardManager.ResolveCoordinateToPosition(p, q);
                 if (resolvedPos != Vector3.zero)
                 {
+                    // Get the tile and find its child's surface height
+                    HexTile spawnTile = boardManager.FindTile(p, q);
+                    if (spawnTile != null)
+                    {
+                        Renderer childRenderer = spawnTile.GetComponentInChildren<Renderer>();
+                        if (childRenderer != null)
+                        {
+                            float surfaceHeight = childRenderer.bounds.max.y;
+                            resolvedPos.y = surfaceHeight;
+                            _debugLogger.Log($"[NetworkSpawner] Resolved player {player} position with surface height: P={p}, Q={q} -> {resolvedPos}");
+                            return resolvedPos;
+                        }
+                    }
+
                     _debugLogger.Log($"[NetworkSpawner] Resolved player {player} position from BoardManager: P={p}, Q={q} -> {resolvedPos}");
                     return resolvedPos;
                 }
