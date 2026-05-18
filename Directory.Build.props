@@ -4,5 +4,8 @@
     <!-- Suppress Unity-specific false positives -->
     <!-- IDE0051: Remove unused private members (Unity messages like Start, Update) -->
     <!-- IDE0044: Add readonly modifier (serialized fields) -->
+    <!-- CS0649: Field is never assigned to (e.g. Zenject [Inject] fields) -->
+    <!-- CS8618: Non-nullable field is uninitialized -->
+    <NoWarn>$(NoWarn);CS0649;CS8618;0649;8618</NoWarn>
   </PropertyGroup>
 </Project>

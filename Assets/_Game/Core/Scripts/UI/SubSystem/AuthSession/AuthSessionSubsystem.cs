@@ -13,6 +13,8 @@ public class AuthSessionSubsystem : IAuthSessionSubsystem
     public event UnityAction<string> AuthTokenChanged;
     public event UnityAction<bool> IsLoggedInChanged;
 
+    public string UserId => _model?.CurrentUserId?.Value ?? string.Empty;
+
     public void Initialize()
     {
         if (_model?.CurrentUserId != null)
