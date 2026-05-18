@@ -1,6 +1,6 @@
 using UnityObservables;
 
-internal class HttpServiceModel : IHttpServiceModel
+public class HttpServiceModel : IHttpServiceModel
 {
     private Observable<int> _requestQueueCount = new(0);
     private Observable<bool> _isRequesting = new(false);

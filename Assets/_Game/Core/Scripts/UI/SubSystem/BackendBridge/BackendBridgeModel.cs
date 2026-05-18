@@ -1,6 +1,6 @@
 using UnityObservables;
 
-internal class BackendBridgeModel : IBackendBridgeModel
+public class BackendBridgeModel : IBackendBridgeModel
 {
     private readonly Observable<StartSessionCommand> _pendingStartSession = new(null);
     private readonly Observable<bool> _isListening = new(false);

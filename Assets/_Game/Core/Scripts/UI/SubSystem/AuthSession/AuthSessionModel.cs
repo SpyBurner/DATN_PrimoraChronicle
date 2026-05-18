@@ -1,6 +1,6 @@
 using UnityObservables;
 
-internal class AuthSessionModel : IAuthSessionModel
+public class AuthSessionModel : IAuthSessionModel
 {
     private Observable<string> _currentUserId = new(string.Empty);
     private Observable<string> _authToken = new(string.Empty);

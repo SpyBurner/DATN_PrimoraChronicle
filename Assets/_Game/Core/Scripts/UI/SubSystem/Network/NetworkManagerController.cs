@@ -6,7 +6,7 @@ using Fusion.Sockets;
 using UnityEngine;
 using Zenject;
 
-internal class NetworkManagerController : INetworkManagerController, INetworkRunnerCallbacks
+public class NetworkManagerController : INetworkManagerController, INetworkRunnerCallbacks
 {
     [Inject] private readonly INetworkManagerModel _model;
     [Inject] private readonly IDebugLogger _debugLogger;

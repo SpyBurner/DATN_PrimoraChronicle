@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using Zenject;
 
-internal class BackendBridgeController : IBackendBridgeController
+public class BackendBridgeController : IBackendBridgeController
 {
     [Inject] private readonly IBackendBridgeModel _model;
     [Inject] private readonly IHttpServiceSubsystem _http;

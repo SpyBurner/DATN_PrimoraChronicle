@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zenject;
 
-internal class UIManagerController : IUIManagerController
+public class UIManagerController : IUIManagerController
 {
     [Inject] private readonly IUIManagerModel _model;
     [Inject] private readonly UIMappingSO _uiMapping;
@@ -58,7 +58,7 @@ internal class UIManagerController : IUIManagerController
         }
     }
 
-    public void RegisterUIRoot(UIRoot uIRoot)
+    public void RegisterUIRoot(IUIRoot uIRoot)
     {
         if (_model.UIRoot.Value != null)
         {
@@ -72,7 +72,7 @@ internal class UIManagerController : IUIManagerController
         _model.UIRoot.Value = null;
     }
 
-    public UIRoot GetUIRoot() => _model.UIRoot.Value;
+    public IUIRoot GetUIRoot() => _model.UIRoot.Value;
 
     public T GetPanel<T>() where T : class, IUIPanel
     {

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zenject;
 
-internal class SceneLoaderController : ISceneLoaderController
+public class SceneLoaderController : ISceneLoaderController
 {
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IUIManagerSubsystem _uiManager;

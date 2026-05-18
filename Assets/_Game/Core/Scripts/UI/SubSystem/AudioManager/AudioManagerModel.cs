@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityObservables;
 
-internal class AudioManagerModel : IAudioManagerModel
+public class AudioManagerModel : IAudioManagerModel
 {
     private Observable<float> _masterVolume = new(1f);
     private Observable<float> _musicVolume = new(1f);

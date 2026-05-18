@@ -1,7 +1,7 @@
 using Fusion;
 using UnityObservables;
 
-internal class NetworkManagerModel : INetworkManagerModel
+public class NetworkManagerModel : INetworkManagerModel
 {
     private Observable<NetworkRunner.States> _runnerState = new(NetworkRunner.States.Shutdown);
     private Observable<string> _sessionName = new(string.Empty);

@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Zenject;
 using UnityEngine; 
 
-internal class AuthSessionController : IAuthSessionController
+public class AuthSessionController : IAuthSessionController
 {
     private const string UserIdKey = "AuthSession_UserId";
     private const string TokenKey = "AuthSession_Token";

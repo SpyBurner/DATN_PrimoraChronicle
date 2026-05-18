@@ -1,0 +1,27 @@
+{
+    "name": "Core.Scripts.DI",
+    "rootNamespace": "",
+    "references": [
+        "Core.Interfaces",
+        "Core.Scripts.UI.SubSystem.AudioManager",
+        "Core.Scripts.UI.SubSystem.AuthSession",
+        "Core.Scripts.UI.SubSystem.BackendBridge",
+        "Core.Scripts.UI.SubSystem.CardLoadingManager",
+        "Core.Scripts.UI.SubSystem.HttpService",
+        "Core.Scripts.UI.SubSystem.Network",
+        "Core.Scripts.UI.SubSystem.SceneLoader",
+        "Core.Scripts.UI.SubSystem.ServerSession",
+        "Core.Scripts.UI.SubSystem.UIManager",
+        "GUID:0d8beb7f090555447a6cf5ce9e54dbb4",
+        "GUID:4577d7da1d5fad045adba9bcb42d0818"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -5,7 +5,7 @@ using Fusion;
 using UnityEngine;
 using Zenject;
 
-internal class ServerSessionController : IServerSessionController
+public class ServerSessionController : IServerSessionController
 {
     [Inject] private readonly IServerSessionModel _model;
     [Inject] private readonly INetworkManagerSubsystem _networkManager;

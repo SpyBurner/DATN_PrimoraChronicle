@@ -1,0 +1,20 @@
+{
+    "name": "Core.Scripts.UI.SubSystem.Network",
+    "rootNamespace": "",
+    "references": [
+        "Core.Interfaces",
+        "GUID:0d8beb7f090555447a6cf5ce9e54dbb4",
+        "GUID:1baf1ffff1031e948b3b228ab3453251",
+        "GUID:4577d7da1d5fad045adba9bcb42d0818",
+        "GUID:4d449a4732e064d26a3069f2cfd88917"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

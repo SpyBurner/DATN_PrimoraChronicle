@@ -6,7 +6,7 @@ using Zenject;
 using System.Text;
 using Core.Config;
 
-internal class HttpServiceController : IHttpServiceController
+public class HttpServiceController : IHttpServiceController
 {
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IHttpServiceModel _model;

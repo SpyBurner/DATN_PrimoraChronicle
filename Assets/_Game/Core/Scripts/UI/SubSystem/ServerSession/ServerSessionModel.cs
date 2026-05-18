@@ -1,7 +1,7 @@
 using Fusion;
 using UnityObservables;
 
-internal class ServerSessionModel : IServerSessionModel
+public class ServerSessionModel : IServerSessionModel
 {
     private readonly Observable<string> _activeSessionName = new(string.Empty);
     private readonly Observable<bool> _isRunning = new(false);
