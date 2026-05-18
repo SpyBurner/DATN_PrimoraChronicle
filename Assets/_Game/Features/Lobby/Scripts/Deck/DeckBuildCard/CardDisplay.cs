@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core;
 using Core.GDS;
 using TMPro;
@@ -9,9 +10,10 @@ public class CardDisplay : MonoBehaviour
 {
     [SerializeField] private Image _cardIllustration;
     [SerializeField] private TMP_Text _cardNameText;
+    [SerializeField] private TMP_Text _cardDescriptionText;
     //[SerializeField] private Image _cardFrame;
 
-    public void SetCardInfo(CardSO cardSO, CardData cardData = null)
+    public void SetCardInfo(CardSO cardSO, CardData cardData = null, IReadOnlyList<string> grantSkillNames = null)
     {
         if (cardSO == null || cardData == null)
         {
@@ -22,6 +24,9 @@ public class CardDisplay : MonoBehaviour
 
         SetImageSprite(_cardIllustration, cardSO.CardIllustration);
         SetText(_cardNameText, cardData?.name);
+        SetText(_cardDescriptionText, grantSkillNames != null && grantSkillNames.Count > 0
+            ? string.Join("\n", grantSkillNames)
+            : null);
         //SetImageVisible(_cardFrame, true);
     }
 

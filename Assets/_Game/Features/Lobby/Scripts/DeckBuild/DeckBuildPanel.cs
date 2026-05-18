@@ -36,6 +36,7 @@ public class DeckBuildPanel : UIPanel
         _saveButton?.onClick.AddListener(OnSave);
 
         RefreshAll();
+        _ = _deckBuild.LoadAvailableCards();
     }
 
     protected override void OnDisable()
@@ -159,7 +160,17 @@ public class DeckBuildPanel : UIPanel
 
         Core.GDS.CardData cardData = null;
         if (card != null) _cardLoadingManager.TryGetCardData(card.StringID, out cardData);
-        cardDisplay.SetCardInfo(card, cardData);
+
+        var skillNames = new List<string>();
+        if (!string.IsNullOrEmpty(cardData?.grants_skill) &&
+            _cardLoadingManager.TryGetSkillData(cardData.grants_skill, out var singleSkill))
+            skillNames.Add(singleSkill.name);
+        if (cardData?.grants_skills != null)
+            foreach (var skillId in cardData.grants_skills)
+                if (_cardLoadingManager.TryGetSkillData(skillId, out var skill))
+                    skillNames.Add(skill.name);
+
+        cardDisplay.SetCardInfo(card, cardData, skillNames);
 
         Button button = cardDisplay.GetComponent<Button>();
         if (button != null)

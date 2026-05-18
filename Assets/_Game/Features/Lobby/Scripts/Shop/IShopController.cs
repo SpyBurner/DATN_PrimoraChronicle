@@ -4,4 +4,5 @@ public interface IShopController : IController
 {
     Task LoadItems();
     Task PurchaseItem(string itemId);
+    void GenerateShopCards();
 }

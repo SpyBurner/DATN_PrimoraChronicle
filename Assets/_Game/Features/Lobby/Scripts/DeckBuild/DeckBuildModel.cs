@@ -60,6 +60,11 @@ internal class DeckBuildModel : IDeckBuildModel
         ValidateDeck();
     }
 
+    public void SetAvailableCards(IEnumerable<CardSO> availableCards)
+    {
+        _availableCards.Value = availableCards == null ? new List<CardSO>() : new List<CardSO>(availableCards);
+    }
+
     private void UpdateDeckSize()
     {
         _deckSize.Value = _deckCards.Value.Count;

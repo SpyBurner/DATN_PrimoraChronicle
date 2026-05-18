@@ -16,5 +16,6 @@ public interface IDeckBuildModel : IModel
 
     void SetCurrentDeck(string id, string name);
     void SetErrorMessage(string message);
+    void SetAvailableCards(IEnumerable<CardSO> availableCards);
     void SetRenderData(IEnumerable<CardSO> deckCards, IEnumerable<CardSO> championCards, IEnumerable<CardSO> grantedCards, IEnumerable<CardSO> availableCards);
 }

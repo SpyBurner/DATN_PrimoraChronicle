@@ -71,6 +71,22 @@ internal class DeckBuildController : IDeckBuildController
         _model.SetRenderData(Array.Empty<CardSO>(), Array.Empty<CardSO>(), Array.Empty<CardSO>(), availableCards);
     }
 
+    public async Task LoadAvailableCards()
+    {
+        try
+        {
+            _debugLogger.Log("DeckBuild: Loading available cards from collection");
+            List<CardSO> currentDeck = new List<CardSO>(_model.DeckCards.Value);
+            List<CardSO> availableCards = await GetAllCollection(currentDeck);
+            _model.SetAvailableCards(availableCards);
+            _debugLogger.Log($"DeckBuild: Loaded {availableCards.Count} available cards");
+        }
+        catch (Exception ex)
+        {
+            _debugLogger.LogError($"DeckBuild: LoadAvailableCards failed: {ex.Message}");
+        }
+    }
+
     public void AddCardToDeck(CardSO card)
     {
         if (card == null) return;
@@ -229,14 +245,15 @@ internal class DeckBuildController : IDeckBuildController
         Dictionary<string, int> copyCountsByStringId = new(StringComparer.Ordinal);
         foreach (CollectionCardCopyResponse cardCopy in cardCopies)
         {
-            if (cardCopy == null || string.IsNullOrWhiteSpace(cardCopy.StringID))
+            if (cardCopy == null || string.IsNullOrWhiteSpace(cardCopy.cardStringID))
             {
                 continue;
             }
 
-            copyCountsByStringId.TryGetValue(cardCopy.StringID, out int count);
-            copyCountsByStringId[cardCopy.StringID] = count + 1;
+            copyCountsByStringId.TryGetValue(cardCopy.cardStringID, out int count);
+            copyCountsByStringId[cardCopy.cardStringID] = count + 1;
         }
+        Debug.Log($"DeckBuild: Computed card copy counts for {copyCountsByStringId.Count} unique cards");
 
         if (cardsAlreadyInDeck != null)
         {
@@ -258,6 +275,7 @@ internal class DeckBuildController : IDeckBuildController
         List<CardSO> availableCards = new();
         AppendCopies(availableCards, _cardLoadingManager.GetTroopCardList().Values, copyCountsByStringId);
         AppendCopies(availableCards, _cardLoadingManager.GetSpellCardList().Values, copyCountsByStringId);
+        Debug.Log($"DeckBuild: Computed available cards count: {availableCards.Count}");
         return availableCards;
     }
 
@@ -328,7 +346,6 @@ internal class DeckBuildController : IDeckBuildController
     private class CollectionCardCopyResponse
     {
         public string ID;
-        public string cardID;
-        public string StringID;
+        public string cardStringID;
     }
 }
