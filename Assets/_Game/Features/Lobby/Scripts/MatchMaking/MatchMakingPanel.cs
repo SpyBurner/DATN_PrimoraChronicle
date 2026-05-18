@@ -8,7 +8,7 @@ public class MatchMakingPanel : UIPanel
     [Inject] private readonly IMatchMakingSubsystem _matchMaking;
     [Inject] private readonly IUIManagerSubsystem _uiManager;
 
-    [SerializeField] private Button           _findMatchButton;
+    [SerializeField] private Button _findMatchButton;
 
     [SerializeField] private TextMeshProUGUI _statusText;
     [SerializeField] private Button _cancelButton;
