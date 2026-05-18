@@ -68,6 +68,7 @@ public class LocalInteractionController : MonoBehaviour
 
     private void Update()
     {
+        if (_gameplayManager == null || _boardManager == null) return;
         if (selectedSkill == null || activeUnit == null) return;
 
         // Perform raycast to find tile under mouse

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fusion;
 using Zenject;
@@ -55,7 +56,11 @@ internal class MatchMakingController : IMatchMakingController
             {
                 GameMode    = GameMode.Shared,
                 SessionName = "test-shared-session",
-                PlayerCount = 2
+                PlayerCount = 2,
+                SessionProperties = new Dictionary<string, SessionProperty>
+                {
+                    { "ai_count", SessionProperty.Make(1) }
+                }
             };
 
             _debugLogger.Log("[MatchMaking] JoinSharedModeSession: Calling NetworkManager.StartSession (Shared Mode)");
