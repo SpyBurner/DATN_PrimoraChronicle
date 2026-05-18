@@ -30,6 +30,15 @@ internal class MatchMakingController : IMatchMakingController
 
     public async Task JoinQueue()
     {
+#if FUSION_SHARED_TEST
+        await JoinSharedModeSession();
+#else
+        await JoinQueueInternal();
+#endif
+    }
+
+    private async Task JoinQueueInternal()
+    {
         try
         {
             _model.ApplyState(new MatchMakingStateData {
@@ -62,6 +71,44 @@ internal class MatchMakingController : IMatchMakingController
         }
     }
 
+#if FUSION_SHARED_TEST
+    private async Task JoinSharedModeSession()
+    {
+        try
+        {
+            _model.ApplyState(new MatchMakingStateData {
+                Phase  = MatchMakingPhase.Connecting,
+                Status = "[TEST] Joining shared session..."
+            });
+
+            var args = new StartGameArgs
+            {
+                GameMode    = GameMode.Shared,
+                SessionName = "test-shared-session",
+                PlayerCount = 2
+            };
+
+            bool success = await _networkManager.StartSession(args);
+
+            if (!success)
+            {
+                _model.ApplyState(new MatchMakingStateData {
+                    Phase  = MatchMakingPhase.Failed,
+                    Status = $"[TEST] Failed to join shared session: {_networkManager.ErrorMessage}"
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _debugLogger.LogError($"[MatchMaking] JoinSharedModeSession failed: {ex.Message}");
+            _model.ApplyState(new MatchMakingStateData {
+                Phase  = MatchMakingPhase.Failed,
+                Status = $"[TEST] Error: {ex.Message}"
+            });
+        }
+    }
+#endif
+
     public async Task PollForMatch()
     {
         var token = _pollingCts.Token;
@@ -74,6 +121,7 @@ internal class MatchMakingController : IMatchMakingController
                 if (token.IsCancellationRequested) break;
 
                 var statusRes = await _http.Get<QueueStatusResponse>("/api/matchmaking/status");
+                _debugLogger.Log($"[MatchMaking] Polling result: {statusRes?.status}, session: {statusRes?.session_name}");
                 if (statusRes != null && statusRes.status == "matched")
                 {
                     _model.ApplyState(new MatchMakingStateData {
@@ -185,6 +233,34 @@ internal class MatchMakingController : IMatchMakingController
 
     public async Task CancelMatchmaking()
     {
+#if FUSION_SHARED_TEST
+        try
+        {
+            _debugLogger.Log("[TEST] MatchMaking: Canceling shared mode matchmaking");
+            
+            if (_pollingCts != null)
+            {
+                _pollingCts.Cancel();
+                _pollingCts.Dispose();
+                _pollingCts = null;
+            }
+
+            if (_networkManager.RunnerState == NetworkRunner.States.Running)
+            {
+                await _networkManager.ShutdownRunner();
+            }
+
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Idle,
+                Status = string.Empty
+            });
+        }
+        catch (Exception ex)
+        {
+            _debugLogger.LogError($"[TEST] MatchMaking: CancelMatchmaking failed: {ex.Message}");
+        }
+#else
         try
         {
             _debugLogger.Log("MatchMaking: Canceling matchmaking");
@@ -209,5 +285,6 @@ internal class MatchMakingController : IMatchMakingController
         {
             _debugLogger.LogError($"MatchMaking: CancelMatchmaking failed: {ex.Message}");
         }
+#endif
     }
 }

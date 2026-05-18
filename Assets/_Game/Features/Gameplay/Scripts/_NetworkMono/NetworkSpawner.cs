@@ -15,6 +15,17 @@ public class NetworkSpawner : SimulationBehaviour
 
     private GameObject _boardParent;
 
+#if FUSION_SHARED_TEST
+    private readonly Dictionary<PlayerRef, NetworkObject> _spawnedPieces = new Dictionary<PlayerRef, NetworkObject>();
+
+    private Vector3 GetSpawnPosition(PlayerRef player, int maxPlayers)
+    {
+        // Simple positioning logic for testing: offset along X axis depending on player raw ID
+        float xOffset = (player.PlayerId - 1) * 2f;
+        return new Vector3(xOffset, 1f, 0f);
+    }
+#endif
+
     private void Awake()
     {
         GenerateBoard();
@@ -57,6 +68,15 @@ public class NetworkSpawner : SimulationBehaviour
         NetworkRunner runner = _networkManager.Runner;
         if (runner != null)
         {
+#if FUSION_SHARED_TEST
+            if (player != runner.LocalPlayer) return;
+
+            Vector3 spawnPos = GetSpawnPosition(player, runner.SessionInfo.MaxPlayers);
+            
+            // Spawn the piece and assign Input Authority to the joining player
+            NetworkObject spawnedObj = runner.Spawn(playerPiecePrefab, spawnPos, Quaternion.identity, player);
+            _spawnedPieces[player] = spawnedObj;
+#else
             // Only the Host has the authority to spawn networked objects
             if (runner.IsServer)
             {
@@ -65,6 +85,7 @@ public class NetworkSpawner : SimulationBehaviour
                 // Spawn the piece and assign Input Authority to the joining player
                 runner.Spawn(playerPiecePrefab, spawnPos, Quaternion.identity, player);
             }
+#endif
         }
     }
 }
