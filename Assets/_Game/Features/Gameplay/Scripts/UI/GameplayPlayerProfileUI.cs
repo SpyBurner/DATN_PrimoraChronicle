@@ -9,6 +9,7 @@ public class GameplayPlayerProfileUI : MonoBehaviour
 {
     [Inject] private readonly IProfileSubsystem _profile;
     [Inject] private readonly IPlayerCardZoneSubsystem _cardZone;
+    [Inject] private readonly IGameplayDeckChooseSubsystem _deckChoose;
 
     [SerializeField] private TMP_Text _nameText;
     [SerializeField] private TMP_Text _hpText;
@@ -24,7 +25,11 @@ public class GameplayPlayerProfileUI : MonoBehaviour
         _isLocal = isLocal;
         _bound = true;
 
-        if (_readyToggle != null) _readyToggle.interactable = false;
+        if (_readyToggle != null)
+        {
+            _readyToggle.interactable = false;
+            _readyToggle.isOn = false;
+        }
         Refresh();
     }
 
@@ -32,12 +37,14 @@ public class GameplayPlayerProfileUI : MonoBehaviour
     {
         _cardZone.HPChanged += OnHPChanged;
         _profile.UsernameChanged += OnUsernameChanged;
+        _deckChoose.IsReadyChanged += OnIsReadyChanged;
     }
 
     private void OnDisable()
     {
         _cardZone.HPChanged -= OnHPChanged;
         _profile.UsernameChanged -= OnUsernameChanged;
+        _deckChoose.IsReadyChanged -= OnIsReadyChanged;
     }
 
     private void OnHPChanged(PlayerRef p, int hp)
@@ -51,6 +58,13 @@ public class GameplayPlayerProfileUI : MonoBehaviour
     {
         if (!_bound || !_isLocal) return;
         try { if (_nameText != null) _nameText.text = name; }
+        catch (Exception ex) { Debug.LogException(ex); }
+    }
+
+    private void OnIsReadyChanged(bool isReady)
+    {
+        if (!_bound || !_isLocal) return;
+        try { if (_readyToggle != null) _readyToggle.isOn = isReady; }
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
