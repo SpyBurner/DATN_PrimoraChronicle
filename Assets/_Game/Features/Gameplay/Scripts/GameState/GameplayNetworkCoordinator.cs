@@ -5,8 +5,8 @@ using Zenject;
 
 public class GameplayNetworkCoordinator : NetworkBehaviour
 {
-    [Inject(Optional = true)] private INetworkManagerSubsystem _networkManager;
-    [Inject(Optional = true)] private IDebugLogger _logger;
+    [Inject] private INetworkManagerSubsystem _networkManager;
+    [Inject] private IDebugLogger _logger;
 
     [Header("Manager Prefabs")]
     [SerializeField] private NetworkPrefabRef _gameStateManagerPrefab;

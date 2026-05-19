@@ -24,19 +24,26 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
 
     public override void Spawned()
     {
+        // GameObjectContext handles injection when set up on the prefab.
+        // If it hasn't fired (e.g. Fusion instantiation bypassed Awake ordering),
+        // fall back to resolving from the SceneContext directly.
         if (_gameState == null)
         {
             var ctx = FindObjectOfType<SceneContext>();
-            _gameState = ctx?.Container.Resolve<IGameStateSubsystem>();
-        }
-        if (_logger == null)
-        {
-            var ctx = FindObjectOfType<SceneContext>();
-            _logger = ctx?.Container.Resolve<IDebugLogger>();
+            if (ctx != null)
+            {
+                _gameState = ctx.Container.Resolve<IGameStateSubsystem>();
+                _logger  = ctx.Container.Resolve<IDebugLogger>();
+            }
+            else
+            {
+                Debug.LogError("[GameStateNetworkView] SceneContext not found — injection failed.");
+                return;
+            }
         }
 
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        _gameState?.RegisterNetworkBridge(this);
+        _gameState.RegisterNetworkBridge(this);
 
         if (Object.HasStateAuthority)
         {
@@ -166,7 +173,6 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     private void PushState()
     {
         if (_gameState == null) return;
-
         float timeRemaining = 0f;
         if (PhaseTimer.IsRunning)
         {

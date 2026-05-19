@@ -289,10 +289,8 @@ interface the UI panel uses. Controller and state receiver are never visible to 
 ```csharp
 public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
 {
-    // Single injection — the public facade only.
-    // GameObjectContext on the prefab resolves this on ALL clients,
-    // including those where Fusion replicates the prefab automatically.
-    [Inject] private readonly IXxxSubsystem _subsystem;
+    // Optional so Fusion-replicated instances don't throw before Spawned() fallback runs.
+    [Inject(Optional = true)] private IXxxSubsystem _subsystem;
 
     private ChangeDetector _changeDetector;
 
@@ -301,18 +299,29 @@ public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
 
     public override void Spawned()
     {
+        // Fusion can instantiate prefabs in ways that bypass normal Unity Awake() ordering,
+        // so GameObjectContext injection is not reliable across all clients/modes.
+        // Resolve directly from SceneContext as the guaranteed fallback.
+        if (_subsystem == null)
+        {
+            var ctx = FindObjectOfType<SceneContext>();
+            if (ctx != null)
+                _subsystem = ctx.Container.Resolve<IXxxSubsystem>();
+            else
+            {
+                Debug.LogError("[XxxNetworkView] SceneContext not found — injection failed.");
+                return;
+            }
+        }
+
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-
-        if (HasInputAuthority)
-            _subsystem.RegisterNetworkBridge(this); // routed through facade
-
-        PushState(); // sync late joiners and initial state
+        _subsystem.RegisterNetworkBridge(this);
+        PushState();
     }
 
-    public override void OnDestroy()
+    public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        if (HasInputAuthority)
-            _subsystem.RegisterNetworkBridge(null); // clean up nullable seam
+        _subsystem?.RegisterNetworkBridge(null);
     }
 
     // ── IXxxNetworkBridge (upstream: client → server) ───────────────────
@@ -322,7 +331,6 @@ public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_RequestSubmit(string input)
     {
-        // SERVER ONLY: validate and write authoritative networked state
         NetworkedSomeValue = input;
         NetworkedIsProcessing = false;
     }
@@ -341,7 +349,7 @@ public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
 
     private void PushState()
     {
-        // Routed through subsystem facade — controller never touched directly
+        if (_subsystem == null) return;
         _subsystem.OnAuthoritativeStateReceived(new XxxStateData
         {
             SomeValue = NetworkedSomeValue.ToString(),
@@ -351,28 +359,17 @@ public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
 }
 ```
 
-### Setting Up GameObjectContext on the Prefab
+### Injection pattern for Fusion-spawned NetworkViews
 
-1. Add a `GameObjectContext` component to the network prefab root
-2. Add a `MonoInstaller` to the prefab — typically empty, since `IXxxSubsystem` is already
-   bound in the SceneContext and inherits automatically:
+Use `[Inject(Optional = true)]` on all injected fields and resolve from `SceneContext` in
+`Spawned()` if the field is still null. Do **not** rely on `GameObjectContext` per-prefab
+wiring — Fusion can instantiate prefabs on remote clients in ways that bypass the normal
+Unity `Awake()` ordering that `GameObjectContext` depends on, causing silent injection
+failures with no exception. The `SceneContext` fallback in `Spawned()` is always reliable
+because Fusion never calls `Spawned()` before scene initialization is complete.
 
-```csharp
-public class XxxNetworkViewInstaller : MonoInstaller
-{
-    public override void InstallBindings()
-    {
-        // IXxxSubsystem resolves from the parent SceneContext automatically.
-        // No additional bindings needed unless the prefab has prefab-local dependencies.
-    }
-}
-```
-
-The `GameObjectContext` on the prefab guarantees that Zenject runs its injection on
-**every client** where Fusion instantiates the prefab — including remote clients that never
-called `Runner.SpawnAsync()` themselves. Because the view only injects `IXxxSubsystem`,
-there is no risk of accidentally exposing controller or model internals through the prefab
-context.
+This means NetworkView prefabs need **no** `GameObjectContext` or `MonoInstaller` component.
+One less thing to wire per subsystem.
 
 ---
 
