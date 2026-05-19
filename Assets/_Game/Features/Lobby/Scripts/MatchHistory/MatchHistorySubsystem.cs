@@ -23,7 +23,7 @@ public class MatchHistorySubsystem : IMatchHistorySubsystem
             _model.MatchHistory.OnChanged -= HandleMatchHistoryChanged;
     }
 
-    public Task LoadMatchHistory(string userId) => _controller.LoadMatchHistory(userId);
+    public Task LoadMatchHistory() => _controller.LoadMatchHistory();
 
     private void HandleMatchHistoryChanged()
     {

@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Core::Core.EquipSpellSO
   ID: 73190560cc59f1a4d97638115817f82f
   StringID: card_spore_burst
-  CardIllustration: {fileID: 0}
+  CardIllustration: {fileID: 21300000, guid: f8b8ead6ef1182b42b62938841bbbbaf, type: 3}

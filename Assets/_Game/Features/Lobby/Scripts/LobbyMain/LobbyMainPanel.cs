@@ -34,6 +34,8 @@ public class LobbyMainPanel : UIPanel
         _lobbyMain.LevelChanged += OnLevelChanged;
         _lobbyMain.GoldChanged += OnGoldChanged;
         _lobbyMain.AvatarUrlChanged += OnAvatarUrlChanged;
+
+        _lobbyMain.Refresh();
     }
 
     protected override void OnDisable()

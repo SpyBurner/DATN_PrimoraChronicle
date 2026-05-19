@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using System.Text;
 using System.Threading.Tasks;
 using Core;
 using Zenject;
@@ -20,6 +21,10 @@ public class DeckBuildPanel : UIPanel
     [SerializeField] private Image _championPortrait;
     [SerializeField] private TMP_Text _championDescription;
     [SerializeField] private Button _saveButton;
+    [SerializeField] private TMP_Text _errorText;
+    [SerializeField] private Button _championChoose;
+    [SerializeField] private GameObject _championChooseContainer;
+    [SerializeField] private GameObject _championChooseOverlay;
 
     protected override void OnEnable()
     {
@@ -29,10 +34,13 @@ public class DeckBuildPanel : UIPanel
         _deckBuild.ChampionCardsChanged += HandleChampionCardsChanged;
         _deckBuild.ChampionGrantedCardsChanged += HandleChampionGrantedCardsChanged;
         _deckBuild.AvailableCardsChanged += HandleAvailableCardsChanged;
+        _deckBuild.ErrorMessageChanged += OnErrorMessageChanged;
 
         _saveButton?.onClick.AddListener(OnSave);
+        _championChoose?.onClick.AddListener(OnChampionChooseClicked);
 
         RefreshAll();
+        _ = _deckBuild.LoadAvailableCards();
     }
 
     protected override void OnDisable()
@@ -41,8 +49,10 @@ public class DeckBuildPanel : UIPanel
         _deckBuild.ChampionCardsChanged -= HandleChampionCardsChanged;
         _deckBuild.ChampionGrantedCardsChanged -= HandleChampionGrantedCardsChanged;
         _deckBuild.AvailableCardsChanged -= HandleAvailableCardsChanged;
+        _deckBuild.ErrorMessageChanged -= OnErrorMessageChanged;
 
         _saveButton?.onClick.RemoveListener(OnSave);
+        _championChoose?.onClick.RemoveListener(OnChampionChooseClicked);
 
         ClearAll();
         base.OnDisable();
@@ -92,13 +102,28 @@ public class DeckBuildPanel : UIPanel
 
         if (_championDescription != null)
         {
-            string description = string.Empty;
-            if (champion != null && _cardLoadingManager.TryGetCardData(champion.StringID, out var cardData))
-            {
-                description = cardData.description;
-            }
-            _championDescription.text = description;
+            _championDescription.text = BuildChampionDescription(champion);
         }
+    }
+
+    private string BuildChampionDescription(CardSO champion)
+    {
+        if (champion == null || !_cardLoadingManager.TryGetCardData(champion.StringID, out var cardData))
+            return string.Empty;
+
+        var sb = new StringBuilder();
+        sb.AppendLine(cardData.name);
+        sb.AppendLine($"Faction: {cardData.faction}          HP: {cardData.hp}           Death Anchor: {cardData.death_anchor}         Speed: {cardData.speed}");
+
+        if (!string.IsNullOrEmpty(cardData.grants_skill) &&
+            _cardLoadingManager.TryGetSkillData(cardData.grants_skill, out var skillData))
+        {
+            sb.AppendLine();
+            sb.AppendLine(skillData.name);
+            sb.Append(skillData.description);
+        }
+
+        return sb.ToString();
     }
 
     private void HandleChampionGrantedCardsChanged(IReadOnlyList<CardSO> cards)
@@ -137,7 +162,20 @@ public class DeckBuildPanel : UIPanel
         CardDisplay cardDisplay = Instantiate(_cardDisplayPrefab, parent);
         cardDisplay.gameObject.name = card != null ? card.name : "EmptyCardDisplay";
         cardDisplay.gameObject.SetActive(true);
-        cardDisplay.SetCardInfo(card);
+
+        Core.GDS.CardData cardData = null;
+        if (card != null) _cardLoadingManager.TryGetCardData(card.StringID, out cardData);
+
+        var skillNames = new List<string>();
+        if (!string.IsNullOrEmpty(cardData?.grants_skill) &&
+            _cardLoadingManager.TryGetSkillData(cardData.grants_skill, out var singleSkill))
+            skillNames.Add(singleSkill.name);
+        if (cardData?.grants_skills != null)
+            foreach (var skillId in cardData.grants_skills)
+                if (_cardLoadingManager.TryGetSkillData(skillId, out var skill))
+                    skillNames.Add(skill.name);
+
+        cardDisplay.SetCardInfo(card, cardData, skillNames);
 
         Button button = cardDisplay.GetComponent<Button>();
         if (button != null)
@@ -150,6 +188,29 @@ public class DeckBuildPanel : UIPanel
                 button.onClick.AddListener(() => onClick.Invoke(card));
             }
         }
+    }
+
+    private void OnChampionChooseClicked()
+    {
+        if (_championChooseOverlay != null)
+            _championChooseOverlay.SetActive(true);
+
+        ClearContainer(_championChooseContainer);
+
+        var champions = _cardLoadingManager.GetChampionCardsList();
+        if (champions == null) return;
+
+        foreach (var champion in champions.Values)
+            CreateCardDisplay(champion, _championChooseContainer.transform, OnChampionSelected);
+    }
+
+    private void OnChampionSelected(CardSO card)
+    {
+        _deckBuild.AddCardToDeck(card);
+        ClearContainer(_championChooseContainer);
+
+        if (_championChooseOverlay != null)
+            _championChooseOverlay.SetActive(false);
     }
 
     private void HandleAvailableCardClicked(CardSO card)
@@ -175,6 +236,15 @@ public class DeckBuildPanel : UIPanel
         string trimmedDeckName = deckName?.Trim() ?? string.Empty;
         _deckBuildModel.SetCurrentDeck(_deckBuildModel.CurrentDeckId.Value, trimmedDeckName);
         await _deckBuild.SaveDeck();
+    }
+
+    private void OnErrorMessageChanged(string errorMessage)
+    {
+        if (_errorText != null)
+        {
+            _errorText.text = errorMessage;
+            _errorText.enabled = !string.IsNullOrEmpty(errorMessage);
+        }
     }
 
     private void ClearContainer(GameObject container)

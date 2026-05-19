@@ -28,7 +28,7 @@ internal class LobbyMainController : ILobbyMainController
             if (profile != null)
             {
                 _model.SetUsername(profile.username);
-                _model.SetLevel(profile.level);
+                _model.SetLevel(Math.Max(1, profile.level));
                 _model.SetGold(profile.gold);
                 _model.SetAvatarUrl(profile.avatarUrl);
                 _debugLogger.Log($"LobbyMain: Loaded profile for {profile.username}");

@@ -9,4 +9,6 @@ public interface IProfileSubsystem : ISubsystem
     event UnityAction<int> XpToNextLevelChanged;
     event UnityAction<int> GoldChanged;
     event UnityAction<string> AvatarUrlChanged;
+
+    void Refresh();
 }

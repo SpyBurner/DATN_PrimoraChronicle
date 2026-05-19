@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: card_legion_s_last_stand
   m_EditorClassIdentifier: Core::Core.EquipSpellSO
   ID: c008b40fb545f194cb5d47cd36089aeb
-  StringID: card_legion_s_last_stand
+  StringID: card_legions_last_stand
   CardIllustration: {fileID: 0}
