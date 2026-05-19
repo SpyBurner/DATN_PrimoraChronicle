@@ -1,25 +1,21 @@
 using Zenject;
 
-public class GameStateController : IGameStateController
+internal class GameStateController : IGameStateController
 {
     [Inject] private readonly IGameStateModel _model;
-    [Inject] private readonly IDebugLogger _debugLogger;
+    [Inject] private readonly IDebugLogger _logger;
+
+    private IGameStateNetworkBridge _bridge;
 
     public void Initialize() { }
-    public void Dispose() { }
 
-    public void StartMatch()
+    public void Dispose() => _bridge = null;
+
+    public void RegisterBridge(IGameStateNetworkBridge bridge)
     {
-        _debugLogger.Log("GameStateController: StartMatch");
+        _bridge = bridge;
+        _logger.Log($"[GameState] Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
-    public void EndTurn()
-    {
-        _debugLogger.Log("GameStateController: EndTurn");
-    }
-
-    public void SetPhase(string phase)
-    {
-        _debugLogger.Log($"GameStateController: SetPhase {phase}");
-    }
+    public void OnAuthoritativeStateReceived(GameStateData data) => _model.ApplyState(data);
 }

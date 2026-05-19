@@ -1,24 +1,28 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zenject;
 
-internal class SceneLoaderController : ISceneLoaderController
+public class SceneLoaderController : ISceneLoaderController
 {
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IUIManagerSubsystem _uiManager;
     [Inject] private readonly ISceneLoaderModel _sceneModel;
+    [Inject] private readonly INetworkManagerSubsystem _networkManager;
 
     public void Initialize()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        _networkManager.IsSceneLoadingChanged += HandleIsSceneLoadingChanged;
     }
 
     public void Dispose()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        _networkManager.IsSceneLoadingChanged -= HandleIsSceneLoadingChanged;
     }
 
     public async Task LoadScene(string sceneName)
@@ -54,6 +58,63 @@ internal class SceneLoaderController : ISceneLoaderController
         await _uiManager.ShowDefaultScreenForScene(sceneName);
 
         _sceneModel.IsLoading.Value = false;
+    }
+
+    public async Task LoadNetworkedScene(Fusion.NetworkRunner runner, string sceneName)
+    {
+        if (_sceneModel.IsLoading.Value)
+        {
+            _debugLogger.LogWarning($"Scene load already in progress. Ignoring request to load networked scene '{sceneName}'.");
+            return;
+        }
+
+        _sceneModel.IsLoading.Value = true;
+
+        _debugLogger.Log($"Starting to load networked scene '{sceneName}'.");
+        await _uiManager.FadeOut();
+        _debugLogger.Log($"Fade out completed. Loading networked scene '{sceneName}'.");
+
+        var activeScene = SceneManager.GetActiveScene();
+        if (activeScene.IsValid() && activeScene.name != sceneName)
+        {
+            _debugLogger.Log($"Unloading previous local scene '{activeScene.name}' before loading networked scene '{sceneName}'.");
+            try
+            {
+                var unloadOp = SceneManager.UnloadSceneAsync(activeScene);
+                if (unloadOp != null)
+                {
+                    while (!unloadOp.isDone)
+                    {
+                        await Task.Yield();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _debugLogger.LogWarning($"Failed to unload active scene '{activeScene.name}': {ex.Message}");
+            }
+        }
+
+        await runner.LoadScene(sceneName);
+
+        while (_sceneModel.IsLoading.Value)
+        {
+            await Task.Yield();
+        }
+
+        _debugLogger.Log($"Scene '{sceneName}' loaded successfully.");
+
+        await _uiManager.FadeIn();
+        _debugLogger.Log($"Fade in completed for networked scene '{sceneName}'.");
+        
+        // Show the default screen for the newly loaded scene
+        await _uiManager.ShowDefaultScreenForScene(sceneName);
+    }
+
+    private void HandleIsSceneLoadingChanged(bool isLoading)
+    {
+        _debugLogger.Log($"IsSceneLoading changed to {isLoading}");
+        _sceneModel.IsLoading.Value = isLoading;
     }
 
     public Task ReloadScene()

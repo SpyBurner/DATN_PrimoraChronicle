@@ -78,6 +78,7 @@ GameObject:
   - component: {fileID: 647615511694354364}
   - component: {fileID: 7316767863066439906}
   - component: {fileID: 7553892318513640811}
+  - component: {fileID: 6460268802377655049}
   m_Layer: 0
   m_Name: SkillPanelAnchor
   m_TagString: Untagged
@@ -174,6 +175,22 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &6460268802377655049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5854658867135285651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a9e58197a62f1b4fbffdee370d7abb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::PanelDrawer
+  _panel: {fileID: 986118470041510215}
+  _toggle: {fileID: 8345913279109135135}
+  _duration: 0.25
+  _ease: 9
 --- !u!1001 &2093892326366175451
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -660,3 +677,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1198408833488011676, guid: cd26d509491f6f74497815132e2ae13e, type: 3}
   m_PrefabInstance: {fileID: 2093892326366175451}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8345913279109135135 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7988361074405219268, guid: cd26d509491f6f74497815132e2ae13e, type: 3}
+  m_PrefabInstance: {fileID: 2093892326366175451}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle

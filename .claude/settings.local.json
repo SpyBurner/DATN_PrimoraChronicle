@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__coplay-mcp__set_unity_project_root",
+      "mcp__coplay-mcp__get_unity_editor_state",
+      "mcp__coplay-mcp__list_unity_project_roots",
+      "mcp__coplay-mcp__check_compile_errors",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit *)",
+      "Bash(powershell -Command ' *)",
+      "mcp__mcp-unity__recompile_scripts",
+      "mcp__mcp-unity__get_console_logs",
+      "Skill(unity-mcp-skill)",
+      "Skill(unity-mcp-skill:*)",
+      "mcp__mcp-unity__get_scene_info",
+      "Bash(python3)",
+      "mcp__mcp-unity__batch_execute"
+    ]
+  }
+}

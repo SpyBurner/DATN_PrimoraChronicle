@@ -1,46 +1,34 @@
-using Fusion;
+using System;
+using System.Collections.Generic;
 using UnityObservables;
 
-public class CombatModel : NetworkBehaviour, ICombatModel
+internal class CombatModel : ICombatModel
 {
-    private ChangeDetector _changeDetector;
+    private readonly List<string> _actionQueue = new();
+    private readonly Observable<string> _currentActorId = new(string.Empty);
+    private readonly Observable<bool> _isCombatActive = new(false);
 
-    [Networked] public NetworkString<_16> NetworkedAttacker { get; set; }
-    [Networked] public NetworkString<_16> NetworkedDefender { get; set; }
-    [Networked] public NetworkString<_64> NetworkedLog { get; set; }
-
-    private Observable<string> _currentAttackerId = new("");
-    public Observable<string> CurrentAttackerId => _currentAttackerId;
-
-    private Observable<string> _currentDefenderId = new("");
-    public Observable<string> CurrentDefenderId => _currentDefenderId;
-
-    private Observable<string> _combatLog = new("");
-    public Observable<string> CombatLog => _combatLog;
+    public event Action QueueChanged;
+    public Observable<string> CurrentActorId => _currentActorId;
+    public Observable<bool> IsCombatActive => _isCombatActive;
+    public IReadOnlyList<string> ActionQueue => _actionQueue;
 
     public void Initialize() { }
-    public void Dispose() { }
 
-    public override void Spawned()
+    public void Dispose()
     {
-        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        SyncState();
+        _actionQueue.Clear();
+        _currentActorId.Value = string.Empty;
+        _isCombatActive.Value = false;
     }
 
-    public override void Render()
+    public void ApplyState(CombatStateData data)
     {
-        if (_changeDetector == null) return;
-        foreach (var change in _changeDetector.DetectChanges(this))
-        {
-            SyncState();
-            break;
-        }
-    }
+        _actionQueue.Clear();
+        if (data.ActionQueue != null) _actionQueue.AddRange(data.ActionQueue);
+        QueueChanged?.Invoke();
 
-    private void SyncState()
-    {
-        _currentAttackerId.Value = NetworkedAttacker.ToString();
-        _currentDefenderId.Value = NetworkedDefender.ToString();
-        _combatLog.Value = NetworkedLog.ToString();
+        _currentActorId.Value = data.CurrentActorId ?? string.Empty;
+        _isCombatActive.Value = data.IsCombatActive;
     }
 }

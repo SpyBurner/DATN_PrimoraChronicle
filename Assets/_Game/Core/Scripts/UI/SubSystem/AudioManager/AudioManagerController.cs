@@ -1,7 +1,7 @@
 using UnityEngine;
 using Zenject;
 
-internal class AudioManagerController : IAudioManagerController
+public class AudioManagerController : IAudioManagerController
 {
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly AudioManagerModel _model;

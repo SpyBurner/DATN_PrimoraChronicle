@@ -1,20 +1,21 @@
 using Zenject;
 
-public class BoardController : IBoardController
+internal class BoardController : IBoardController
 {
     [Inject] private readonly IBoardModel _model;
-    [Inject] private readonly IDebugLogger _debugLogger;
+    [Inject] private readonly IDebugLogger _logger;
+
+    private IBoardNetworkBridge _bridge;
 
     public void Initialize() { }
-    public void Dispose() { }
 
-    public void PlaceUnit(int cellIndex, string unitId)
+    public void Dispose() => _bridge = null;
+
+    public void RegisterBridge(IBoardNetworkBridge bridge)
     {
-        _debugLogger.Log($"BoardController: PlaceUnit {unitId} at {cellIndex}");
-        // Cast to concrete model to call RPC
-        if (_model is BoardModel boardModel)
-        {
-            boardModel.RequestPlaceUnit(cellIndex, unitId);
-        }
+        _bridge = bridge;
+        _logger.Log($"[Board] Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
+
+    public void OnAuthoritativeStateReceived(BoardStateData data) => _model.ApplyState(data);
 }

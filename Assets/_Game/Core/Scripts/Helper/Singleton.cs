@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using Fusion;
-using Unity.VisualScripting;
 using UnityEngine;
 
 //Static instance base class

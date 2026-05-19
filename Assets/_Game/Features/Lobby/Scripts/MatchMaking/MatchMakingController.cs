@@ -1,111 +1,148 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Fusion;
 using Zenject;
 
 internal class MatchMakingController : IMatchMakingController
 {
-    [Inject] private readonly IDebugLogger _debugLogger;
-    [Inject] private readonly IMatchMakingModel _model;
-    [Inject] private readonly IHttpServiceSubsystem _httpService;
-    [Inject] private readonly ISceneLoaderSubsystem _sceneLoader;
+    [Inject] private readonly IDebugLogger             _debugLogger;
+    [Inject] private readonly IMatchMakingModel        _model;
+    [Inject] private readonly INetworkManagerSubsystem _networkManager;
+    [Inject] private readonly ISceneLoaderSubsystem    _sceneLoader;
+    [Inject] private readonly IBattleSetupSubsystem    _battleSetup;
 
-    public void Initialize() { }
-    public void Dispose() { }
+    private System.Threading.CancellationTokenSource _pollingCts;
 
-    public async Task StartMatchmaking()
+    public void Initialize()
     {
-        try
+        _debugLogger.Log("[MatchMaking] Initializing Controller. Subscribing to NetworkManager events.");
+        _networkManager.RunnerStateChanged  += HandleRunnerStateChanged;
+        _networkManager.PlayerCountChanged  += HandlePlayerCountChanged;
+    }
+
+    public void Dispose()
+    {
+        _debugLogger.Log("[MatchMaking] Disposing Controller. Unsubscribing from NetworkManager events.");
+        _networkManager.RunnerStateChanged  -= HandleRunnerStateChanged;
+        _networkManager.PlayerCountChanged  -= HandlePlayerCountChanged;
+    }
+
+    private void HandleRunnerStateChanged(NetworkRunner.States state)
+    {
+        _debugLogger.Log($"[MatchMaking] HandleRunnerStateChanged: NetworkRunner State transitioned to {state}");
+        
+        if (state == NetworkRunner.States.Running && _networkManager.PlayerCount >= _battleSetup.PlayerCnt)
         {
-            _debugLogger.Log("MatchMaking: Starting matchmaking");
-            _model.SetIsSearching(true);
-            _model.SetIsMatchFound(false);
-            _model.SetStatus("Searching for opponent...");
-
-            var response = await _httpService.Post<MatchMakingResponse, EmptyRequest>("/api/matchmaking/start", new EmptyRequest());
-
-            if (response != null)
+            _debugLogger.Log("[MatchMaking] HandleRunnerStateChanged: Runner is Running. Commencing LoadNetworkedScene to GAMEPLAY.");
+            _model.ApplyState(new MatchMakingStateData
             {
-                _model.SetQueuePosition(response.queuePosition);
-                _debugLogger.Log($"MatchMaking: Queue position {response.queuePosition}");
-                
-                // Simulate wait for match
-                await Task.Delay(3000);
-                
-                _debugLogger.Log("MatchMaking: Match found! Waiting for confirmation.");
-                _model.SetIsSearching(false);
-                _model.SetIsMatchFound(true);
-                _model.SetStatus("Match Found!");
-                
-                // Start confirmation timer
-                await StartConfirmationTimer(10);
-            }
-            else
-            {
-                _model.SetIsSearching(false);
-                _model.SetStatus("Matchmaking failed");
-            }
+                Phase  = MatchMakingPhase.Connected,
+                Status = "Connected!"
+            });
+            _sceneLoader.LoadNetworkedScene(_networkManager.Runner, SceneNames.GAMEPLAY);
         }
-        catch (Exception ex)
+
+        if (state == NetworkRunner.States.Shutdown)
         {
-            _debugLogger.LogError($"MatchMaking: StartMatchmaking failed: {ex.Message}");
-            _model.SetIsSearching(false);
-            _model.SetStatus($"Error: {ex.Message}");
+            _debugLogger.Log("[MatchMaking] HandleRunnerStateChanged: Runner is Shutdown. Returning model state to Idle.");
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Idle,
+                Status = string.Empty
+            });
         }
     }
 
-    private async Task StartConfirmationTimer(int seconds)
+    private void HandlePlayerCountChanged(int count)
     {
-        for (int i = seconds; i >= 0; i--)
+        _debugLogger.Log($"[MatchMaking] HandlePlayerCountChanged: Session Player Count changed to {count}");
+        _model.ApplyState(new MatchMakingStateData
         {
-            if (!_model.IsMatchFound.Value) break;
-            _model.SetConfirmationTimer(i);
-            await Task.Delay(1000);
-        }
-
-        if (_model.IsMatchFound.Value)
-        {
-            _debugLogger.Log("MatchMaking: Confirmation timeout");
-            await RejectMatch();
-        }
+            Phase             = _model.Phase.Value,
+            Status            = _model.Status.Value,
+            Timer             = _model.Timer.Value,
+            PlayerJoinedCount = count
+        });
     }
 
-    public async Task AcceptMatch()
+    public Task AcceptMatch()
     {
-        _debugLogger.Log("MatchMaking: Match accepted, loading Gameplay scene");
-        _model.SetIsMatchFound(false);
-        _model.SetStatus("Joining match...");
-        await _sceneLoader.LoadScene("Gameplay");
+        _debugLogger.Log("[MatchMaking] AcceptMatch called (stub logic, returning completed task).");
+        return Task.CompletedTask;
     }
 
     public async Task RejectMatch()
     {
-        _debugLogger.Log("MatchMaking: Match rejected");
-        _model.SetIsMatchFound(false);
-        _model.SetStatus("Match canceled");
-        await Task.Delay(1000);
-        _model.SetStatus(string.Empty);
+        _debugLogger.Log("[MatchMaking] RejectMatch called. Command shutting down NetworkRunner.");
+        await _networkManager.ShutdownRunner();
+        _model.ApplyState(new MatchMakingStateData
+        {
+            Phase  = MatchMakingPhase.Idle,
+            Status = string.Empty
+        });
     }
 
     public async Task CancelMatchmaking()
     {
+#if FUSION_SHARED_TEST
         try
         {
-            _debugLogger.Log("MatchMaking: Canceling matchmaking");
-            await _httpService.Post<EmptyRequest>("/api/matchmaking/cancel", new EmptyRequest());
-            _model.SetIsSearching(false);
-            _model.SetIsMatchFound(false);
-            _model.SetStatus(string.Empty);
-            _model.SetQueuePosition(0);
+            _debugLogger.Log("[TEST] [MatchMaking] CancelMatchmaking: Shared test mode cancellation initiated.");
+            
+            if (_pollingCts != null)
+            {
+                _debugLogger.Log("[TEST] [MatchMaking] CancelMatchmaking: Cancelling status polling task.");
+                _pollingCts.Cancel();
+                _pollingCts.Dispose();
+                _pollingCts = null;
+            }
+
+            if (_networkManager.RunnerState == NetworkRunner.States.Running)
+            {
+                _debugLogger.Log("[TEST] [MatchMaking] CancelMatchmaking: NetworkRunner is active. Requesting shutdown.");
+                await _networkManager.ShutdownRunner();
+            }
+
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Idle,
+                Status = string.Empty
+            });
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"MatchMaking: CancelMatchmaking failed: {ex.Message}");
+            _debugLogger.LogError($"[TEST] [MatchMaking] CancelMatchmaking failed: {ex.Message}");
         }
-    }
-}
+#else
+        try
+        {
+            _debugLogger.Log("[MatchMaking] CancelMatchmaking: Standard matchmaking cancellation initiated.");
+            
+            if (_pollingCts != null)
+            {
+                _debugLogger.Log("[MatchMaking] CancelMatchmaking: Cancelling status polling task.");
+                _pollingCts.Cancel();
+                _pollingCts.Dispose();
+                _pollingCts = null;
+            }
 
-[System.Serializable]
-internal class MatchMakingResponse
-{
-    public int queuePosition;
+            _debugLogger.Log("[MatchMaking] CancelMatchmaking: Calling DELETE /api/matchmaking/queue...");
+            try { await _http.Delete("/api/matchmaking/queue"); } catch { }
+
+            _debugLogger.Log("[MatchMaking] CancelMatchmaking: Shutting down NetworkRunner.");
+            await _networkManager.ShutdownRunner();
+            
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Idle,
+                Status = string.Empty
+            });
+        }
+        catch (Exception ex)
+        {
+            _debugLogger.LogError($"[MatchMaking] CancelMatchmaking failed: {ex.Message}");
+        }
+#endif
+    }
 }

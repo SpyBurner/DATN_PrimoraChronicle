@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityObservables;
 using Zenject;
 
-internal class SceneLoaderModel : ISceneLoaderModel
+public class SceneLoaderModel : ISceneLoaderModel
 {
     private Observable<bool> _isLoading = new(false);
     private Observable<AsyncOperation> _currentLoad = new(null);

@@ -2864,36 +2864,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8202360910153108463, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7233225696468248768}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3078792261778253874, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3886531493491737893}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
 --- !u!224 &2330653346321463910 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8202360910153108463, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
   m_PrefabInstance: {fileID: 5876220137860313481}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &8878448827098110395 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3078792261778253874, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
-  m_PrefabInstance: {fileID: 5876220137860313481}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3886531493491737893
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8878448827098110395}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 64246198c050a3b4e957894f9b41456b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: GameplayFeatures::MatchResultPanel
-  _identifier: 408
-  _layer: 3
-  _closeButton: {fileID: 0}
 --- !u!1001 &7556580814021472564
 PrefabInstance:
   m_ObjectHideFlags: 0

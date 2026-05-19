@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4100012878698573358}
   - component: {fileID: 6501006730208982307}
+  - component: {fileID: 6722929366233294604}
   m_Layer: 0
   m_Name: TurnOrderPanelAnchor
   m_TagString: Untagged
@@ -46,6 +47,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 881563482921828417}
   m_CullTransparentMesh: 1
+--- !u!114 &6722929366233294604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881563482921828417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a9e58197a62f1b4fbffdee370d7abb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::PanelDrawer
+  _panel: {fileID: 6922652008709571025}
+  _toggle: {fileID: 800084029828775461}
+  _duration: 0.25
+  _ease: 9
 --- !u!1 &7906002684245863307
 GameObject:
   m_ObjectHideFlags: 0
@@ -102,6 +119,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PhaseInteractionPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 469648528579438453, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
+      propertyPath: m_Size
+      value: 0.43214646
+      objectReference: {fileID: 0}
     - target: {fileID: 478478824802110430, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -140,11 +161,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 704138885961303454, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 314.5
+      value: 580
       objectReference: {fileID: 0}
     - target: {fileID: 704138885961303454, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -44
+      value: -87
       objectReference: {fileID: 0}
     - target: {fileID: 959681681213126892, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_SizeDelta.x
@@ -332,11 +353,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3881397015811395023, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 101.5
+      value: 190
       objectReference: {fileID: 0}
     - target: {fileID: 3881397015811395023, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -44
+      value: -87
       objectReference: {fileID: 0}
     - target: {fileID: 4473245385104477468, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchorMax.y
@@ -372,11 +393,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4905674998261976083, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 172.5
+      value: 320
       objectReference: {fileID: 0}
     - target: {fileID: 4905674998261976083, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -44
+      value: -87
       objectReference: {fileID: 0}
     - target: {fileID: 5039735717953827933, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchorMax.y
@@ -412,11 +433,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6257142786878879073, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 243.5
+      value: 450
       objectReference: {fileID: 0}
     - target: {fileID: 6257142786878879073, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -44
+      value: -87
       objectReference: {fileID: 0}
     - target: {fileID: 6579419977985341335, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchorMax.y
@@ -460,11 +481,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7464509766175167406, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 30.5
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 7464509766175167406, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -44
+      value: -87
       objectReference: {fileID: 0}
     - target: {fileID: 7626695905680707450, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchorMax.y
@@ -484,7 +505,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7626695905680707450, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 172.5
+      value: 320
       objectReference: {fileID: 0}
     - target: {fileID: 8784368364723911692, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
       propertyPath: m_AnchorMax.y
@@ -507,6 +528,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
+--- !u!114 &800084029828775461 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8253184624525565927, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}
+  m_PrefabInstance: {fileID: 8760428850580021698}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
 --- !u!224 &6922652008709571025 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1837882945010966547, guid: a58ee6e58a0b5ad4e82b63879ae45eba, type: 3}

@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zenject;
 
-internal class UIManagerController : IUIManagerController
+public class UIManagerController : IUIManagerController
 {
     [Inject] private readonly IUIManagerModel _model;
     [Inject] private readonly UIMappingSO _uiMapping;
@@ -38,21 +38,27 @@ internal class UIManagerController : IUIManagerController
     public void UnregisterPanel(IUIPanel panel)
     {
         var type = panel.GetType();
-        if (_model.Panels.Value.Remove(type))
-        {
-            if (_model.PanelsByLayer.Value.TryGetValue(panel.Layer, out var panelsInLayer))
+        try {
+            if (_model.Panels.Value.Remove(type))
             {
-                panelsInLayer.Remove(panel);
-                if (panelsInLayer.Count == 0)
+                if (_model.PanelsByLayer.Value.TryGetValue(panel.Layer, out var panelsInLayer))
                 {
-                    _model.PanelsByLayer.Value.Remove(panel.Layer);
+                    panelsInLayer.Remove(panel);
+                    if (panelsInLayer.Count == 0)
+                    {
+                        _model.PanelsByLayer.Value.Remove(panel.Layer);
+                    }
                 }
+                Debug.Log($"[UIManager] Unregistered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
             }
-            Debug.Log($"[UIManager] Unregistered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[UIManager] Error unregistering panel {type.Name}: {e.Message}");
         }
     }
 
-    public void RegisterUIRoot(UIRoot uIRoot)
+    public void RegisterUIRoot(IUIRoot uIRoot)
     {
         if (_model.UIRoot.Value != null)
         {
@@ -66,7 +72,7 @@ internal class UIManagerController : IUIManagerController
         _model.UIRoot.Value = null;
     }
 
-    public UIRoot GetUIRoot() => _model.UIRoot.Value;
+    public IUIRoot GetUIRoot() => _model.UIRoot.Value;
 
     public T GetPanel<T>() where T : class, IUIPanel
     {

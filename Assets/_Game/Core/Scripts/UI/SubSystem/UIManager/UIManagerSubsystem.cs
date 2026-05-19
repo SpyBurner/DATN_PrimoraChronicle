@@ -16,7 +16,7 @@ public class UIManagerSubsystem : IUIManagerSubsystem
     public event UnityAction<Dictionary<Type, IUIPanel>> PanelsChanged;
     public event UnityAction<Dictionary<UILayer, List<IUIPanel>>> PanelsByLayerChanged;
     public event UnityAction<Stack<IUIPanel>> PopupStackChanged;
-    public event UnityAction<Core.UIRoot> UIRootChanged;
+    public event UnityAction<Core.IUIRoot> UIRootChanged;
 
     public int TotalPanelCount => _model.Panels.Value.Count;
 
@@ -54,9 +54,9 @@ public class UIManagerSubsystem : IUIManagerSubsystem
     public void RegisterPanel(IUIPanel panel) => _controller.RegisterPanel(panel);
 
     public void UnregisterPanel(IUIPanel panel) => _controller.UnregisterPanel(panel);
-    public void RegisterUIRoot(UIRoot uIRoot) => _controller.RegisterUIRoot(uIRoot);
+    public void RegisterUIRoot(IUIRoot uIRoot) => _controller.RegisterUIRoot(uIRoot);
     public void UnregisterUIRoot() => _controller.UnregisterUIRoot();
-    public UIRoot GetUIRoot() => _controller.GetUIRoot();
+    public IUIRoot GetUIRoot() => _controller.GetUIRoot();
     public T GetPanel<T>() where T : class, IUIPanel => _controller.GetPanel<T>();
 
     public Task Show<T>() where T : class, IUIPanel => _controller.Show<T>();

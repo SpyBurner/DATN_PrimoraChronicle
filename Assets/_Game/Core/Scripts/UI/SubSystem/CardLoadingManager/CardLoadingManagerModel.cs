@@ -3,7 +3,7 @@ using Core;
 using Core.GDS;
 using UnityObservables;
 
-internal class CardLoadingManagerModel : ICardLoadingManagerModel
+public class CardLoadingManagerModel : ICardLoadingManagerModel
 {
     public Observable<Dictionary<string, CardSO>> CardsById { get; } = new(new Dictionary<string, CardSO>());
     public Observable<Dictionary<string, ChampionCardSO>> ChampionIdentityList { get; } = new(new Dictionary<string, ChampionCardSO>());

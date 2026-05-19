@@ -42,6 +42,8 @@ public class SceneLoaderSubsystem : ISceneLoaderSubsystem
     // Controller surface - forward calls to the controller
     public Task LoadScene(string sceneName) => _controller.LoadScene(sceneName);
 
+    public Task LoadNetworkedScene(Fusion.NetworkRunner runner, string sceneName) => _controller.LoadNetworkedScene(runner, sceneName);
+
     public Task ReloadScene() => _controller.ReloadScene();
 
     // Local handlers that forward the model state to subscribers via UnityAction events

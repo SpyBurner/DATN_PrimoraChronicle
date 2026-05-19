@@ -1,16 +1,24 @@
 using UnityObservables;
 
-public class MatchResultModel : IMatchResultModel
+internal class MatchResultModel : IMatchResultModel
 {
-    private Observable<bool> _isVictory = new(false);
-    public Observable<bool> IsVictory => _isVictory;
+    private readonly Observable<bool> _hasResult = new(false);
+    private readonly Observable<GameMatchResult> _result = new(default);
 
-    private Observable<int> _goldEarned = new(0);
-    public Observable<int> GoldEarned => _goldEarned;
-
-    private Observable<int> _rankProgress = new(0);
-    public Observable<int> RankProgress => _rankProgress;
+    public Observable<bool> HasResult => _hasResult;
+    public Observable<GameMatchResult> Result => _result;
 
     public void Initialize() { }
-    public void Dispose() { }
+
+    public void Dispose()
+    {
+        _hasResult.Value = false;
+        _result.Value = default;
+    }
+
+    public void ApplyState(GameMatchResult data)
+    {
+        _result.Value = data;
+        _hasResult.Value = true;
+    }
 }

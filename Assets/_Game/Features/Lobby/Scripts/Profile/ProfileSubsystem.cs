@@ -15,6 +15,13 @@ public class ProfileSubsystem : IProfileSubsystem
     public event UnityAction<int> GoldChanged;
     public event UnityAction<string> AvatarUrlChanged;
 
+    public string Username => _model.Username.Value;
+    public int Level => _model.Level.Value;
+    public int Xp => _model.Xp.Value;
+    public int XpToNextLevel => _model.XpToNextLevel.Value;
+    public int Gold => _model.Gold.Value;
+    public string AvatarUrl => _model.AvatarUrl.Value;
+
     public void Initialize()
     {
         if (_model?.Username != null)

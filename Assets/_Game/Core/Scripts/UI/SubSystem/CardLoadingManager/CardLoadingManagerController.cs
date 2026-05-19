@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using Zenject;
 
-internal class CardLoadingManagerController : ICardLoadingManagerController
+public class CardLoadingManagerController : ICardLoadingManagerController
 {
     private const string CardResourcesPath = "CardSO";
     private const string CacheFileName = "card_data_cache.json";

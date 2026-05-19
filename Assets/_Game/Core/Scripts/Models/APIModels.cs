@@ -48,3 +48,46 @@ public class SaveDeckRequest
     public string championStringID;
     public List<string> cardIds;
 }
+
+[System.Serializable]
+public class StartSessionCommand
+{
+    public string SessionName;
+    public string Player1UserId;
+    public string Player2UserId;
+    public int RegionCode;
+}
+
+[System.Serializable]
+public class MatchResultData
+{
+    public string SessionName;
+    public string WinnerUserId;
+    public string LoserUserId;
+    public int DurationSeconds;
+    public string EndReason; // "Normal", "Disconnect", "Timeout"
+}
+
+[System.Serializable]
+public class BackendBridgeStateData
+{
+    public StartSessionCommand PendingStartSession;
+    public bool IsListening;
+}
+
+[System.Serializable]
+public class ServerSessionStateData
+{
+    public string ActiveSessionName;
+    public bool IsRunning;
+    public Fusion.PlayerRef LastJoinedPlayer;
+    public Fusion.PlayerRef LastLeftPlayer;
+}
+
+[System.Serializable]
+public class PlayerDisconnectedPayload
+{
+    public string userId;
+}
+
+

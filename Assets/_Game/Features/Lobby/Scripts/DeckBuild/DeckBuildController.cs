@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Codice.CM.Common;
 using Core;
 using UnityEngine;
 using WebSocketSharp;
@@ -289,13 +288,13 @@ internal class DeckBuildController : IDeckBuildController
                 continue;
             }
 
-            // Filter out non-summonable cards (tokens)
+            // Filter out non-summonable cards (tokens) and non-Common rarity cards
             if (_cardLoadingManager.TryGetCardData(backendStringId, out var cardData))
             {
                 if (cardData.is_summonable == 0)
-                {
                     continue;
-                }
+                if (cardData.rarity != "Common")
+                    continue;
             }
 
             if (!copyCountsByStringId.TryGetValue(backendStringId, out int copyCount) || copyCount <= 0)

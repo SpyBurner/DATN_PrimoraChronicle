@@ -1,20 +1,28 @@
+using System.Threading.Tasks;
 using Zenject;
 
-public class MatchResultController : IMatchResultController
+internal class MatchResultController : IMatchResultController
 {
     [Inject] private readonly IMatchResultModel _model;
-    [Inject] private readonly IDebugLogger _debugLogger;
+    [Inject] private readonly ISceneLoaderSubsystem _sceneLoader;
+    [Inject] private readonly IDebugLogger _logger;
+
+    private IMatchResultNetworkBridge _bridge;
 
     public void Initialize() { }
-    public void Dispose() { }
 
-    public void ShowResult(bool victory, int gold, int rank)
+    public void Dispose() => _bridge = null;
+
+    public void RegisterBridge(IMatchResultNetworkBridge bridge)
     {
-        _debugLogger.Log($"MatchResultController: ShowResult {victory}, {gold}, {rank}");
+        _bridge = bridge;
+        _logger.Log($"[MatchResult] Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
-    public void BackToLobby()
+    public void OnAuthoritativeStateReceived(GameMatchResult data) => _model.ApplyState(data);
+
+    public async Task ReturnToLobby()
     {
-        _debugLogger.Log("MatchResultController: BackToLobby");
+        await _sceneLoader.LoadScene("Lobby");
     }
 }

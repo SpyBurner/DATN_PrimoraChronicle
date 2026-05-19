@@ -1783,10 +1783,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2481626777947522281, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5810224785650696970}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3078792261778253874, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2027220541957821685}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
 --- !u!224 &5147366405633593656 stripped
 RectTransform:
@@ -1798,23 +1795,3 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2481626777947522281, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
   m_PrefabInstance: {fileID: 8391348370368892243}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &6831432722287142241 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3078792261778253874, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
-  m_PrefabInstance: {fileID: 8391348370368892243}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2027220541957821685
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6831432722287142241}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 884c61067305e7040a755db29ca9acea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: GameplayFeatures::HandPanel
-  _identifier: 410
-  _layer: 2
-  _closeButton: {fileID: 0}
