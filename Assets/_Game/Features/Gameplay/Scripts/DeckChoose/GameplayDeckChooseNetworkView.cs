@@ -10,7 +10,7 @@ using Zenject;
 /// </summary>
 public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChooseNetworkBridge
 {
-    [Inject] private readonly IGameplayDeckChooseSubsystem _deckChoose;
+    [Inject(Optional = true)] private IGameplayDeckChooseSubsystem _deckChoose;
 
     [Networked] public NetworkBool IsReady { get; set; }
     [Networked] public NetworkString<_64> SelectedDeckId { get; set; }
@@ -24,10 +24,16 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
 
     public override void Spawned()
     {
+        if (_deckChoose == null)
+        {
+            var ctx = FindObjectOfType<SceneContext>();
+            _deckChoose = ctx?.Container.Resolve<IGameplayDeckChooseSubsystem>();
+        }
+
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
         if (HasInputAuthority)
-            _deckChoose.RegisterNetworkBridge(this);
+            _deckChoose?.RegisterNetworkBridge(this);
 
         PushState();
     }
@@ -35,13 +41,13 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         if (HasInputAuthority)
-            _deckChoose.RegisterNetworkBridge(null);
+            _deckChoose?.RegisterNetworkBridge(null);
     }
 
     // ── IGameplayDeckChooseNetworkBridge ──────────────────────────────────
 
-    public void SendConfirmRpc(string championId, string cardIdsJoined, int playerIndex)
-        => Rpc_ConfirmDeckSelection(championId, cardIdsJoined, playerIndex);
+    public void SendConfirmRpc(string championId, string cardIdsJoined, int playerIndex, string playerName)
+        => Rpc_ConfirmDeckSelection(championId, cardIdsJoined, playerIndex, playerName);
 
     public void SendAutoConfirmRpc(int playerIndex)
         => Rpc_AutoConfirmDeckSelection(playerIndex);
@@ -49,19 +55,19 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
     // ── RPCs (client → server) ────────────────────────────────────────────
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_ConfirmDeckSelection(string championId, string cardIdsJoined, int playerIndex)
+    private void Rpc_ConfirmDeckSelection(string championId, string cardIdsJoined, int playerIndex, string playerName)
     {
         string[] cardIds = cardIdsJoined.Split(',');
-        SetupPlayerDeck(Object.InputAuthority, championId, cardIds, playerIndex);
+        SetupPlayerDeck(Object.InputAuthority, championId, cardIds, playerIndex, playerName);
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_AutoConfirmDeckSelection(int playerIndex)
     {
-        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds, playerIndex);
+        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds, playerIndex, "Player " + (playerIndex + 1));
     }
 
-    private void SetupPlayerDeck(PlayerRef playerRef, string championId, string[] cardIds, int playerIndex)
+    private void SetupPlayerDeck(PlayerRef playerRef, string championId, string[] cardIds, int playerIndex, string playerName)
     {
         if (NetworkGameplayManager.Instance == null) return;
 
@@ -75,7 +81,7 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
                 var ps = stateObj.GetComponent<NetworkPlayerState>();
                 if (ps != null && ps.Player == playerRef)
                 {
-                    ps.SetupDeck(championId, cardIds, DefaultInitialHP, playerIndex);
+                    ps.SetupDeck(championId, cardIds, DefaultInitialHP, playerIndex, playerName);
                     ps.DrawCards(6);
                     break;
                 }
@@ -91,7 +97,7 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
     public void ServerAutoConfirm(int playerIndex)
     {
         if (!HasStateAuthority || IsReady) return;
-        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds, playerIndex);
+        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds, playerIndex, "Player " + (playerIndex + 1));
     }
 
     // ── Downstream: server → all clients ─────────────────────────────────
@@ -108,6 +114,7 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
 
     private void PushState()
     {
+        if (_deckChoose == null) return;
         _deckChoose.OnAuthoritativeStateReceived(new GameplayDeckChooseStateData
         {
             IsReady = IsReady,

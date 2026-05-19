@@ -44,10 +44,11 @@ public class GameplayDeckChooseController : IGameplayDeckChooseController
 
         string cardIdsJoined = string.Join(",", detail.cardIds);
         int playerIndex = ResolvePlayerIndex();
+        string playerName = _authSession?.CurrentUserId?.Value ?? "Player " + (playerIndex + 1);
 
         if (_bridge != null)
         {
-            _bridge.SendConfirmRpc(detail.championStringID, cardIdsJoined, playerIndex);
+            _bridge.SendConfirmRpc(detail.championStringID, cardIdsJoined, playerIndex, playerName);
         }
         else
         {

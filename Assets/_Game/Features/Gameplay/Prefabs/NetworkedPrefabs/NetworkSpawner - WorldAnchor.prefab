@@ -55,7 +55,9 @@ MonoBehaviour:
   player3PiecePrefab:
     RawGuidValue: dd39fd4e53129e143b4fcbb2835199fb
   playerStatePrefab:
-    RawGuidValue: 00000000000000000000000000000000
+    RawGuidValue: a1e2f3c4d5b6078901234567890abcde
+  deckChooseViewPrefab:
+    RawGuidValue: b2d9cbf8e1c078a489b9bfe69c7c0da7
   hexTilePrefab:
     RawGuidValue: 61045e254b3b62c47a23f0ad302e3dd5
   boardPrefab:

@@ -21,14 +21,16 @@ public class NetworkPlayerState : NetworkBehaviour
     [Networked] public int DiscardCount { get; set; }
 
     [Networked] public NetworkString<_16> ChampionID { get; set; }
+    [Networked] public NetworkString<_32> PlayerName { get; set; }
     [Networked] public int DeployAreaP { get; set; }
     [Networked] public int DeployAreaQ { get; set; }
 
-    public void SetupDeck(string championId, string[] cardIds, int initialHP, int playerIndex = 0)
+    public void SetupDeck(string championId, string[] cardIds, int initialHP, int playerIndex = 0, string playerName = "")
     {
         if (!Object.HasStateAuthority) return;
 
         ChampionID = championId;
+        PlayerName = playerName;
         HP = initialHP;
         MaxHP = initialHP;
         IsAlive = true;

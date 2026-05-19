@@ -43,6 +43,21 @@ public class NetworkGameplayManager : NetworkBehaviour
         }
     }
 
+    private bool AreAllRegisteredPlayersReady()
+    {
+        for (int i = 0; i < PlayerStates.Length; i++)
+        {
+            NetworkId stateId = PlayerStates.Get(i);
+            if (!stateId.IsValid) continue;
+            if (Runner.TryFindObject(stateId, out var obj))
+            {
+                var ps = obj.GetComponent<NetworkPlayerState>();
+                if (ps != null && !ps.IsReady) return false;
+            }
+        }
+        return true;
+    }
+
     public void RegisterPlayerState(NetworkPlayerState state)
     {
         if (!Object.HasStateAuthority) return;
@@ -68,6 +83,13 @@ public class NetworkGameplayManager : NetworkBehaviour
         {
             IsTimerExpired = true;
             EndMatchWithTimeLimit();
+            return;
+        }
+
+        if (CurrentPhase == GameplayPhase.StartPhase && PlayerCount >= 2 && AreAllRegisteredPlayersReady())
+        {
+            PhaseTimer = TickTimer.None;
+            TransitionToMainPhase();
             return;
         }
 
