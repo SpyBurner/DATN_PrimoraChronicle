@@ -2,19 +2,34 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Zenject;
+using Fusion;
 
 public class MatchMakingPanel : UIPanel
 {
     [Inject] private readonly IMatchMakingSubsystem _matchMaking;
-    [Inject] private readonly IUIManagerSubsystem _uiManager;
+    [Inject] private readonly INetworkManagerSubsystem _networkManager;
+
+    [Header("Operational UI References")]
 
     [SerializeField] private Button _findMatchButton;
-
-    [SerializeField] private TextMeshProUGUI _statusText;
     [SerializeField] private Button _cancelButton;
-    [SerializeField] private TextMeshProUGUI _timerText;
     [SerializeField] private Button _acceptButton;
     [SerializeField] private Button _rejectButton;
+
+    [Header("Display UI References")]
+    [SerializeField] private TextMeshProUGUI _statusText;
+    [SerializeField] private TextMeshProUGUI _timerText;
+    [Space]
+    [SerializeField] private GameObject _localPlayerPanel;
+    [SerializeField] private GameObject _remotePlayerPanel;
+    [Space]
+    [SerializeField] private Image _localPlayerAvatar;
+    [SerializeField] private TextMeshProUGUI _localPlayerNameText;
+    [SerializeField] private TextMeshProUGUI _localPlayerLevelText;
+    [Space]
+    [SerializeField] private Image _remotePlayerAvatar;
+    [SerializeField] private TextMeshProUGUI _remotePlayerNameText;
+    [SerializeField] private TextMeshProUGUI _remotePlayerLevelText;
 
     protected override void OnEnable()
     {
@@ -74,5 +89,8 @@ public class MatchMakingPanel : UIPanel
         
         if (_acceptButton != null) _acceptButton.gameObject.SetActive(isMatchFound);
         if (_rejectButton != null) _rejectButton.gameObject.SetActive(isMatchFound);
+
+        if (_remotePlayerPanel != null) _remotePlayerPanel.SetActive(isMatchFound || isConnecting || isConnected);
+        
     }
 }
