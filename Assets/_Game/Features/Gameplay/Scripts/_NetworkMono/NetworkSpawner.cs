@@ -139,18 +139,12 @@ public class NetworkSpawner : NetworkBehaviour
                 Vector3 resolvedPos = boardManager.ResolveCoordinateToPosition(p, q);
                 if (resolvedPos != Vector3.zero)
                 {
-                    // Get the tile and find its child's surface height
                     HexTile spawnTile = boardManager.FindTile(p, q);
-                    if (spawnTile != null)
+                    if (spawnTile != null && spawnTile.transform.childCount > 0)
                     {
-                        Renderer childRenderer = spawnTile.GetComponentInChildren<Renderer>();
-                        if (childRenderer != null)
-                        {
-                            float surfaceHeight = childRenderer.bounds.max.y;
-                            resolvedPos.y = surfaceHeight;
-                            _debugLogger.Log($"[NetworkSpawner] Resolved player {player} position with surface height: P={p}, Q={q} -> {resolvedPos}");
-                            return resolvedPos;
-                        }
+                        Vector3 childWorldPos = spawnTile.transform.GetChild(0).position;
+                        _debugLogger.Log($"[NetworkSpawner] Resolved player {player} spawn from tile child world pos: P={p}, Q={q} -> {childWorldPos}");
+                        return childWorldPos;
                     }
 
                     _debugLogger.Log($"[NetworkSpawner] Resolved player {player} position from BoardManager: P={p}, Q={q} -> {resolvedPos}");
@@ -170,7 +164,6 @@ public class NetworkSpawner : NetworkBehaviour
 
         Vector3 localPos = new Vector3(x, 0f, z);
         Vector3 fallbackPos = _boardParent.transform.position + _boardParent.transform.rotation * localPos;
-        fallbackPos.y = _boardParent.transform.position.y + 1f;
 
         _debugLogger.Log($"[NetworkSpawner] Using fallback spawn position for player {player}: P={p}, Q={q}, localPos={localPos} -> world={fallbackPos}");
         return fallbackPos;
@@ -325,9 +318,7 @@ public class NetworkSpawner : NetworkBehaviour
                 float z = r * verticalSpacing;
 
                 Vector3 localPos = new Vector3(x, 0f, z);
-                Vector3 spawnPos = transform.position;
-                spawnPos.y = 0;
-                spawnPos += transform.rotation * localPos;
+                Vector3 spawnPos = transform.position + transform.rotation * localPos;
 
                 NetworkObject tileObj = Runner.Spawn(hexTilePrefab, spawnPos, tileRotation);
                 if (tileObj != null)
@@ -359,32 +350,40 @@ public class NetworkSpawner : NetworkBehaviour
     private void HandlePlayerJoined(PlayerRef player)
     {
         NetworkRunner runner = _networkManager.Runner;
-        if (runner == null || !_boardReady)
-        {
-            if (!_boardReady)
-            {
-                _debugLogger.Log($"[NetworkSpawner] Player {player} joined but board not ready yet. Retrying next frame.");
-                StartCoroutine(SpawnPlayerWhenBoardReady(player));
-            }
-            return;
-        }
+        if (runner == null) return;
+        StartCoroutine(SpawnPlayerWhenTileReady(player, runner));
+    }
+
+    private System.Collections.IEnumerator SpawnPlayerWhenTileReady(PlayerRef player, NetworkRunner runner)
+    {
+        while (!IsSpawnTileReady(player, runner))
+            yield return null;
 
         SpawnPlayerPiece(player, runner);
     }
 
-    private System.Collections.IEnumerator SpawnPlayerWhenBoardReady(PlayerRef player)
+    private bool IsSpawnTileReady(PlayerRef player, NetworkRunner runner)
     {
-        NetworkRunner runner = _networkManager.Runner;
-        while (!_boardReady && runner != null)
+        if (!_boardReady || _boardParent == null) return false;
+        if (!_boardParent.TryGetComponent<BoardManager>(out var boardManager)) return false;
+
+        bool isP2 = player.PlayerId == 2;
+        if (!isP2 && runner != null)
         {
-            _debugLogger.Log($"[NetworkSpawner] Waiting for board to be ready for player {player}.");
-            yield return null;
+            int idx = 0;
+            foreach (var ap in runner.ActivePlayers)
+            {
+                if (ap == player) { if (idx == 1) isP2 = true; break; }
+                idx++;
+            }
         }
 
-        if (runner != null)
-        {
-            SpawnPlayerPiece(player, runner);
-        }
+        int r = isP2 ? 4 : -4;
+        int c = isP2 ? 4 : 0;
+        int coordP = -r;
+        int coordQ = c - 4 + Mathf.Max(0, r);
+        HexTile tile = boardManager.FindTile(coordP, coordQ);
+        return tile != null && tile.transform.childCount > 0;
     }
 
     private void SpawnPlayerPiece(PlayerRef player, NetworkRunner runner)

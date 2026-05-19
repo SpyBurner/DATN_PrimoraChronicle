@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using UnityEngine;
+using Fusion;
 using Zenject;
 
 public class GameplayDeckChooseController : IGameplayDeckChooseController

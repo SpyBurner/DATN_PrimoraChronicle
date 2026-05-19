@@ -1,100 +1,87 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
 /// StartPhase deck-choose panel.
-/// Reuses IDeckSubsystem (from Lobby) to load and display the player's decks.
-/// Reuses DeckButton prefab for the list items.
-/// Confirms selection through IGameplayDeckChooseSubsystem → network bridge.
+/// Shows the currently selected deck via a single DeckButton; clicking it opens
+/// GameplayDeckSelectOverlay so the player can pick a different deck.
+/// Auto-selects the first deck returned by the API so the confirm button is always ready.
+/// Hides itself when IsReady becomes true (both players confirmed).
 /// </summary>
 public class GameplayDeckChoosePanel : MonoBehaviour
 {
-    [Inject] private readonly IDeckSubsystem _deck;
+    [Inject] private readonly IGameplayDeckSubsystem _deck;
     [Inject] private readonly IGameplayDeckChooseSubsystem _deckChoose;
 
     [Header("References")]
-    [SerializeField] private Transform _deckListContainer;
-    [SerializeField] private DeckButton _deckButtonPrefab;
+    [SerializeField] private DeckButton _currentDeckButton;
+    [SerializeField] private GameplayDeckSelectOverlay _deckSelectOverlay;
+    [SerializeField] private TMP_Text _timerText;
     [SerializeField] private Button _confirmButton;
 
-    private readonly List<DeckButton> _spawnedButtons = new();
-    private DeckSummaryData _pendingSelection;
     private bool _hasSelection;
 
     private void OnEnable()
     {
-        _deck.DecksChanged += RenderDecks;
+        _deck.DecksChanged += OnDecksLoaded;
         _deckChoose.IsReadyChanged += OnIsReadyChanged;
+        _deckSelectOverlay.DeckSelected += OnDeckSelected;
 
-        if (_confirmButton != null)
-        {
-            _confirmButton.onClick.AddListener(OnConfirmClicked);
-            _confirmButton.interactable = false;
-        }
+        _confirmButton?.onClick.AddListener(OnConfirmClicked);
+        if (_confirmButton != null) _confirmButton.interactable = false;
 
+        _deckSelectOverlay?.gameObject.SetActive(false);
         _deck.LoadDecks();
     }
 
     private void OnDisable()
     {
-        _deck.DecksChanged -= RenderDecks;
+        _deck.DecksChanged -= OnDecksLoaded;
         _deckChoose.IsReadyChanged -= OnIsReadyChanged;
-
-        if (_confirmButton != null)
-            _confirmButton.onClick.RemoveListener(OnConfirmClicked);
-
-        ClearButtons();
+        _deckSelectOverlay.DeckSelected -= OnDeckSelected;
+        _confirmButton?.onClick.RemoveListener(OnConfirmClicked);
         _hasSelection = false;
     }
 
-    private void RenderDecks(IReadOnlyList<DeckSummaryData> decks)
+    private void Update()
     {
-        ClearButtons();
-
-        if (decks == null) return;
-
-        foreach (var summary in decks)
-        {
-            var captured = summary;
-            var btn = Instantiate(_deckButtonPrefab, _deckListContainer);
-            btn.Initialize(captured, () => OnDeckSelected(captured));
-            btn.gameObject.SetActive(true);
-            _spawnedButtons.Add(btn);
-        }
+        if (_timerText == null || NetworkGameplayManager.Instance == null) return;
+        var runner = NetworkGameplayManager.Instance.Runner;
+        if (runner == null) return;
+        float? remaining = NetworkGameplayManager.Instance.PhaseTimer.RemainingTime(runner);
+        _timerText.text = remaining.HasValue ? Mathf.CeilToInt(remaining.Value).ToString() : "--";
     }
 
-    private void OnDeckSelected(DeckSummaryData summary)
+    private void OnDecksLoaded(IReadOnlyList<DeckSummaryData> decks)
     {
-        _pendingSelection = summary;
+        if (!_hasSelection && decks != null && decks.Count > 0)
+            SelectDeck(decks[0]);
+    }
+
+    private void OnDeckSelected(DeckSummaryData summary) => SelectDeck(summary);
+
+    private void SelectDeck(DeckSummaryData summary)
+    {
         _hasSelection = true;
         _deckChoose.StageSelection(summary);
-
-        if (_confirmButton != null)
-            _confirmButton.interactable = true;
+        _currentDeckButton?.Initialize(summary, OpenDeckOverlay);
+        if (_confirmButton != null) _confirmButton.interactable = true;
     }
+
+    private void OpenDeckOverlay() => _deckSelectOverlay?.gameObject.SetActive(true);
 
     private async void OnConfirmClicked()
     {
         if (!_hasSelection) return;
-
-        if (_confirmButton != null)
-            _confirmButton.interactable = false;
-
+        if (_confirmButton != null) _confirmButton.interactable = false;
         await _deckChoose.ConfirmSelection();
     }
 
     private void OnIsReadyChanged(bool isReady)
     {
-        if (isReady)
-            gameObject.SetActive(false);
-    }
-
-    private void ClearButtons()
-    {
-        foreach (var btn in _spawnedButtons)
-            if (btn != null) Destroy(btn.gameObject);
-        _spawnedButtons.Clear();
+        if (isReady) gameObject.SetActive(false);
     }
 }

@@ -2,16 +2,6 @@ using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 
-public enum GameplayPhase
-{
-    Setup,
-    StartPhase,
-    MainPhase,
-    CombatPhase,
-    DrawPhase,
-    GameOver
-}
-
 public class NetworkGameplayManager : NetworkBehaviour
 {
     public static NetworkGameplayManager Instance { get; private set; }
@@ -46,7 +36,8 @@ public class NetworkGameplayManager : NetworkBehaviour
     {
         if (Object.HasStateAuthority)
         {
-            CurrentPhase = GameplayPhase.Setup;
+            CurrentPhase = GameplayPhase.StartPhase;
+            PhaseTimer = TickTimer.CreateFromSeconds(Runner, startPhaseDuration);
             CurrentRound = 1;
             _matchTimer = 0f;
         }
@@ -65,18 +56,6 @@ public class NetworkGameplayManager : NetworkBehaviour
                 break;
             }
         }
-
-        if (PlayerCount >= 2 && CurrentPhase == GameplayPhase.Setup)
-        {
-            StartMatch();
-        }
-    }
-
-    private void StartMatch()
-    {
-        if (!Object.HasStateAuthority) return;
-        CurrentPhase = GameplayPhase.StartPhase;
-        PhaseTimer = TickTimer.CreateFromSeconds(Runner, startPhaseDuration);
     }
 
     public override void FixedUpdateNetwork()

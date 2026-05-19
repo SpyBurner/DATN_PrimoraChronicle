@@ -32,12 +32,27 @@ public class NetworkUnit : NetworkBehaviour
     public GameObject youngTreantPrefab;
     public GameObject thornColossusPrefab;
 
+    private Renderer[] _renderers;
+    private bool _lastVisible = true;
+
     public override void Spawned()
     {
+        _renderers = GetComponentsInChildren<Renderer>(true);
         if (Object.HasStateAuthority)
         {
             IsMyTurn = false;
         }
+    }
+
+    public override void Render()
+    {
+        bool inCombat = NetworkGameplayManager.Instance != null &&
+                        NetworkGameplayManager.Instance.CurrentPhase == GameplayPhase.CombatPhase;
+        if (inCombat == _lastVisible) return;
+        _lastVisible = inCombat;
+        if (_renderers == null) return;
+        foreach (var r in _renderers)
+            if (r != null) r.enabled = inCombat;
     }
 
     public void InitializeUnit(PlayerRef owner, string unitId, int hp, float speed, int deathAnchor, int moveRange, string faction, bool isPersistent = false)

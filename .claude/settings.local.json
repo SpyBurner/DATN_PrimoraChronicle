@@ -12,7 +12,8 @@
       "mcp__mcp-unity__recompile_scripts",
       "mcp__mcp-unity__get_console_logs",
       "Skill(unity-mcp-skill)",
-      "Skill(unity-mcp-skill:*)"
+      "Skill(unity-mcp-skill:*)",
+      "mcp__mcp-unity__get_scene_info"
     ]
   }
 }

@@ -25,22 +25,34 @@ and follows the networked-subsystem-guideline architecture.
 
 ## Remaining Work
 
-- [ ] **DI Installer**: bind IGameplayDeckChooseModel, IGameplayDeckChooseController,
+- [x] **Move interfaces to Core.Interfaces** — all 5 interface/data files are now in
+      `Core/Scripts/Interfaces/Features/Gameplay/StartPhase/`
+
+- [x] **DI Installer**: bind IGameplayDeckChooseModel, IGameplayDeckChooseController,
       IGameplayDeckChooseSubsystem as AsSingle in the Gameplay SceneContext installer
-- [ ] **Prefab wiring**: open `PhaseInteractionPanel_DeckChoose.prefab`, add
-      `GameplayDeckChoosePanel` component, wire `_deckListContainer`, `_deckButtonPrefab`,
-      `_confirmButton` SerializeFields
-- [ ] **NetworkView prefab**: create a NetworkObject prefab for `GameplayDeckChooseNetworkView`,
-      add GameObjectContext + MonoInstaller (empty), register in NetworkViewRegistry
-- [ ] **Spawn trigger**: in NetworkSpawnCoordinator (or NetworkGameplayManager.StartMatch),
-      spawn one GameplayDeckChooseNetworkView per player at StartPhase start
-- [ ] **AutoConfirmDecks** integration: replace hardcoded defaults in
-      `NetworkGameplayManager.AutoConfirmDecks()` with a call to
-      `IGameplayDeckChooseSubsystem.AutoConfirmLastDeck()` via the bridge
-- [ ] **Assembly reference**: verify `GameplayFeatures.asmdef` references `LobbyFeatures.asmdef`
-      (needed for DeckButton, DeckSummaryData, IDeckSubsystem)
-- [ ] **Phase-aware panel show/hide**: show `GameplayDeckChoosePanel` when
-      `CurrentPhase == StartPhase`; hide when `IsReady == true`
+- [x] **Assembly reference**: `GameplayFeatures.asmdef` now references LobbyFeatures GUID
+      `5fd32f5c21e5e4c4a94a512f561f79e7`
+- [x] **Spawn trigger**: `NetworkSpawner.SpawnPlayerPiece` spawns `deckChooseViewPrefab`
+      per player with inputAuthority = that player; removed premature `SetupDeck` call
+- [x] **AutoConfirmDecks** integration: `NetworkGameplayManager.AutoConfirmDecks()` now finds
+      each player's `GameplayDeckChooseNetworkView` and calls `ServerAutoConfirm(playerIndex)`
+- [ ] **Prefab wiring** *(hand-wire in Unity Editor)*: open `PhaseInteractionPanel_DeckChoose.prefab`,
+      add `GameplayDeckChoosePanel` component to root, wire:
+        - `_deckListContainer` → `Panel (1)` child transform
+        - `_deckButtonPrefab` → `Assets/_Game/Features/Lobby/UI/Component/DeckButton.prefab`
+        - `_confirmButton` → `Button_Confirm` child (has Button component)
+      Then delete the static `DeckButton` instance already embedded in `Panel (1)`.
+- [ ] **NetworkView prefab** *(hand-wire in Unity Editor)*: create a NetworkObject prefab for
+      `GameplayDeckChooseNetworkView`:
+        1. Create empty GameObject → add `NetworkObject` component
+        2. Add `GameObjectContext` + empty `MonoInstaller` (for Zenject injection)
+        3. Add `GameplayDeckChooseNetworkView` script
+        4. Register in Fusion `NetworkObjectPrefabTable` (Project Settings → Fusion)
+        5. Assign GUID to `NetworkSpawner.deckChooseViewPrefab` field in the scene
+- [ ] **Phase-aware panel show/hide** *(hand-wire)*: the panel already hides itself on
+      `IsReady = true`. For *showing* at StartPhase start, add a phase-listener MonoBehaviour
+      that subscribes to `NetworkGameplayManager.CurrentPhase` changes and
+      `SetActive(true/false)` on the panel based on `CurrentPhase == StartPhase`.
 
 ---
 
