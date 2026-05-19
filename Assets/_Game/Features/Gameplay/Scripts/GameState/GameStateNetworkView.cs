@@ -76,6 +76,12 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             return;
         }
 
+        if (CurrentPhase == GameplayPhase.StartPhase && AreAllPlayersReady())
+        {
+            TransitionTo(GameplayPhase.MainPhase);
+            return;
+        }
+
         if (PhaseTimer.Expired(Runner))
         {
             HandlePhaseTimeout();
@@ -141,6 +147,21 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         }
 
         _logger?.Log($"[GameStateNetworkView] Phase transition -> {newPhase}");
+    }
+
+    private bool AreAllPlayersReady()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return false;
+
+        int count = 0;
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var dcView = coordinator.GetDeckChooseView(player);
+            if (dcView == null || !dcView.IsReady) return false;
+            count++;
+        }
+        return count > 0;
     }
 
     // ── IGameStateNetworkBridge ──────────────────────────────────────────

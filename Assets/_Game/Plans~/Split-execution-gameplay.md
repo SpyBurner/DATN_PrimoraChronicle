@@ -38,7 +38,8 @@ These subsystems are already implemented and DI-bound. Track A and Track B injec
 | Subsystem | Interface path | Why |
 |---|---|---|
 | `IProfileSubsystem` | `Core/Scripts/Interfaces/Features/Lobby/Profile/` | Player name, avatar, level — displayed on `Profile_Player`. Marked for Core relocation later; design Gameplay to inject only the interface so the move is invisible. |
-| `IDeckSubsystem` | `Core/Scripts/Interfaces/Features/Lobby/Deck/` | Provides `IReadOnlyList<DeckSummaryData>` for the DeckChoose overlay. |
+
+> **`IDeckSubsystem` is NOT injected into any Gameplay script.** `IGameplayDeckSubsystem` (in `Core/Scripts/Interfaces/Features/Gameplay/StartPhase/`) is the Gameplay-owned interface that calls `/api/decks` directly. `DeckSummaryData` (in `Core.Interfaces`, autoReferenced) and `DeckButton` (in `LobbyFeatures`) are type/UI references only — `GameplayFeatures.asmdef` needs the `LobbyFeatures` GUID for `DeckButton`.
 
 ### 1.3 In-progress Gameplay subsystems
 
@@ -214,6 +215,7 @@ public interface IPlayerCardZoneSubsystem : ISubsystem {
     event UnityAction<PlayerRef, int> DeckCountChanged;
     event UnityAction<PlayerRef, int> DiscardCountChanged;
     event UnityAction<PlayerRef, int> HPChanged;
+    event UnityAction<PlayerRef, string> NameChanged;
 
     IReadOnlyList<string> GetHand(PlayerRef p);
     int GetHP(PlayerRef p);
@@ -328,13 +330,13 @@ Each row is **independently implementable and incrementally testable**. The "Com
 | F1.2 | **Hex board generation** | §1 | `BoardModel`, `BoardController`, `BoardSubsystem`, `BoardNetworkView`, `HexTile.prefab`. Generates r∈[-4,4], numCols=9-\|r\|, rotation Euler(270,330,0), spacing horizontal=1.732 / vertical=1.5 (or computed from tile Z-bounds). Deploy areas at (4,-4) and (-4,4). |
 | F1.3 | **Phase machine + match timer** | §5 | `GameStateModel`, `GameStateController`, `GameStateSubsystem`, `GameStateNetworkView`. Durations: Start=30s, Main=60s, Draw=30s, MatchCap=3600s. |
 | F1.4 | **HUD shell** | — | `GameplayHUDController` on `Layout_Fullscreen_Gameplay.prefab`. Wires `PhaseNameValueText`, `MatchTimeValueText`, two `Profile_*` slots. Hides `Profile_Enemy2` (3-player reserved). |
-| F1.5 | **Profile bridge to HUD** | — | `GameplayPlayerProfileUI` on `Profile_Gameplay.prefab`. Inject `IProfileSubsystem` (local) + reads opponent name from `IPlayerCardZoneSubsystem` events. Maps to `NameValueText`, `HPValueText`, `Panel` (PFP), `ReadyToggle`. |
+| F1.5 | **Profile bridge to HUD** | — | `GameplayPlayerProfileUI` on `Profile_Gameplay.prefab`. Inject `IProfileSubsystem` (local) + reads opponent name via `IPlayerCardZoneSubsystem.NameChanged` event (do **not** use HP/Hand as a proxy — name arrives separately via `Rpc_SetPlayerName` which changes only the `PlayerName` networked prop). `IPlayerCardZoneSubsystem` must expose `NameChanged`, wired through `IPlayerCardZoneModel.PlayerNameChanged`. Maps to `NameValueText`, `HPValueText`, `Panel` (PFP), `ReadyToggle`. |
 
 ### Group F2 — Start Phase
 
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
-| F2.1 | **Deck selection per player** | §5 Start | Existing `GameplayDeckChoose*` stack. Finish: move 5 interface files to `Core/Scripts/Interfaces/Features/Gameplay/StartPhase/`. Wire `GameplayDeckChoosePanel` to `PhaseInteractionPanel_DeckChoose.prefab`. Wire `GameplayDeckSelectOverlay` to `Overlay_Gameplay_Decks.prefab` (8 slots, populate from `IDeckSubsystem`). |
+| F2.1 | **Deck selection per player** | §5 Start | Existing `GameplayDeckChoose*` stack. Finish: move 5 interface files to `Core/Scripts/Interfaces/Features/Gameplay/StartPhase/`. Wire `GameplayDeckChoosePanel` to `PhaseInteractionPanel_DeckChoose.prefab`. Wire `GameplayDeckSelectOverlay` to `Overlay_Gameplay_Decks.prefab` (8 slots, populated from `IGameplayDeckSubsystem.DecksChanged` — **not** `IDeckSubsystem`; `GameplayDeckSubsystem` calls `/api/decks` directly and is bound in `GameplayInstaller`). |
 | F2.2 | **NetworkView spawn trigger** | §5 Start | `GameStateSubsystem.OnPhaseChanged(StartPhase)` → spawns one `GameplayDeckChooseNetworkView.prefab` per player via `Runner.Spawn(prefab, inputAuthority: player)`. |
 | F2.3 | **Granted-cards shuffle + opening hand** | §3 Granted, §5 Start | `PlayerCardZoneController.SetupDeckForMatch(championId, supportCardIds)`. Reads `CardLoadingManagerSubsystem.GetCardData(championId).grants_cards`, shuffles into the 20 supports, sets HP from `champion.hp`, deals 6 via `RequestDraw(6)`. |
 | F2.4 | **Auto-confirm on timer expiry** | §5 Start | `GameStateSubsystem` on phase-timer 0 fires `IGameplayDeckChooseSubsystem.AutoConfirmLastDeck()` for any player whose `IsReady==false`. |
@@ -498,8 +500,8 @@ All under `Features/Gameplay/Scripts/UI/`. Interfaces under `Core/Scripts/Interf
 |---|---|---|
 | `GameplayHUDController.cs` | `Layout_Fullscreen_Gameplay.prefab` | `IGameStateSubsystem` (PhaseChanged, MatchElapsedChanged) |
 | `GameplayPlayerProfileUI.cs` | `Profile_Gameplay.prefab` | `IProfileSubsystem` (local) + `IPlayerCardZoneSubsystem.HPChanged` (own + opponent) |
-| `GameplayDeckChoosePanel.cs` (finish) | `PhaseInteractionPanel_DeckChoose.prefab` | `IGameplayDeckChooseSubsystem`, `IDeckSubsystem` |
-| `GameplayDeckSelectOverlay.cs` | `Overlay_Gameplay_Decks.prefab` | `IDeckSubsystem.DecksChanged` |
+| `GameplayDeckChoosePanel.cs` (finish) | `PhaseInteractionPanel_DeckChoose.prefab` | `IGameplayDeckChooseSubsystem`, `IGameplayDeckSubsystem` |
+| `GameplayDeckSelectOverlay.cs` | `Overlay_Gameplay_Decks.prefab` | `IGameplayDeckSubsystem.DecksChanged` |
 | `DrawPhasePanel.cs` | `PhaseInteractionPanel_DrawCard.prefab` | `IPlayerCardZoneSubsystem.HandChanged` |
 | `FusionPanel.cs` | `PhaseInteractionPanel_Fusion.prefab` | `IFusionSubsystem.StagingChanged`, `IPlayerCardZoneSubsystem.HandChanged` |
 | `HandPanel.cs` | `PhaseInteractionPanel_Hand.prefab` | `IPlayerCardZoneSubsystem.HandChanged` |
@@ -519,7 +521,7 @@ For each prefab listed in §1.4, drop the matching `*.cs` script onto its root a
 To keep Gameplay agnostic of where Profile lives:
 - `GameplayPlayerProfileUI` injects **only** `IProfileSubsystem` (from `Core.Interfaces`).
 - Do **not** import any concrete `ProfileSubsystem` type from `LobbyFeatures` in Gameplay scripts.
-- Update `GameplayFeatures.asmdef` to reference `LobbyFeatures` GUID (required for `DeckButton` and `DeckSummaryData`). When Profile moves to Core later, this reference becomes optional.
+- Update `GameplayFeatures.asmdef` to reference `LobbyFeatures` GUID (required for `DeckButton` UI component). `DeckSummaryData` is in `Core.Interfaces` (autoReferenced — no explicit GUID needed). `IDeckSubsystem` is **never injected** into Gameplay; deck loading uses `IGameplayDeckSubsystem` which calls the API itself. When Profile moves to Core later, the `LobbyFeatures` GUID reference becomes optional.
 
 ### 6.4 Entry point (testable from Lobby)
 
@@ -529,7 +531,7 @@ To keep Gameplay agnostic of where Profile lives:
 
 1. **Scene load:** From Lobby Battle, Gameplay scene loads, HUD visible, both `Profile_Player` and `Profile_Enemy1` populated from `IProfileSubsystem` events. `Profile_Enemy2` hidden.
 2. **Phase indicator:** Mock or real `PhaseChanged` fires → `PhaseNameValueText` updates "START PHASE" → "MAIN PHASE" etc.
-3. **DeckChoose overlay:** Click `DeckButton` → `Overlay_Gameplay_Decks` appears with 8 deck slots populated from `IDeckSubsystem.DecksChanged`. Click slot → name+id propagate back to `PhaseInteractionPanel_DeckChoose`'s `DeckButton`. Click Confirm → panel hides on `IsReadyChanged(true)`.
+3. **DeckChoose overlay:** Click `DeckButton` → `Overlay_Gameplay_Decks` appears with 8 deck slots populated from `IGameplayDeckSubsystem.DecksChanged` (fetched directly from `/api/decks` — independent of Lobby's `IDeckSubsystem`). Click slot → name+id propagate back to `PhaseInteractionPanel_DeckChoose`'s `DeckButton`. Click Confirm → panel hides on `IsReadyChanged(true)`.
 4. **Hand drawer:** `Toggle_Sidebar` on `HandPanelAnchor` slides the hand panel open via `PanelDrawer` DOTween. Cards visible per `HandChanged`.
 5. **Fusion flow:** Drag from `HandPanel.CardSlot` → `FusionPanel.FuseSlot1`. Calls `IFusionSubsystem.StageEquipSpell(0, cardId)`. `StagingChanged` event re-renders. Confirm → panel closes.
 6. **Targeting overlay:** Click a skill in `SkillPanel` → board tiles in range highlight yellow; valid (per `target_condition`) turn green on hover; invalid red. Click → confirmation → highlights clear.

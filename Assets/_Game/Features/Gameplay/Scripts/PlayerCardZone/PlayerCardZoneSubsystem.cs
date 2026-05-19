@@ -13,11 +13,13 @@ public class PlayerCardZoneSubsystem : IPlayerCardZoneSubsystem
     public event UnityAction<PlayerRef, int> DeckCountChanged;
     public event UnityAction<PlayerRef, int> DiscardCountChanged;
     public event UnityAction<PlayerRef, int> HPChanged;
+    public event UnityAction<PlayerRef, string> NameChanged;
 
     public IReadOnlyList<string> GetHand(PlayerRef player) => _model.GetHand(player);
     public int GetDeckCount(PlayerRef player) => _model.GetDeckCount(player);
     public int GetDiscardCount(PlayerRef player) => _model.GetDiscardCount(player);
     public int GetHP(PlayerRef player) => _model.GetHP(player);
+    public string GetPlayerName(PlayerRef player) => _model.GetPlayerName(player);
 
     public void Initialize()
     {
@@ -25,6 +27,7 @@ public class PlayerCardZoneSubsystem : IPlayerCardZoneSubsystem
         _model.HandChanged += HandleHandChanged;
         _model.DeckCountChanged += HandleDeckCountChanged;
         _model.DiscardCountChanged += HandleDiscardCountChanged;
+        _model.PlayerNameChanged += HandlePlayerNameChanged;
         _controller.Initialize();
     }
 
@@ -34,6 +37,7 @@ public class PlayerCardZoneSubsystem : IPlayerCardZoneSubsystem
         _model.HandChanged -= HandleHandChanged;
         _model.DeckCountChanged -= HandleDeckCountChanged;
         _model.DiscardCountChanged -= HandleDiscardCountChanged;
+        _model.PlayerNameChanged -= HandlePlayerNameChanged;
         _controller.Dispose();
         _model.Dispose();
     }
@@ -66,6 +70,12 @@ public class PlayerCardZoneSubsystem : IPlayerCardZoneSubsystem
     private void HandleDiscardCountChanged(PlayerRef p, int count)
     {
         try { DiscardCountChanged?.Invoke(p, count); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+    }
+
+    private void HandlePlayerNameChanged(PlayerRef p, string name)
+    {
+        try { NameChanged?.Invoke(p, name); }
         catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
     }
 }

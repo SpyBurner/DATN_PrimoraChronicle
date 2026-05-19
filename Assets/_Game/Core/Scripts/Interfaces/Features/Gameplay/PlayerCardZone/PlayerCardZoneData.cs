@@ -8,4 +8,5 @@ public struct PlayerCardZoneData
     public List<string> Hand;
     public int DeckCount;
     public int DiscardCount;
+    public string PlayerName;
 }

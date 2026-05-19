@@ -8,6 +8,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
 {
     [Inject(Optional = true)] private IPlayerCardZoneSubsystem _subsystem;
     [Inject(Optional = true)] private ICardLoadingManagerSubsystem _cardLoading;
+    [Inject(Optional = true)] private IProfileSubsystem _profileSubsystem;
     [Inject(Optional = true)] private IDebugLogger _logger;
 
     [Networked] public PlayerRef Owner { get; set; }
@@ -18,6 +19,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     [Networked] public int DiscardCount { get; set; }
     [Networked] public NetworkBool IsSetup { get; set; }
     [Networked] public NetworkString<_16> ChampionId { get; set; }
+    [Networked] public NetworkString<_32> PlayerName { get; set; }
 
     [Networked, Capacity(6)] public NetworkArray<NetworkString<_32>> Hand { get; }
     [Networked, Capacity(40)] public NetworkArray<NetworkString<_32>> Deck { get; }
@@ -38,13 +40,20 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
             var ctx = FindObjectOfType<SceneContext>();
             _subsystem = ctx?.Container.Resolve<IPlayerCardZoneSubsystem>();
             _cardLoading = ctx?.Container.Resolve<ICardLoadingManagerSubsystem>();
+            _profileSubsystem = ctx?.Container.TryResolve<IProfileSubsystem>();
             _logger = ctx?.Container.Resolve<IDebugLogger>();
         }
 
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
         if (HasInputAuthority)
+        {
             _subsystem?.RegisterNetworkBridge(this);
+            if (Object.HasStateAuthority && _profileSubsystem != null)
+                PlayerName = _profileSubsystem.Username ?? string.Empty;
+            else if (HasInputAuthority && _profileSubsystem != null)
+                Rpc_SetPlayerName(_profileSubsystem.Username ?? string.Empty);
+        }
 
         PushState();
     }
@@ -158,6 +167,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
             if (!keep.Contains(card))
                 ServerDiscardFromHand(i);
         }
+
     }
 
     public void ServerApplyDamage(int amount)
@@ -178,6 +188,12 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
         => Rpc_RequestPlayMainPhaseSpell(cardId, target);
 
     // ── RPCs (client → server) ───────────────────────────────────────────
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void Rpc_SetPlayerName(string name)
+    {
+        PlayerName = name;
+    }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_RequestDraw(int count)
@@ -234,7 +250,8 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
             HP = HP,
             Hand = hand,
             DeckCount = DeckCount,
-            DiscardCount = DiscardCount
+            DiscardCount = DiscardCount,
+            PlayerName = PlayerName.ToString()
         });
     }
 

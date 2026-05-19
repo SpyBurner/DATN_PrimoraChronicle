@@ -7,7 +7,6 @@ using Zenject;
 
 public class GameplayPlayerProfileUI : MonoBehaviour
 {
-    [Inject] private readonly IProfileSubsystem _profile;
     [Inject] private readonly IPlayerCardZoneSubsystem _cardZone;
     [Inject] private readonly IGameplayDeckChooseSubsystem _deckChoose;
 
@@ -36,14 +35,14 @@ public class GameplayPlayerProfileUI : MonoBehaviour
     private void OnEnable()
     {
         _cardZone.HPChanged += OnHPChanged;
-        _profile.UsernameChanged += OnUsernameChanged;
+        _cardZone.NameChanged += OnNameChanged;
         _deckChoose.IsReadyChanged += OnIsReadyChanged;
     }
 
     private void OnDisable()
     {
         _cardZone.HPChanged -= OnHPChanged;
-        _profile.UsernameChanged -= OnUsernameChanged;
+        _cardZone.NameChanged -= OnNameChanged;
         _deckChoose.IsReadyChanged -= OnIsReadyChanged;
     }
 
@@ -54,9 +53,9 @@ public class GameplayPlayerProfileUI : MonoBehaviour
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private void OnUsernameChanged(string name)
+    private void OnNameChanged(PlayerRef p, string name)
     {
-        if (!_bound || !_isLocal) return;
+        if (!_bound || p != _playerRef || string.IsNullOrEmpty(name)) return;
         try { if (_nameText != null) _nameText.text = name; }
         catch (Exception ex) { Debug.LogException(ex); }
     }
@@ -70,10 +69,16 @@ public class GameplayPlayerProfileUI : MonoBehaviour
 
     private void Refresh()
     {
-        if (_nameText != null)
-            _nameText.text = _isLocal ? _profile.Username : "Opponent";
-
+        RefreshName();
         if (_hpText != null)
             _hpText.text = _cardZone.GetHP(_playerRef).ToString();
+    }
+
+    private void RefreshName()
+    {
+        if (_nameText == null || !_bound) return;
+        var name = _cardZone.GetPlayerName(_playerRef);
+        if (!string.IsNullOrEmpty(name))
+            _nameText.text = name;
     }
 }

@@ -69,24 +69,11 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
 
     private void SetupPlayerDeck(PlayerRef playerRef, string championId, string[] cardIds, int playerIndex, string playerName)
     {
-        if (NetworkGameplayManager.Instance == null) return;
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
 
-        for (int i = 0; i < NetworkGameplayManager.Instance.PlayerStates.Length; i++)
-        {
-            var stateId = NetworkGameplayManager.Instance.PlayerStates.Get(i);
-            if (!stateId.IsValid) continue;
-
-            if (Runner.TryFindObject(stateId, out var stateObj))
-            {
-                var ps = stateObj.GetComponent<NetworkPlayerState>();
-                if (ps != null && ps.Player == playerRef)
-                {
-                    ps.SetupDeck(championId, cardIds, DefaultInitialHP, playerIndex, playerName);
-                    ps.DrawCards(6);
-                    break;
-                }
-            }
-        }
+        var cardZone = coordinator.GetPlayerCardZoneView(playerRef);
+        cardZone?.ServerSetupDeckForMatch(championId, cardIds);
 
         IsReady = true;
         SelectedDeckId = string.Empty;

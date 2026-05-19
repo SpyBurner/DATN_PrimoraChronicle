@@ -10,6 +10,7 @@ internal class PlayerCardZoneModel : IPlayerCardZoneModel
     public event Action<PlayerRef, IReadOnlyList<string>> HandChanged;
     public event Action<PlayerRef, int> DeckCountChanged;
     public event Action<PlayerRef, int> DiscardCountChanged;
+    public event Action<PlayerRef, string> PlayerNameChanged;
 
     public IReadOnlyList<string> GetHand(PlayerRef player)
         => _zones.TryGetValue(player, out var z) && z.Hand != null ? z.Hand : new List<string>();
@@ -22,6 +23,9 @@ internal class PlayerCardZoneModel : IPlayerCardZoneModel
 
     public int GetHP(PlayerRef player)
         => _zones.TryGetValue(player, out var z) ? z.HP : 0;
+
+    public string GetPlayerName(PlayerRef player)
+        => _zones.TryGetValue(player, out var z) ? z.PlayerName ?? string.Empty : string.Empty;
 
     public void Initialize() { }
 
@@ -43,6 +47,9 @@ internal class PlayerCardZoneModel : IPlayerCardZoneModel
 
         if (!exists || prev.DiscardCount != data.DiscardCount)
             DiscardCountChanged?.Invoke(data.Owner, data.DiscardCount);
+
+        if (!exists || prev.PlayerName != data.PlayerName)
+            PlayerNameChanged?.Invoke(data.Owner, data.PlayerName ?? string.Empty);
     }
 
     private static bool ListsEqual(List<string> a, List<string> b)

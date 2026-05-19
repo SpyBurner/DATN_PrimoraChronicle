@@ -9,6 +9,7 @@ public class GameplayDeckChooseController : IGameplayDeckChooseController
     [Inject] private readonly IDebugLogger _logger;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
     [Inject] private readonly IAuthSessionModel _authSession;
+    [Inject] private readonly INetworkManagerSubsystem _networkManager;
 
     private IGameplayDeckChooseNetworkBridge _bridge;
     private DeckSummaryData _stagedSummary;
@@ -109,23 +110,8 @@ public class GameplayDeckChooseController : IGameplayDeckChooseController
 
     private int ResolvePlayerIndex()
     {
-        if (NetworkGameplayManager.Instance == null) return 0;
-
-        var runner = NetworkGameplayManager.Instance.Runner;
+        var runner = _networkManager?.Runner;
         if (runner == null) return 0;
-
-        PlayerRef localPlayer = runner.LocalPlayer;
-        for (int i = 0; i < NetworkGameplayManager.Instance.PlayerStates.Length; i++)
-        {
-            var stateId = NetworkGameplayManager.Instance.PlayerStates.Get(i);
-            if (!stateId.IsValid) continue;
-            if (runner.TryFindObject(stateId, out var obj))
-            {
-                var ps = obj.GetComponent<NetworkPlayerState>();
-                if (ps != null && ps.Player == localPlayer)
-                    return i;
-            }
-        }
-        return 0;
+        return runner.LocalPlayer.PlayerId;
     }
 }
