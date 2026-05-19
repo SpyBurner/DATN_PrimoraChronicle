@@ -13,7 +13,9 @@
       "mcp__mcp-unity__get_console_logs",
       "Skill(unity-mcp-skill)",
       "Skill(unity-mcp-skill:*)",
-      "mcp__mcp-unity__get_scene_info"
+      "mcp__mcp-unity__get_scene_info",
+      "Bash(python3)",
+      "mcp__mcp-unity__batch_execute"
     ]
   }
 }
