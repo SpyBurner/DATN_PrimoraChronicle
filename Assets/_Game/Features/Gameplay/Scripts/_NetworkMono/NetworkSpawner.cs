@@ -15,10 +15,13 @@ public class NetworkSpawner : NetworkBehaviour
     public NetworkPrefabRef player1PiecePrefab;
     public NetworkPrefabRef player2PiecePrefab;
     public NetworkPrefabRef player3PiecePrefab; // Future addition
-    public NetworkPrefabRef playerStatePrefab;
     public NetworkPrefabRef deckChooseViewPrefab;
     public NetworkPrefabRef hexTilePrefab;
     public NetworkPrefabRef boardPrefab; // Optional networked board parent prefab
+
+    public NetworkPrefabRef playerStatePrefab;
+    public NetworkGameplayManager gameplayManagerPrefab;
+
 
     [Header("Grid Settings")]
     public float horizontalSpacing = 1.732f;
@@ -172,9 +175,22 @@ public class NetworkSpawner : NetworkBehaviour
     public override void Spawned()
     {
         if (!Runner.IsSharedModeMasterClient && !Runner.IsServer) return;
-
+        SpawnManagers();
         GenerateBoard();
         SpawnAIPlayers();
+    }
+
+    private void SpawnManagers()
+    {
+        if (gameplayManagerPrefab != null)
+        {
+            Runner.Spawn(gameplayManagerPrefab, Vector3.zero, Quaternion.identity);
+            _debugLogger.Log("[NetworkSpawner] Spawned NetworkGameplayManager.");
+        }
+        else
+        {
+            _debugLogger.Log("[NetworkSpawner] WARNING: gameplayManagerPrefab not assigned. Please assign a NetworkGameplayManager prefab to ensure proper game state management.");
+        }
     }
 
     private void SpawnAIPlayers()
@@ -328,7 +344,7 @@ public class NetworkSpawner : NetworkBehaviour
     {
         NetworkRunner runner = _networkManager.Runner;
         if (runner == null) return;
-        StartCoroutine(SpawnPlayerWhenTileReady(player, runner));
+        SpawnPlayerPiece(player, runner);
     }
 
     private System.Collections.IEnumerator SpawnPlayerWhenTileReady(PlayerRef player, NetworkRunner runner)
@@ -378,7 +394,7 @@ public class NetworkSpawner : NetworkBehaviour
             }
         }
 
-        if (playerStatePrefab.IsValid)
+        if (playerStatePrefab != null)
         {
             var stateObj = runner.Spawn(playerStatePrefab, Vector3.zero, Quaternion.identity, player);
             if (stateObj.TryGetComponent<NetworkPlayerState>(out var playerState))
@@ -391,7 +407,7 @@ public class NetworkSpawner : NetworkBehaviour
             }
         }
 
-        if (deckChooseViewPrefab.IsValid)
+        if (deckChooseViewPrefab != null)
             runner.Spawn(deckChooseViewPrefab, Vector3.zero, Quaternion.identity, player);
     }
 }

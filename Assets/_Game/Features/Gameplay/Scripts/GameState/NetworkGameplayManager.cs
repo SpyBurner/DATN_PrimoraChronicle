@@ -29,11 +29,21 @@ public class NetworkGameplayManager : NetworkBehaviour
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+            Debug.Log($"[NetworkGameplayManager] Awake — singleton set. Scene: {gameObject.scene.name}, IsNetworkObject: {GetComponent<NetworkObject>() != null}");
+        }
+        else
+        {
+            Debug.LogWarning($"[NetworkGameplayManager] Awake — duplicate instance detected, ignoring. Active instance: {Instance.gameObject.name}");
+        }
     }
 
     public override void Spawned()
     {
+        Debug.Log($"[NetworkGameplayManager] Spawned — HasStateAuthority={Object.HasStateAuthority}, InputAuthority={Object.InputAuthority}, Runner.IsServer={Runner.IsServer}, Runner.IsSharedModeMasterClient={Runner.IsSharedModeMasterClient}");
+
         if (Object.HasStateAuthority)
         {
             CurrentPhase = GameplayPhase.StartPhase;
