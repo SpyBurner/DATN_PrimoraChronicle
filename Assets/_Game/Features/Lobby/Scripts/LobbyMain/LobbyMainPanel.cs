@@ -70,13 +70,13 @@ public class LobbyMainPanel : UIPanel
     private void OnLevelChanged(int level)
     {
         if (_levelText != null)
-            _levelText.text = $"Lvl {level}";
+            _levelText.text = $"{level}";
     }
 
     private void OnGoldChanged(int gold)
     {
         if (_goldText != null)
-            _goldText.text = $"Gold: {gold}";
+            _goldText.text = $"{gold}";
     }
 
     private void OnAvatarUrlChanged(string avatarUrl)

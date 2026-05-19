@@ -148,10 +148,10 @@ public class UIManagerController : IUIManagerController
             }
 
             var parent = uiPanel != null ? uiRoot.GetLayerParent(uiPanel.Layer) : uiRoot.transform;
-            var activeScene = SceneManager.GetActiveScene();
-            var containerToUse = _sceneContextRegistry.TryGetContainerForScene(activeScene) ?? _container;
+            var uiRootScene = uiRoot.gameObject.scene;
+            var containerToUse = _sceneContextRegistry.TryGetContainerForScene(uiRootScene) ?? _container;
 
-            Debug.Log($"[UIManager] Instantiating prefab '{prefab.name}' for scene '{activeScene.name}' (Container: {(containerToUse == _container ? "Global" : "Scene")})");
+            Debug.Log($"[UIManager] Instantiating prefab '{prefab.name}' for scene '{uiRootScene.name}' (Container: {(containerToUse == _container ? "Global" : "Scene")})");
 
             var instance = containerToUse.InstantiatePrefab(prefab, parent);
             instance.SetActive(true); // Ensure instance is active

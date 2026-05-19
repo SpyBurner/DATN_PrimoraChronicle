@@ -1,6 +1,6 @@
 using UnityObservables;
 
-internal class ProfileModel : IProfileModel
+public class ProfileModel : IProfileModel
 {
     private Observable<string> _username = new(string.Empty);
     private Observable<int> _level = new(0);

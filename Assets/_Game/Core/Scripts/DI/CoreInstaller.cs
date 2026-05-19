@@ -88,5 +88,14 @@ internal class CoreInstaller : MonoInstaller
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<BackendBridgeSubsystem>()
             .AsSingle().NonLazy();
+
+        // Profile
+        Container.BindInterfacesAndSelfTo<ProfileModel>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<ProfileController>()
+            .AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<ProfileSubsystem>()
+            .AsSingle().NonLazy();
+
     }
 }

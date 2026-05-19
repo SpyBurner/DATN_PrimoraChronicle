@@ -34,7 +34,7 @@ internal class MatchMakingController : IMatchMakingController
         
         if (state == NetworkRunner.States.Running && _networkManager.PlayerCount >= _battleSetup.PlayerCnt)
         {
-            _debugLogger.Log("[MatchMaking] HandleRunnerStateChanged: Runner is Running. Commencing LoadNetworkedScene to GAMEPLAY.");
+            _debugLogger.Log("[MatchMaking] HandleRunnerStateChanged: Runner is Running and player count met. Commencing LoadNetworkedScene to GAMEPLAY.");
             _model.ApplyState(new MatchMakingStateData
             {
                 Phase  = MatchMakingPhase.Connected,

@@ -1,54 +1,98 @@
+using System;
+using Fusion;
+using TMPro;
 using UnityEngine;
+using Zenject;
 
 public class GameplayHUDController : MonoBehaviour
 {
+    [Inject] private readonly IGameStateSubsystem _gameState;
+    [Inject] private readonly INetworkManagerSubsystem _network;
+
+    [SerializeField] private TMP_Text _phaseNameText;
+    [SerializeField] private TMP_Text _matchTimeText;
     [SerializeField] private GameplayPlayerProfileUI _localProfile;
     [SerializeField] private GameplayPlayerProfileUI _opponentProfile;
+    [SerializeField] private GameObject _enemy2ProfileRoot;
 
-    private bool _initialized;
+    private bool _profilesBound;
 
-    private void Awake()
+    private void OnEnable()
     {
-        if (_localProfile == null)
-        {
-            var go = GameObject.Find("Profile_Player");
-            if (go != null) _localProfile = go.GetComponent<GameplayPlayerProfileUI>();
-        }
-        if (_opponentProfile == null)
-        {
-            var go = GameObject.Find("Profile_Enemy1");
-            if (go != null) _opponentProfile = go.GetComponent<GameplayPlayerProfileUI>();
-        }
+        if (_enemy2ProfileRoot != null) _enemy2ProfileRoot.SetActive(false);
+
+        _gameState.PhaseChanged += OnPhaseChanged;
+        _gameState.MatchElapsedChanged += OnMatchElapsedChanged;
+
+        OnPhaseChanged(_gameState.Phase);
+        OnMatchElapsedChanged(_gameState.MatchElapsed);
+        TryBindProfiles(); // attempt immediately; Update() retries until done
+    }
+
+    private void OnDisable()
+    {
+        _gameState.PhaseChanged -= OnPhaseChanged;
+        _gameState.MatchElapsedChanged -= OnMatchElapsedChanged;
+        _profilesBound = false;
     }
 
     private void Update()
     {
-        if (_initialized || NetworkGameplayManager.Instance == null) return;
-        if (NetworkGameplayManager.Instance.PlayerCount < 2) return;
+        if (!_profilesBound) TryBindProfiles();
+    }
 
-        var runner = NetworkGameplayManager.Instance.Runner;
+
+    private void TryBindProfiles()
+    {
+        if (_profilesBound) return;
+
+        var runner = _network.Runner;
         if (runner == null) return;
 
-        NetworkPlayerState localState = null;
-        NetworkPlayerState opponentState = null;
+        PlayerRef local = runner.LocalPlayer;
+        PlayerRef opponent = PlayerRef.None;
 
-        for (int i = 0; i < NetworkGameplayManager.Instance.PlayerStates.Length; i++)
+        foreach (PlayerRef p in runner.ActivePlayers)
         {
-            var id = NetworkGameplayManager.Instance.PlayerStates.Get(i);
-            if (!id.IsValid) continue;
-
-            if (!runner.TryFindObject(id, out var obj)) continue;
-            var ps = obj.GetComponent<NetworkPlayerState>();
-            if (ps == null) continue;
-
-            if (ps.Player == runner.LocalPlayer) localState = ps;
-            else opponentState = ps;
+            if (p != local) { opponent = p; break; }
         }
 
-        if (localState == null || opponentState == null) return;
+        if (local == PlayerRef.None || opponent == PlayerRef.None) return;
 
-        _localProfile?.Initialize(localState);
-        _opponentProfile?.Initialize(opponentState);
-        _initialized = true;
+        _localProfile?.Bind(local, isLocal: true);
+        _opponentProfile?.Bind(opponent, isLocal: false);
+        _profilesBound = true;
     }
+
+    private void OnPhaseChanged(GameplayPhase phase)
+    {
+        try
+        {
+            if (_phaseNameText != null) _phaseNameText.text = ToDisplayName(phase);
+        }
+        catch (Exception ex) { Debug.LogException(ex); }
+    }
+
+    private void OnMatchElapsedChanged(float elapsed)
+    {
+        try
+        {
+            if (_matchTimeText == null) return;
+            int m = Mathf.FloorToInt(elapsed / 60f);
+            int s = Mathf.FloorToInt(elapsed % 60f);
+            _matchTimeText.text = $"{m:00}:{s:00}";
+        }
+        catch (Exception ex) { Debug.LogException(ex); }
+    }
+
+    private static string ToDisplayName(GameplayPhase phase) => phase switch
+    {
+        GameplayPhase.Setup       => "SETUP",
+        GameplayPhase.StartPhase  => "START PHASE",
+        GameplayPhase.MainPhase   => "MAIN PHASE",
+        GameplayPhase.CombatPhase => "COMBAT PHASE",
+        GameplayPhase.DrawPhase   => "DRAW PHASE",
+        GameplayPhase.GameOver    => "GAME OVER",
+        _                         => phase.ToString().ToUpper(),
+    };
 }

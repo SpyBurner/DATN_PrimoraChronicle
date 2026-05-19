@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Zenject;
 
-internal class ProfileController : IProfileController
+public class ProfileController : IProfileController
 {
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IProfileModel _model;

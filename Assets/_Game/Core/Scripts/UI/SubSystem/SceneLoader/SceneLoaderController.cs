@@ -95,7 +95,20 @@ public class SceneLoaderController : ISceneLoaderController
             }
         }
 
-        await runner.LoadScene(sceneName);
+        // Only the authority triggers Fusion's networked scene load.
+        // Fusion propagates it to all connected clients automatically.
+        // Non-authority clients still perform the local unload above and
+        // then wait here for Fusion to push the new scene via callbacks.
+        bool isAuthority = runner.IsServer || runner.IsSharedModeMasterClient;
+        if (isAuthority)
+        {
+            _debugLogger.Log($"[SceneLoader] Authority confirmed. Calling runner.LoadScene('{sceneName}').");
+            await runner.LoadScene(sceneName);
+        }
+        else
+        {
+            _debugLogger.Log($"[SceneLoader] Not authority — skipping runner.LoadScene. Waiting for Fusion to push scene '{sceneName}'.");
+        }
 
         while (_sceneModel.IsLoading.Value)
         {
