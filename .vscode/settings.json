@@ -1,5 +1,5 @@
 {
-    "dotnet.defaultSolution": "DATN_PrimoraChronicle.sln",
+    "dotnet.defaultSolution": "DATN_PrimoraChronicle.slnx",
     "dotnet.dotnetPath": "C:/Program Files/dotnet/dotnet.exe",
     "dotrush.roslyn.dotnetSdkDirectory": "C:/Program Files/dotnet/sdk/10.0.201",
     "dotrush.msbuildProperties": {

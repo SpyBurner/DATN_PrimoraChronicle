@@ -8,10 +8,10 @@ public class MatchMakingPanel : UIPanel
 {
     [Inject] private readonly IMatchMakingSubsystem _matchMaking;
     [Inject] private readonly INetworkManagerSubsystem _networkManager;
+    [Inject] private readonly IProfileSubsystem _profileSubsystem;
 
     [Header("Operational UI References")]
 
-    [SerializeField] private Button _findMatchButton;
     [SerializeField] private Button _cancelButton;
     [SerializeField] private Button _acceptButton;
     [SerializeField] private Button _rejectButton;
@@ -34,7 +34,6 @@ public class MatchMakingPanel : UIPanel
     protected override void OnEnable()
     {
         base.OnEnable();
-        _findMatchButton?.onClick.AddListener(OnFindMatch);
         _cancelButton?.onClick.AddListener(OnCancel);
         _acceptButton?.onClick.AddListener(OnAccept);
         _rejectButton?.onClick.AddListener(OnReject);
@@ -49,7 +48,6 @@ public class MatchMakingPanel : UIPanel
     protected override void OnDisable()
     {
         base.OnDisable();
-        _findMatchButton?.onClick.RemoveListener(OnFindMatch);
         _cancelButton?.onClick.RemoveListener(OnCancel);
         _acceptButton?.onClick.RemoveListener(OnAccept);
         _rejectButton?.onClick.RemoveListener(OnReject);
@@ -59,7 +57,6 @@ public class MatchMakingPanel : UIPanel
         _matchMaking.PhaseChanged -= OnPhaseChanged;
     }
 
-    private void OnFindMatch() => _matchMaking.JoinQueue();
     private void OnCancel() => _matchMaking.CancelMatchmaking();
     private void OnAccept() => _matchMaking.AcceptMatch();
     private void OnReject() => _matchMaking.RejectMatch();
@@ -78,14 +75,17 @@ public class MatchMakingPanel : UIPanel
 
     private void UpdateVisuals(MatchMakingPhase phase)
     {
+        // Player names
+        if (_localPlayerNameText != null) _localPlayerNameText.text = _profileSubsystem.Username;
+        if (_localPlayerLevelText != null) _localPlayerLevelText.text = _profileSubsystem.Level.ToString();
+
         bool isIdle        = phase == MatchMakingPhase.Idle || phase == MatchMakingPhase.Failed || phase == MatchMakingPhase.Cancelled;
         bool isSearching   = phase == MatchMakingPhase.Searching;
         bool isMatchFound  = phase == MatchMakingPhase.MatchFound;
         bool isConnecting  = phase == MatchMakingPhase.Connecting;
         bool isConnected   = phase == MatchMakingPhase.Connected;
 
-        if (_findMatchButton != null) _findMatchButton.gameObject.SetActive(isIdle);
-        if (_cancelButton != null) _cancelButton.gameObject.SetActive(isSearching || isConnecting || isConnected);
+        if (_cancelButton != null) _cancelButton.gameObject.SetActive(!(isMatchFound || isConnecting || isConnected));
         
         if (_acceptButton != null) _acceptButton.gameObject.SetActive(isMatchFound);
         if (_rejectButton != null) _rejectButton.gameObject.SetActive(isMatchFound);

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Core::Core.ChampionCardSO
   ID: 8fc7d2a5cde94a84787da8a25fc29ee0
   StringID: card_kharvax__the_ember_king
-  CardIllustration: {fileID: 0}
+  CardIllustration: {fileID: 21300000, guid: 796eb335090119543949b5486b6f01e9, type: 3}
   SummonSfx: {fileID: 0}
   AttackSfx: {fileID: 0}
   DeathSfx: {fileID: 0}

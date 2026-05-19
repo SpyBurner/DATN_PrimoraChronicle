@@ -28,66 +28,11 @@ internal class MatchMakingController : IMatchMakingController
         _networkManager.PlayerCountChanged  -= HandlePlayerCountChanged;
     }
 
-    public async Task JoinQueue()
-    {
-#if FUSION_SHARED_TEST
-        _debugLogger.Log("[MatchMaking] JoinQueue triggered: Active FUSION_SHARED_TEST compilation target.");
-        await JoinSharedModeSession();
-#else
-        _debugLogger.Log("[MatchMaking] JoinQueue triggered: Standard production matchmaking path.");
-#endif
-    }
-
-#if FUSION_SHARED_TEST
-    private async Task JoinSharedModeSession()
-    {
-        try
-        {
-            _debugLogger.Log("[MatchMaking] JoinSharedModeSession: Setting up shared test session 'test-shared-session'");
-            _model.ApplyState(new MatchMakingStateData {
-                Phase  = MatchMakingPhase.Connecting,
-                Status = "[TEST] Joining shared session..."
-            });
-
-            var args = new StartGameArgs
-            {
-                GameMode    = GameMode.Shared,
-                SessionName = "test-shared-session",
-                PlayerCount = _battleSetup.PlayerCnt,
-                SessionProperties = new Dictionary<string, SessionProperty>
-                {
-                    { "ai_count", 1 }
-                }
-            };
-
-            _debugLogger.Log("[MatchMaking] JoinSharedModeSession: Calling NetworkManager.StartSession (Shared Mode)");
-            bool success = await _networkManager.StartSession(args);
-            _debugLogger.Log($"[MatchMaking] JoinSharedModeSession: NetworkManager.StartSession complete. Success={success}");
-
-            if (!success)
-            {
-                _debugLogger.LogError($"[MatchMaking] JoinSharedModeSession: StartSession failed. ErrorMessage={_networkManager.ErrorMessage}");
-                _model.ApplyState(new MatchMakingStateData {
-                    Phase  = MatchMakingPhase.Failed,
-                    Status = $"[TEST] Failed to join shared session: {_networkManager.ErrorMessage}"
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            _debugLogger.LogError($"[MatchMaking] JoinSharedModeSession failed: {ex.Message}");
-            _model.ApplyState(new MatchMakingStateData {
-                Phase  = MatchMakingPhase.Failed,
-                Status = $"[TEST] Error: {ex.Message}"
-            });
-        }
-    }
-#endif
     private void HandleRunnerStateChanged(NetworkRunner.States state)
     {
         _debugLogger.Log($"[MatchMaking] HandleRunnerStateChanged: NetworkRunner State transitioned to {state}");
         
-        if (state == NetworkRunner.States.Running)
+        if (state == NetworkRunner.States.Running && _networkManager.PlayerCount >= _battleSetup.PlayerCnt)
         {
             _debugLogger.Log("[MatchMaking] HandleRunnerStateChanged: Runner is Running. Commencing LoadNetworkedScene to GAMEPLAY.");
             _model.ApplyState(new MatchMakingStateData

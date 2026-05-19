@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fusion;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
@@ -9,6 +10,7 @@ public class BattlePanel : UIPanel
 {
     [Inject] private readonly IBattleSetupSubsystem _battleSetup;
     [Inject] private readonly IUIManagerSubsystem _uiManager;
+    [Inject] private readonly INetworkManagerSubsystem _networkManager;
 
     [SerializeField] private Button _startMatchmakingButton;
     [SerializeField] private TMPro.TMP_Dropdown _playerCountDropdown;
@@ -29,6 +31,9 @@ public class BattlePanel : UIPanel
 
         _battleSetup.SetPlayerCnt(_dropdownOptions[0]);
         _battleSetup.SetFillRoomWithAI(false);
+        
+        _fillRoomWithAI.isOn = false;
+        _playerCountDropdown.value = 0;
     }
 
     protected override void OnDisable()
@@ -41,7 +46,19 @@ public class BattlePanel : UIPanel
 
     private async void OnStartMatchmaking()
     {
-        await _uiManager.Show<MatchMakingPanel>();
+        var args = new StartGameArgs
+        {
+            GameMode    = GameMode.Shared,
+            SessionName = "test-shared-session",
+            PlayerCount = _battleSetup.PlayerCnt,
+            SessionProperties = new Dictionary<string, SessionProperty>
+            {
+                { "ai_count", 1 }
+            }
+        };
+
+        await _networkManager.StartSession(args);
+        await _uiManager.Show<MatchMakingPanel>();   
     }
 
     private void OnFillRoomWithAIChanged(bool isFillRoom)

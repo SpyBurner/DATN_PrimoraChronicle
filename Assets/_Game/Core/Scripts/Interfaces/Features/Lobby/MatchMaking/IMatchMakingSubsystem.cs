@@ -9,7 +9,6 @@ public interface IMatchMakingSubsystem : ISubsystem
 
     MatchMakingPhase CurrentPhase { get; }
 
-    Task JoinQueue();
     Task CancelMatchmaking();
     Task AcceptMatch();
     Task RejectMatch();
