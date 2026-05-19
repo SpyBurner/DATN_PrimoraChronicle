@@ -11,15 +11,7 @@ public class LobbyInstaller : MonoInstaller
             .AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<LobbyMainSubsystem>()
             .AsSingle().NonLazy();
-
-        // Profile
-        Container.BindInterfacesAndSelfTo<ProfileModel>()
-            .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<ProfileController>()
-            .AsSingle().NonLazy();
-        Container.BindInterfacesAndSelfTo<ProfileSubsystem>()
-            .AsSingle().NonLazy();
-
+            
         // BattleSetup
         Container.BindInterfacesAndSelfTo<BattleSetupModel>()
             .AsSingle().NonLazy();

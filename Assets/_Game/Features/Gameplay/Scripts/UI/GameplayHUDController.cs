@@ -23,21 +23,24 @@ public class GameplayHUDController : MonoBehaviour
 
         _gameState.PhaseChanged += OnPhaseChanged;
         _gameState.MatchElapsedChanged += OnMatchElapsedChanged;
-        _network.PlayerJoined += OnPlayerJoined;
 
         OnPhaseChanged(_gameState.Phase);
         OnMatchElapsedChanged(_gameState.MatchElapsed);
-        TryBindProfiles();
+        TryBindProfiles(); // attempt immediately; Update() retries until done
     }
 
     private void OnDisable()
     {
         _gameState.PhaseChanged -= OnPhaseChanged;
         _gameState.MatchElapsedChanged -= OnMatchElapsedChanged;
-        _network.PlayerJoined -= OnPlayerJoined;
+        _profilesBound = false;
     }
 
-    private void OnPlayerJoined(PlayerRef _) => TryBindProfiles();
+    private void Update()
+    {
+        if (!_profilesBound) TryBindProfiles();
+    }
+
 
     private void TryBindProfiles()
     {

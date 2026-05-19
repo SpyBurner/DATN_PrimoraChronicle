@@ -2,11 +2,11 @@
   <Project Path="Unity.Theme.csproj" />
   <Project Path="Zenject.csproj" />
   <Project Path="Core.csproj" />
-  <Project Path="LobbyFeatures.csproj" />
   <Project Path="Fusion.Unity.Editor.csproj" />
   <Project Path="Core.Interfaces.csproj" />
   <Project Path="Fusion.Menu.csproj" />
   <Project Path="Unity.Theme.Tests.Editor.csproj" />
+  <Project Path="LobbyFeatures.csproj" />
   <Project Path="Zenject-ReflectionBaking-Editor.csproj" />
   <Project Path="GameplayFeatures.csproj" />
   <Project Path="Fusion.Unity.csproj" />
@@ -15,6 +15,7 @@
   <Project Path="AccountFeatures.csproj" />
   <Project Path="Core.Scripts.UI.SubSystem.BackendBridge.csproj" />
   <Project Path="Core.Scripts.UI.SubSystem.SceneLoader.csproj" />
+  <Project Path="Core.Scripts.UI.SubSystem.Profile.csproj" />
   <Project Path="Unity.Theme.Tests.Base.csproj" />
   <Project Path="Unity.Theme.Tests.Runtime.csproj" />
   <Project Path="Core.Scripts.DI.csproj" />
