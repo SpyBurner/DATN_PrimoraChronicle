@@ -65,8 +65,18 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
 
         if (MatchElapsed >= _matchTimeLimit)
         {
-            TransitionTo(GameplayPhase.GameOver);
+            EndMatchByTimeLimit();
             return;
+        }
+
+        if (CurrentPhase != GameplayPhase.Setup && CurrentPhase != GameplayPhase.StartPhase)
+        {
+            var eliminatedPlayer = CheckElimination();
+            if (eliminatedPlayer.IsRealPlayer)
+            {
+                EndMatchByElimination(eliminatedPlayer);
+                return;
+            }
         }
 
         if (CurrentPhase == GameplayPhase.DrawPhase && AllPlayersDrawPhaseConfirmed())
@@ -196,6 +206,118 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         return true;
     }
 
+    // ── Win Condition ───────────────────────────────────────────────────
+
+    private PlayerRef CheckElimination()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return default;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            if (pczView != null && pczView.IsSetup && pczView.HP <= 0)
+                return player;
+        }
+        return default;
+    }
+
+    private void EndMatchByElimination(PlayerRef eliminatedPlayer)
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        PlayerRef winner = default;
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            if (player != eliminatedPlayer)
+            {
+                winner = player;
+                break;
+            }
+        }
+
+        CommitMatchResult(new GameMatchResult
+        {
+            Winner = winner,
+            IsTie = false,
+            GoldEarned = CalculateGoldReward(),
+            XPEarned = CalculateXPReward(),
+            DurationSeconds = MatchElapsed
+        });
+    }
+
+    private void EndMatchByTimeLimit()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null)
+        {
+            TransitionTo(GameplayPhase.GameOver);
+            return;
+        }
+
+        PlayerRef highestHPPlayer = default;
+        int highestHP = int.MinValue;
+        bool isTie = false;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            if (pczView == null) continue;
+
+            int hp = pczView.HP;
+            if (hp > highestHP)
+            {
+                highestHP = hp;
+                highestHPPlayer = player;
+                isTie = false;
+            }
+            else if (hp == highestHP)
+            {
+                isTie = true;
+            }
+        }
+
+        CommitMatchResult(new GameMatchResult
+        {
+            Winner = isTie ? default : highestHPPlayer,
+            IsTie = isTie,
+            GoldEarned = isTie ? 0 : CalculateGoldReward(),
+            XPEarned = CalculateXPReward(),
+            DurationSeconds = MatchElapsed
+        });
+    }
+
+    private void CommitMatchResult(GameMatchResult result)
+    {
+        TransitionTo(GameplayPhase.GameOver);
+
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        var matchResultView = coordinator?.MatchResultView;
+        if (matchResultView != null)
+        {
+            matchResultView.ServerEndMatch(result);
+        }
+        else
+        {
+            _logger?.LogWarning("[GameStateNetworkView] MatchResultView not found — cannot commit result.");
+        }
+    }
+
+    private int CalculateGoldReward()
+    {
+        int baseGold = 50;
+        int roundBonus = RoundNumber * 5;
+        return baseGold + roundBonus;
+    }
+
+    private int CalculateXPReward()
+    {
+        int baseXP = 100;
+        int roundBonus = RoundNumber * 10;
+        return baseXP + roundBonus;
+    }
+
     // ── IGameStateNetworkBridge ──────────────────────────────────────────
 
     public void SendPhaseTransitionRpc(GameplayPhase phase)
@@ -226,6 +348,16 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     {
         if (!Object.HasStateAuthority) return;
         CurrentCombatActor = actor;
+    }
+
+    public void ServerCheckElimination()
+    {
+        if (!Object.HasStateAuthority) return;
+        if (IsMatchOver) return;
+
+        var eliminatedPlayer = CheckElimination();
+        if (eliminatedPlayer.IsRealPlayer)
+            EndMatchByElimination(eliminatedPlayer);
     }
 
     // ── State push (server → all clients) ────────────────────────────────
