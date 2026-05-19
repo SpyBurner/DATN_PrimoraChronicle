@@ -295,6 +295,7 @@ public class NetworkSpawner : NetworkBehaviour
 
                 Vector3 localPos = new Vector3(x, 0f, z);
                 Vector3 spawnPos = transform.position + transform.rotation * localPos;
+                spawnPos.y = _boardParent.transform.position.y;
 
                 NetworkObject tileObj = Runner.Spawn(hexTilePrefab, spawnPos, tileRotation);
                 if (tileObj != null)
