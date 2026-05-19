@@ -14,6 +14,8 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     [SerializeField] private NetworkPrefabRef _playerStatePrefab;
     [SerializeField] private NetworkPrefabRef _deckChooseViewPrefab;
     [SerializeField] private NetworkPrefabRef _playerCardZoneViewPrefab;
+    [SerializeField] private NetworkPrefabRef _fusionViewPrefab;
+    [SerializeField] private NetworkPrefabRef _unitPrefab;
 
     [Header("Player Piece Prefabs")]
     [SerializeField] private NetworkPrefabRef _player1PiecePrefab;
@@ -27,6 +29,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     private BoardNetworkView _boardView;
     private readonly Dictionary<PlayerRef, PlayerCardZoneNetworkView> _playerCardZones = new();
     private readonly Dictionary<PlayerRef, GameplayDeckChooseNetworkView> _deckChooseViews = new();
+    private readonly Dictionary<PlayerRef, FusionNetworkView> _fusionViews = new();
     private readonly Dictionary<PlayerRef, NetworkObject> _playerPieces = new();
 
     public static GameplayNetworkCoordinator Instance { get; private set; }
@@ -53,6 +56,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
         _playerPieces.Clear();
         _playerCardZones.Clear();
         _deckChooseViews.Clear();
+        _fusionViews.Clear();
     }
 
     private void Start()
@@ -141,6 +145,15 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             _logger?.Log($"[GameplayNetworkCoordinator] Spawned DeckChooseView for {player}.");
         }
 
+        if (_fusionViewPrefab.IsValid)
+        {
+            var fusionObj = Runner.Spawn(_fusionViewPrefab, Vector3.zero, Quaternion.identity, player);
+            var fusionView = fusionObj.GetComponent<FusionNetworkView>();
+            if (fusionView != null)
+                _fusionViews[player] = fusionView;
+            _logger?.Log($"[GameplayNetworkCoordinator] Spawned FusionView for {player}.");
+        }
+
         int playerIndex = GetPlayerIndex(player);
         var piecePrefab = playerIndex == 0 ? _player1PiecePrefab : _player2PiecePrefab;
 
@@ -207,5 +220,24 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
         return view;
     }
 
+    public FusionNetworkView GetFusionView(PlayerRef player)
+    {
+        _fusionViews.TryGetValue(player, out var view);
+        return view;
+    }
+
     public IEnumerable<PlayerRef> GetAllPlayers() => _playerCardZones.Keys;
+
+    public void ResetFusionViewsForNewTurn()
+    {
+        foreach (var kvp in _fusionViews)
+            kvp.Value?.ServerResetForNewTurn();
+    }
+
+    public string[] GetFusionUsedCards(PlayerRef player)
+    {
+        if (_fusionViews.TryGetValue(player, out var view) && view != null)
+            return view.GetUsedCardIds();
+        return System.Array.Empty<string>();
+    }
 }
