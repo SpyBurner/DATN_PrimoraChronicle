@@ -10,6 +10,8 @@ internal class PlayerCardZoneModel : IPlayerCardZoneModel
     public event Action<PlayerRef, IReadOnlyList<string>> HandChanged;
     public event Action<PlayerRef, int> DeckCountChanged;
     public event Action<PlayerRef, int> DiscardCountChanged;
+    public event Action<PlayerRef, int> DrawPhaseNewCardsChanged;
+    public event Action<PlayerRef, bool> DrawPhaseConfirmedChanged;
 
     public IReadOnlyList<string> GetHand(PlayerRef player)
         => _zones.TryGetValue(player, out var z) && z.Hand != null ? z.Hand : new List<string>();
@@ -22,6 +24,12 @@ internal class PlayerCardZoneModel : IPlayerCardZoneModel
 
     public int GetHP(PlayerRef player)
         => _zones.TryGetValue(player, out var z) ? z.HP : 0;
+
+    public int GetDrawPhaseNewCards(PlayerRef player)
+        => _zones.TryGetValue(player, out var z) ? z.DrawPhaseNewCards : 0;
+
+    public bool GetDrawPhaseConfirmed(PlayerRef player)
+        => _zones.TryGetValue(player, out var z) && z.IsDrawPhaseConfirmed;
 
     public void Initialize() { }
 
@@ -43,6 +51,12 @@ internal class PlayerCardZoneModel : IPlayerCardZoneModel
 
         if (!exists || prev.DiscardCount != data.DiscardCount)
             DiscardCountChanged?.Invoke(data.Owner, data.DiscardCount);
+
+        if (!exists || prev.DrawPhaseNewCards != data.DrawPhaseNewCards)
+            DrawPhaseNewCardsChanged?.Invoke(data.Owner, data.DrawPhaseNewCards);
+
+        if (!exists || prev.IsDrawPhaseConfirmed != data.IsDrawPhaseConfirmed)
+            DrawPhaseConfirmedChanged?.Invoke(data.Owner, data.IsDrawPhaseConfirmed);
     }
 
     private static bool ListsEqual(List<string> a, List<string> b)

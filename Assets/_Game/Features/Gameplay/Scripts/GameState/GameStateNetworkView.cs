@@ -69,6 +69,13 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             return;
         }
 
+        if (CurrentPhase == GameplayPhase.DrawPhase && AllPlayersDrawPhaseConfirmed())
+        {
+            RoundNumber++;
+            TransitionTo(GameplayPhase.MainPhase);
+            return;
+        }
+
         if (PhaseTimer.Expired(Runner))
         {
             HandlePhaseTimeout();
@@ -87,6 +94,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 TransitionTo(GameplayPhase.CombatPhase);
                 break;
             case GameplayPhase.DrawPhase:
+                AutoKeepUnconfirmedPlayers();
                 RoundNumber++;
                 TransitionTo(GameplayPhase.MainPhase);
                 break;
@@ -127,6 +135,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 break;
             case GameplayPhase.DrawPhase:
                 PhaseTimer = TickTimer.CreateFromSeconds(Runner, _drawPhaseDuration);
+                StartDrawPhase();
                 break;
             case GameplayPhase.GameOver:
                 PhaseTimer = TickTimer.None;
@@ -141,6 +150,50 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     {
         var coordinator = GameplayNetworkCoordinator.Instance;
         coordinator?.CombatView?.ServerStartCombatPhase();
+    }
+
+    private void StartDrawPhase()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            pczView?.ServerStartDrawPhase();
+        }
+
+        _logger?.Log("[GameStateNetworkView] DrawPhase started — drew cards for all players.");
+    }
+
+    private void AutoKeepUnconfirmedPlayers()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            if (pczView != null && !pczView.DrawPhaseConfirmed)
+            {
+                pczView.ServerAutoKeepOnTimeout();
+                _logger?.Log($"[GameStateNetworkView] Auto-kept cards for unconfirmed player {player}.");
+            }
+        }
+    }
+
+    private bool AllPlayersDrawPhaseConfirmed()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return false;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            if (pczView != null && !pczView.DrawPhaseConfirmed)
+                return false;
+        }
+        return true;
     }
 
     // ── IGameStateNetworkBridge ──────────────────────────────────────────

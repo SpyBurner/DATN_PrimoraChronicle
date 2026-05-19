@@ -21,18 +21,22 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     [Networked] public int DiscardCount { get; set; }
     [Networked] public NetworkBool IsSetup { get; set; }
     [Networked] public NetworkString<_16> ChampionId { get; set; }
+    [Networked] public int DrawPhaseNewCards { get; set; }
+    [Networked] public NetworkBool DrawPhaseConfirmed { get; set; }
 
-    [Networked, Capacity(6)] public NetworkArray<NetworkString<_32>> Hand { get; }
+    [Networked, Capacity(8)] public NetworkArray<NetworkString<_32>> Hand { get; }
     [Networked, Capacity(40)] public NetworkArray<NetworkString<_32>> Deck { get; }
     [Networked, Capacity(60)] public NetworkArray<NetworkString<_32>> Discard { get; }
 
     private ChangeDetector _changeDetector;
 
     private const int HandMax = 6;
+    private const int HandArrayCapacity = 8;
     private const int DeckCapacity = 40;
     private const int DiscardCapacity = 60;
     private const int DefaultHP = 100;
     private const int OpeningHandSize = 6;
+    private const int DrawPhaseDrawCount = 2;
 
     public override void Spawned()
     {
@@ -158,18 +162,81 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     {
         if (!Object.HasStateAuthority) return;
 
+        if (keep.Count > HandMax)
+            keep = keep.GetRange(0, HandMax);
+
         for (int i = HandCount - 1; i >= 0; i--)
         {
             string card = Hand.Get(i).ToString();
             if (!keep.Contains(card))
                 ServerDiscardFromHand(i);
         }
+
+        DrawPhaseConfirmed = true;
+        DrawPhaseNewCards = 0;
     }
 
     public void ServerApplyDamage(int amount)
     {
         if (!Object.HasStateAuthority) return;
         HP = Mathf.Max(0, HP - amount);
+    }
+
+    // ── Draw Phase Server API ────────────────────────────────────────────
+
+    public void ServerStartDrawPhase()
+    {
+        if (!Object.HasStateAuthority) return;
+
+        DrawPhaseConfirmed = false;
+        DrawPhaseNewCards = 0;
+
+        int drawn = 0;
+        for (int i = 0; i < DrawPhaseDrawCount; i++)
+        {
+            if (DeckCount == 0)
+                ReshuffleDiscard();
+
+            if (DeckCount > 0 && HandCount < HandArrayCapacity)
+            {
+                string card = Deck.Get(DeckCount - 1).ToString();
+                Deck.Set(DeckCount - 1, string.Empty);
+                DeckCount--;
+
+                Hand.Set(HandCount, card);
+                HandCount++;
+                drawn++;
+            }
+        }
+
+        DrawPhaseNewCards = drawn;
+        _logger?.Log($"[PlayerCardZoneNetworkView] DrawPhase: {Owner} drew {drawn} cards. Hand={HandCount}");
+    }
+
+    public void ServerAutoKeepOnTimeout()
+    {
+        if (!Object.HasStateAuthority) return;
+        if (DrawPhaseConfirmed) return;
+
+        if (HandCount > HandMax)
+        {
+            for (int i = HandCount - 1; i >= HandMax; i--)
+            {
+                string card = Hand.Get(i).ToString();
+                Hand.Set(i, string.Empty);
+                HandCount--;
+
+                if (DiscardCount < DiscardCapacity)
+                {
+                    Discard.Set(DiscardCount, card);
+                    DiscardCount++;
+                }
+            }
+        }
+
+        DrawPhaseConfirmed = true;
+        DrawPhaseNewCards = 0;
+        _logger?.Log($"[PlayerCardZoneNetworkView] DrawPhase auto-keep for {Owner}. Hand={HandCount}");
     }
 
     // ── IPlayerCardZoneNetworkBridge ─────────────────────────────────────
@@ -283,7 +350,9 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
             HP = HP,
             Hand = hand,
             DeckCount = DeckCount,
-            DiscardCount = DiscardCount
+            DiscardCount = DiscardCount,
+            DrawPhaseNewCards = DrawPhaseNewCards,
+            IsDrawPhaseConfirmed = DrawPhaseConfirmed
         });
     }
 
