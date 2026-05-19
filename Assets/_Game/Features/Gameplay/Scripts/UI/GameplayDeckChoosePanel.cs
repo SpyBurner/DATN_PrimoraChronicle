@@ -1,20 +1,15 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
-/// <summary>
-/// StartPhase deck-choose panel.
-/// Shows the currently selected deck via a single DeckButton; clicking it opens
-/// GameplayDeckSelectOverlay so the player can pick a different deck.
-/// Auto-selects the first deck returned by the API so the confirm button is always ready.
-/// Hides itself when IsReady becomes true (both players confirmed).
-/// </summary>
 public class GameplayDeckChoosePanel : MonoBehaviour
 {
     [Inject] private readonly IGameplayDeckSubsystem _deck;
     [Inject] private readonly IGameplayDeckChooseSubsystem _deckChoose;
+    [Inject] private readonly IGameStateSubsystem _gameState;
 
     [Header("References")]
     [SerializeField] private DeckButton _currentDeckButton;
@@ -29,11 +24,13 @@ public class GameplayDeckChoosePanel : MonoBehaviour
         _deck.DecksChanged += OnDecksLoaded;
         _deckChoose.IsReadyChanged += OnIsReadyChanged;
         _deckSelectOverlay.DeckSelected += OnDeckSelected;
+        _gameState.PhaseTimeRemainingChanged += OnTimeRemainingChanged;
 
         _confirmButton?.onClick.AddListener(OnConfirmClicked);
         if (_confirmButton != null) _confirmButton.interactable = false;
 
         _deckSelectOverlay?.gameObject.SetActive(false);
+        OnTimeRemainingChanged(_gameState.PhaseTimeRemaining);
         _deck.LoadDecks();
     }
 
@@ -42,17 +39,20 @@ public class GameplayDeckChoosePanel : MonoBehaviour
         _deck.DecksChanged -= OnDecksLoaded;
         _deckChoose.IsReadyChanged -= OnIsReadyChanged;
         _deckSelectOverlay.DeckSelected -= OnDeckSelected;
+        _gameState.PhaseTimeRemainingChanged -= OnTimeRemainingChanged;
+
         _confirmButton?.onClick.RemoveListener(OnConfirmClicked);
         _hasSelection = false;
     }
 
-    private void Update()
+    private void OnTimeRemainingChanged(float remaining)
     {
-        if (_timerText == null || NetworkGameplayManager.Instance == null) return;
-        var runner = NetworkGameplayManager.Instance.Runner;
-        if (runner == null) return;
-        float? remaining = NetworkGameplayManager.Instance.PhaseTimer.RemainingTime(runner);
-        _timerText.text = remaining.HasValue ? Mathf.CeilToInt(remaining.Value).ToString() : "--";
+        try
+        {
+            if (_timerText != null)
+                _timerText.text = Mathf.CeilToInt(remaining).ToString();
+        }
+        catch (Exception ex) { Debug.LogException(ex); }
     }
 
     private void OnDecksLoaded(IReadOnlyList<DeckSummaryData> decks)
@@ -82,6 +82,7 @@ public class GameplayDeckChoosePanel : MonoBehaviour
 
     private void OnIsReadyChanged(bool isReady)
     {
-        if (isReady) gameObject.SetActive(false);
+        try { if (isReady) gameObject.SetActive(false); }
+        catch (Exception ex) { Debug.LogException(ex); }
     }
 }
