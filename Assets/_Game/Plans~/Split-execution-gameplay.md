@@ -288,19 +288,25 @@ public interface ITileEffectSubsystem : ISubsystem {
 
 ### 3.9 MatchResult
 
+> **Name change from original plan**: `MatchResultData` was renamed to `GameMatchResult` to avoid a collision with the existing `MatchResultData` class in `Core/Scripts/Models/APIModels.cs` (used by BackendBridge for HTTP serialization).
+
 ```csharp
-// MatchResult/IMatchResultSubsystem.cs
-public struct MatchResultData : INetworkStruct {
+// MatchResult/GameMatchResult.cs  (plain C# struct, not INetworkStruct)
+public struct GameMatchResult {
     public PlayerRef Winner;
-    public NetworkBool IsTie;
+    public bool IsTie;
     public int GoldEarned;
     public int XPEarned;
     public float DurationSeconds;
 }
 
 public interface IMatchResultSubsystem : ISubsystem {
-    event UnityAction<MatchResultData> MatchEnded;
+    event UnityAction<GameMatchResult> MatchEnded;
+    bool HasResult { get; }
+    GameMatchResult Result { get; }
     Task ReturnToLobby();
+    void RegisterNetworkBridge(IMatchResultNetworkBridge bridge);
+    void OnAuthoritativeStateReceived(GameMatchResult data);
 }
 ```
 
@@ -374,7 +380,7 @@ Each row is **independently implementable and incrementally testable**. The "Com
 
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
-| F6.1 | **Win condition** | §5 Win | `GameStateSubsystem.CheckWinCondition()`: last alive wins. 1h cap → highest HP. Tie → all players Loss + penalty (flagged in `MatchResultData`). |
+| F6.1 | **Win condition** | §5 Win | `GameStateSubsystem.CheckWinCondition()`: last alive wins. 1h cap → highest HP. Tie → all players Loss + penalty (flagged in `GameMatchResult`). |
 | F6.2 | **Match result panel** | §5 Win | `MatchResultPanel` on `PhaseInteractionPanel_MatchResult.prefab`. Wires `Player0/1/2` slots (crown, PFP, name), `GoldValueText`, `XPValueText`, `TimeValueText`. `Button_Confirm` → `IMatchResultSubsystem.ReturnToLobby()` → `ISceneLoaderSubsystem.LoadScene("Lobby")`. |
 | F6.3 | **Backend report** | — | `MatchResultController.OnEnd()` calls `IBackendBridgeSubsystem.ReportMatchResultAsync(...)`. |
 
@@ -478,7 +484,7 @@ For two-instance testing without real matchmaking, add a **dev-only** "Host Test
 5. **Damage pipeline:** Use `troop_warrior` with normal attack on enemy adjacent → `UnitHPChanged` fires on both clients. Verify Aggregate→Intercept→Commit log order.
 6. **Tile effect persistence across cycles:** Apply `corrupted` via skill → end CombatPhase → tile effect remains visible on `TileEffectInstance` prefab in next MainPhase.
 7. **Death + DeathAnchor:** Kill a unit with `death_anchor=5` → owning player's HP drops by 5 (visible on `Profile_Player.HPValueText`).
-8. **Match end:** Reduce one player's HP to 0 → `MatchResultData.Winner` fires → `ReturnToLobby` after Confirm.
+8. **Match end:** Reduce one player's HP to 0 → `GameMatchResult.Winner` fires → `ReturnToLobby` after Confirm.
 
 ---
 
@@ -595,12 +601,15 @@ These values are **mined from LEGACY for reuse**, not the LEGACY code itself. Th
 
 ## 8. Coordination Plan
 
-### Day 0 (both members, blocking)
-1. Land all interface files from §3 to `Core/Scripts/Interfaces/Features/Gameplay/`. Empty bodies; just contracts.
-2. Land all `*StateData` structs as `INetworkStruct`.
-3. Land empty `*Subsystem` skeletons that compile (events declared, methods throw `NotImplementedException`).
-4. Land empty `GameplayInstaller` bindings for every domain (compile must pass).
-5. Move existing DeckChoose interfaces into the new location (path harmonization).
+### Day 0 (both members, blocking) — ✅ COMPLETE
+
+1. ✅ Land all interface files from §3 to `Core/Scripts/Interfaces/Features/Gameplay/`. Empty bodies; just contracts.
+2. ✅ Land all `*StateData` structs (plain C# structs — Fusion `[Networked]` attributes stay on `NetworkBehaviour` props, not on the state structs passed through subsystem interfaces).
+3. ✅ Land empty `*Subsystem` skeletons that compile (events declared, real delegation where trivial).
+4. ✅ Land `GameplayInstaller` bindings for every domain (compile passes clean).
+5. ✅ DeckChoose interfaces already in `Core/Scripts/Interfaces/Features/Gameplay/StartPhase/` from prior work.
+
+**LEGACY cleanup note**: `LEGACY/GameState/GameplayPhase.cs` was deleted — it duplicated the enum now canonical in `Core.Interfaces`. Any other LEGACY files that define types already moved to `Core.Interfaces` must be deleted before they cause CS0436 / CS0433 conflicts.
 
 This is ~1 day of work and unblocks parallelism for the next 2 weeks.
 
