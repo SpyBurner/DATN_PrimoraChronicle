@@ -1,8 +1,8 @@
-using UnityEngine;
-
 public interface IBehaviorRegistryController : IController
 {
-    bool TryGetSkillBehavior(string behaviorId, out ScriptableObject behavior);
-    bool TryGetStatusEffectBehavior(string behaviorId, out ScriptableObject behavior);
-    bool TryGetMainPhaseSpellBehavior(string behaviorId, out ScriptableObject behavior);
+    bool TryGetSkillBehavior(string behaviorId, out SkillBehaviorBaseSO behavior);
+    bool TryGetStatusEffectBehavior(string behaviorId, out StatusEffectBehaviorBaseSO behavior);
+    bool TryGetMainPhaseSpellBehavior(string behaviorId, out MainPhaseSpellBehaviorBaseSO behavior);
+    bool TryGetEvolutionBehavior(string behaviorId, out EvolutionBehaviorBaseSO behavior);
+    void LoadAll();
 }

@@ -1,14 +1,15 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 public interface IBehaviorRegistryModel : IModel
 {
-    IReadOnlyDictionary<string, ScriptableObject> SkillBehaviors { get; }
-    IReadOnlyDictionary<string, ScriptableObject> StatusEffectBehaviors { get; }
-    IReadOnlyDictionary<string, ScriptableObject> MainPhaseSpellBehaviors { get; }
+    IReadOnlyDictionary<string, SkillBehaviorBaseSO> SkillBehaviors { get; }
+    IReadOnlyDictionary<string, StatusEffectBehaviorBaseSO> StatusEffectBehaviors { get; }
+    IReadOnlyDictionary<string, MainPhaseSpellBehaviorBaseSO> MainPhaseSpellBehaviors { get; }
+    IReadOnlyDictionary<string, EvolutionBehaviorBaseSO> EvolutionBehaviors { get; }
 
     void ApplyBehaviors(
-        IReadOnlyDictionary<string, ScriptableObject> skills,
-        IReadOnlyDictionary<string, ScriptableObject> effects,
-        IReadOnlyDictionary<string, ScriptableObject> spells);
+        IReadOnlyDictionary<string, SkillBehaviorBaseSO> skills,
+        IReadOnlyDictionary<string, StatusEffectBehaviorBaseSO> effects,
+        IReadOnlyDictionary<string, MainPhaseSpellBehaviorBaseSO> spells,
+        IReadOnlyDictionary<string, EvolutionBehaviorBaseSO> evolutions);
 }
