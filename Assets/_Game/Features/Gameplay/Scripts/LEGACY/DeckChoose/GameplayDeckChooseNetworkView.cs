@@ -2,15 +2,10 @@ using Fusion;
 using UnityEngine;
 using Zenject;
 
-/// <summary>
-/// Network seam for the deck-choose flow.
-/// Acts as the View in the networked-subsystem architecture — may inject multiple
-/// subsystems since it bridges Fusion state to the local DI world.
-/// One instance spawned per player at the start of StartPhase.
-/// </summary>
 public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChooseNetworkBridge
 {
     [Inject(Optional = true)] private IGameplayDeckChooseSubsystem _deckChoose;
+    [Inject(Optional = true)] private IDebugLogger _logger;
 
     [Networked] public NetworkBool IsReady { get; set; }
     [Networked] public NetworkString<_64> SelectedDeckId { get; set; }
@@ -20,7 +15,6 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
     private static readonly string[] _defaultCardIds =
         { "troop_scout", "troop_warrior", "equip_sword", "spell_fireball" };
     private const string DefaultChampionId = "champ_hero";
-    private const int DefaultInitialHP = 100;
 
     public override void Spawned()
     {
@@ -28,6 +22,7 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
         {
             var ctx = FindObjectOfType<SceneContext>();
             _deckChoose = ctx?.Container.Resolve<IGameplayDeckChooseSubsystem>();
+            _logger = ctx?.Container.Resolve<IDebugLogger>();
         }
 
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
@@ -58,46 +53,44 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
     private void Rpc_ConfirmDeckSelection(string championId, string cardIdsJoined, int playerIndex, string playerName)
     {
         string[] cardIds = cardIdsJoined.Split(',');
-        SetupPlayerDeck(Object.InputAuthority, championId, cardIds, playerIndex, playerName);
+        SetupPlayerDeck(Object.InputAuthority, championId, cardIds);
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_AutoConfirmDeckSelection(int playerIndex)
     {
-        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds, playerIndex, "Player " + (playerIndex + 1));
+        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds);
     }
 
-    private void SetupPlayerDeck(PlayerRef playerRef, string championId, string[] cardIds, int playerIndex, string playerName)
+    private void SetupPlayerDeck(PlayerRef playerRef, string championId, string[] cardIds)
     {
-        if (NetworkGameplayManager.Instance == null) return;
-
-        for (int i = 0; i < NetworkGameplayManager.Instance.PlayerStates.Length; i++)
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null)
         {
-            var stateId = NetworkGameplayManager.Instance.PlayerStates.Get(i);
-            if (!stateId.IsValid) continue;
-
-            if (Runner.TryFindObject(stateId, out var stateObj))
-            {
-                var ps = stateObj.GetComponent<NetworkPlayerState>();
-                if (ps != null && ps.Player == playerRef)
-                {
-                    ps.SetupDeck(championId, cardIds, DefaultInitialHP, playerIndex, playerName);
-                    ps.DrawCards(6);
-                    break;
-                }
-            }
+            _logger?.LogWarning("[DeckChooseNetworkView] No coordinator found.");
+            return;
         }
+
+        var pczView = coordinator.GetPlayerCardZoneView(playerRef);
+        if (pczView == null)
+        {
+            _logger?.LogWarning($"[DeckChooseNetworkView] No PlayerCardZoneView for {playerRef}.");
+            return;
+        }
+
+        pczView.ServerSetupDeckForMatch(championId, cardIds);
 
         IsReady = true;
         SelectedDeckId = string.Empty;
+        _logger?.Log($"[DeckChooseNetworkView] Deck confirmed for {playerRef}: champion={championId}");
     }
 
-    // ── Server-side auto-confirm (called by NetworkGameplayManager on timer expiry) ──
+    // ── Server-side auto-confirm (called by GameStateNetworkView on timer expiry) ──
 
-    public void ServerAutoConfirm(int playerIndex)
+    public void ServerAutoConfirm()
     {
-        if (!HasStateAuthority || IsReady) return;
-        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds, playerIndex, "Player " + (playerIndex + 1));
+        if (!Object.HasStateAuthority || IsReady) return;
+        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds);
     }
 
     // ── Downstream: server → all clients ─────────────────────────────────

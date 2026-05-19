@@ -13,16 +13,20 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     [SerializeField] private NetworkPrefabRef _boardManagerPrefab;
     [SerializeField] private NetworkPrefabRef _playerStatePrefab;
     [SerializeField] private NetworkPrefabRef _deckChooseViewPrefab;
+    [SerializeField] private NetworkPrefabRef _playerCardZoneViewPrefab;
 
     [Header("Player Piece Prefabs")]
     [SerializeField] private NetworkPrefabRef _player1PiecePrefab;
     [SerializeField] private NetworkPrefabRef _player2PiecePrefab;
 
     [Networked, Capacity(4)] public NetworkArray<NetworkId> PlayerStates { get; }
+    [Networked, Capacity(4)] public NetworkArray<NetworkId> PlayerCardZoneIds { get; }
     [Networked] public int PlayerCount { get; set; }
 
     private GameStateNetworkView _gameStateView;
     private BoardNetworkView _boardView;
+    private readonly Dictionary<PlayerRef, PlayerCardZoneNetworkView> _playerCardZones = new();
+    private readonly Dictionary<PlayerRef, GameplayDeckChooseNetworkView> _deckChooseViews = new();
     private readonly Dictionary<PlayerRef, NetworkObject> _playerPieces = new();
 
     public static GameplayNetworkCoordinator Instance { get; private set; }
@@ -47,6 +51,8 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     {
         if (Instance == this) Instance = null;
         _playerPieces.Clear();
+        _playerCardZones.Clear();
+        _deckChooseViews.Clear();
     }
 
     private void Start()
@@ -114,9 +120,24 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             _logger?.Log($"[GameplayNetworkCoordinator] Spawned PlayerState for {player}.");
         }
 
+        if (_playerCardZoneViewPrefab.IsValid)
+        {
+            var pczObj = Runner.Spawn(_playerCardZoneViewPrefab, Vector3.zero, Quaternion.identity, player);
+            var pczView = pczObj.GetComponent<PlayerCardZoneNetworkView>();
+            if (pczView != null)
+            {
+                _playerCardZones[player] = pczView;
+                RegisterPlayerCardZone(pczObj.Id);
+            }
+            _logger?.Log($"[GameplayNetworkCoordinator] Spawned PlayerCardZoneView for {player}.");
+        }
+
         if (_deckChooseViewPrefab.IsValid)
         {
-            Runner.Spawn(_deckChooseViewPrefab, Vector3.zero, Quaternion.identity, player);
+            var dcObj = Runner.Spawn(_deckChooseViewPrefab, Vector3.zero, Quaternion.identity, player);
+            var dcView = dcObj.GetComponent<GameplayDeckChooseNetworkView>();
+            if (dcView != null)
+                _deckChooseViews[player] = dcView;
             _logger?.Log($"[GameplayNetworkCoordinator] Spawned DeckChooseView for {player}.");
         }
 
@@ -146,6 +167,18 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
         }
     }
 
+    private void RegisterPlayerCardZone(NetworkId zoneId)
+    {
+        for (int i = 0; i < PlayerCardZoneIds.Length; i++)
+        {
+            if (!PlayerCardZoneIds.Get(i).IsValid)
+            {
+                PlayerCardZoneIds.Set(i, zoneId);
+                return;
+            }
+        }
+    }
+
     private int GetPlayerIndex(PlayerRef player)
     {
         int index = 0;
@@ -161,4 +194,18 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
 
     public GameStateNetworkView GameStateView => _gameStateView;
     public BoardNetworkView BoardView => _boardView;
+
+    public PlayerCardZoneNetworkView GetPlayerCardZoneView(PlayerRef player)
+    {
+        _playerCardZones.TryGetValue(player, out var view);
+        return view;
+    }
+
+    public GameplayDeckChooseNetworkView GetDeckChooseView(PlayerRef player)
+    {
+        _deckChooseViews.TryGetValue(player, out var view);
+        return view;
+    }
+
+    public IEnumerable<PlayerRef> GetAllPlayers() => _playerCardZones.Keys;
 }

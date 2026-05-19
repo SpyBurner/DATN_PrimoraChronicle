@@ -87,6 +87,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         switch (CurrentPhase)
         {
             case GameplayPhase.StartPhase:
+                AutoConfirmUnreadyPlayers();
                 TransitionTo(GameplayPhase.MainPhase);
                 break;
             case GameplayPhase.MainPhase:
@@ -96,6 +97,22 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 RoundNumber++;
                 TransitionTo(GameplayPhase.MainPhase);
                 break;
+        }
+    }
+
+    private void AutoConfirmUnreadyPlayers()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var dcView = coordinator.GetDeckChooseView(player);
+            if (dcView != null && !dcView.IsReady)
+            {
+                dcView.ServerAutoConfirm();
+                _logger?.Log($"[GameStateNetworkView] Auto-confirmed deck for unready player {player}.");
+            }
         }
     }
 
