@@ -1,6 +1,7 @@
 using System;
+using Fusion;
 
-public struct HexCoord : IEquatable<HexCoord>
+public struct HexCoord : INetworkStruct, IEquatable<HexCoord>
 {
     public int P;
     public int Q;

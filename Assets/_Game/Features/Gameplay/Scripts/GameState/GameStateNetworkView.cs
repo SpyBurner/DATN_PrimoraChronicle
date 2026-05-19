@@ -110,7 +110,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             var dcView = coordinator.GetDeckChooseView(player);
             if (dcView != null && !dcView.IsReady)
             {
-                dcView.ServerAutoConfirm();
+                dcView.ServerAutoConfirm(player.PlayerId);
                 _logger?.Log($"[GameStateNetworkView] Auto-confirmed deck for unready player {player}.");
             }
         }

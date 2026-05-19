@@ -109,18 +109,22 @@ public class GameplayDeckChooseController : IGameplayDeckChooseController
 
     private int ResolvePlayerIndex()
     {
-        var coordinator = GameplayNetworkCoordinator.Instance;
-        if (coordinator == null) return 0;
+        if (NetworkGameplayManager.Instance == null) return 0;
 
-        var runner = coordinator.Runner;
+        var runner = NetworkGameplayManager.Instance.Runner;
         if (runner == null) return 0;
 
         PlayerRef localPlayer = runner.LocalPlayer;
-        int index = 0;
-        foreach (var p in runner.ActivePlayers)
+        for (int i = 0; i < NetworkGameplayManager.Instance.PlayerStates.Length; i++)
         {
-            if (p == localPlayer) return index;
-            index++;
+            var stateId = NetworkGameplayManager.Instance.PlayerStates.Get(i);
+            if (!stateId.IsValid) continue;
+            if (runner.TryFindObject(stateId, out var obj))
+            {
+                var ps = obj.GetComponent<NetworkPlayerState>();
+                if (ps != null && ps.Player == localPlayer)
+                    return i;
+            }
         }
         return 0;
     }
