@@ -123,6 +123,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 break;
             case GameplayPhase.CombatPhase:
                 PhaseTimer = TickTimer.None;
+                StartCombatPhase();
                 break;
             case GameplayPhase.DrawPhase:
                 PhaseTimer = TickTimer.CreateFromSeconds(Runner, _drawPhaseDuration);
@@ -134,6 +135,12 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         }
 
         _logger?.Log($"[GameStateNetworkView] Phase transition -> {newPhase}");
+    }
+
+    private void StartCombatPhase()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        coordinator?.CombatView?.ServerStartCombatPhase();
     }
 
     // ── IGameStateNetworkBridge ──────────────────────────────────────────

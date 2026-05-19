@@ -103,9 +103,37 @@ public class BoardSubsystem : IBoardSubsystem
 
     public IReadOnlyList<HexCoord> FindPath(HexCoord from, HexCoord to, int maxDistance)
     {
-        // Track A: implement BFS pathfinding. Stub returns direct path if distance <= maxDistance.
-        if (Distance(from, to) <= maxDistance && IsEmpty(to))
-            return new List<HexCoord> { to };
+        if (!IsEmpty(to)) return new List<HexCoord>();
+        if (Distance(from, to) > maxDistance) return new List<HexCoord>();
+
+        // BFS pathfinding through empty tiles only
+        var visited = new HashSet<HexCoord> { from };
+        var queue = new Queue<(HexCoord pos, List<HexCoord> path)>();
+        queue.Enqueue((from, new List<HexCoord>()));
+
+        while (queue.Count > 0)
+        {
+            var (current, path) = queue.Dequeue();
+
+            if (path.Count >= maxDistance) continue;
+
+            foreach (var neighbor in GetNeighbors(current))
+            {
+                if (visited.Contains(neighbor)) continue;
+
+                var newPath = new List<HexCoord>(path) { neighbor };
+
+                if (neighbor == to)
+                    return newPath;
+
+                if (IsEmpty(neighbor))
+                {
+                    visited.Add(neighbor);
+                    queue.Enqueue((neighbor, newPath));
+                }
+            }
+        }
+
         return new List<HexCoord>();
     }
 

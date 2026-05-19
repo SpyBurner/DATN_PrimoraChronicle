@@ -16,6 +16,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     [SerializeField] private NetworkPrefabRef _playerCardZoneViewPrefab;
     [SerializeField] private NetworkPrefabRef _fusionViewPrefab;
     [SerializeField] private NetworkPrefabRef _unitPrefab;
+    [SerializeField] private NetworkPrefabRef _combatCoordinatorPrefab;
 
     [Header("Player Piece Prefabs")]
     [SerializeField] private NetworkPrefabRef _player1PiecePrefab;
@@ -27,6 +28,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
 
     private GameStateNetworkView _gameStateView;
     private BoardNetworkView _boardView;
+    private CombatNetworkView _combatView;
     private readonly Dictionary<PlayerRef, PlayerCardZoneNetworkView> _playerCardZones = new();
     private readonly Dictionary<PlayerRef, GameplayDeckChooseNetworkView> _deckChooseViews = new();
     private readonly Dictionary<PlayerRef, FusionNetworkView> _fusionViews = new();
@@ -47,6 +49,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
 
         SpawnGameStateManager();
         SpawnBoard();
+        SpawnCombatCoordinator();
         SpawnExistingPlayers();
     }
 
@@ -98,6 +101,19 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
         var obj = Runner.Spawn(_boardManagerPrefab, Vector3.zero, Quaternion.identity);
         _boardView = obj.GetComponent<BoardNetworkView>();
         _logger?.Log("[GameplayNetworkCoordinator] Spawned BoardManager.");
+    }
+
+    private void SpawnCombatCoordinator()
+    {
+        if (!_combatCoordinatorPrefab.IsValid)
+        {
+            _logger?.LogWarning("[GameplayNetworkCoordinator] CombatCoordinator prefab not assigned.");
+            return;
+        }
+
+        var obj = Runner.Spawn(_combatCoordinatorPrefab, Vector3.zero, Quaternion.identity);
+        _combatView = obj.GetComponent<CombatNetworkView>();
+        _logger?.Log("[GameplayNetworkCoordinator] Spawned CombatCoordinator.");
     }
 
     private void SpawnExistingPlayers()
@@ -207,6 +223,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
 
     public GameStateNetworkView GameStateView => _gameStateView;
     public BoardNetworkView BoardView => _boardView;
+    public CombatNetworkView CombatView => _combatView;
 
     public PlayerCardZoneNetworkView GetPlayerCardZoneView(PlayerRef player)
     {
