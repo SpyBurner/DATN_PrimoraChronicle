@@ -5,5 +5,10 @@ using Fusion;
 public struct PlayerCardZonePrivateData
 {
     public PlayerRef Owner;
-    public List<string> Hand; // capacity 6
+    public int HP;
+    public List<string> Hand;
+    public int DeckCount;
+    public int DiscardCount;
+    public int DrawPhaseNewCards;
+    public bool IsDrawPhaseConfirmed;
 }
