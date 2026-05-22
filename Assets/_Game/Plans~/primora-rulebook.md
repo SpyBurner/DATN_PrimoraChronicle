@@ -49,6 +49,7 @@ This document is the authoritative source for implementing Primora Chronicle. Ev
 ## 4. Fusion
 
 - A player assembles exactly 1 unit per turn during the Main Phase.
+- A player may skip this phase. Results in a Combat phase loss immediately.
 - A unit has exactly 4 fusion slots.
 - If the base Troop has an innate skill (`grants_skill`), that skill occupies 1 of the 4 slots automatically.
 - Each EquipSpell card fused onto the unit occupies exactly 1 slot.
@@ -72,6 +73,7 @@ This document is the authoritative source for implementing Primora Chronicle. Ev
 - The player assembles and deploys up to 1 unit (optional).
 - The player may play any number of MainPhaseSpell cards from hand. Each is used in real-time and resolved immediately.
 - The board state from the previous Combat Phase is active during the Main Phase. Persistent Units and lingering tile effects are present.
+- The player can skip this phase (automatically a loss in combat phase). If the player does not confirm the fusion in time, they are automatically skipped.
 
 ### Combat Phase
 The Combat Phase runs in this order:
@@ -100,7 +102,7 @@ The Combat Phase runs in this order:
 - Elimination is checked continuously, not at end of phase.
 
 **Step 4 — Board Clear**
-- Board clear triggers when only one player's units remain on the board.
+- Board clear triggers when only one player's **player-deployed** units remain on the board. Persistent Units (spawned by skills) do not count toward this check.
 - All player-deployed units on the board (surviving or destroyed) go to the Discard Pile.
 - Persistent Units (non-player-deployed units) remain on the board and carry into the next Main Phase.
 - All types of effects (Unit, Tile) remain on the board, but do not have any effect nor duration ticking.
@@ -183,7 +185,7 @@ The Combat Phase runs in this order:
 
 - A skill's cooldown ticks down by 1 at the start of the owning unit's turn.
 - A skill is usable when its cooldown value reaches 0.
-- Skills with `one_time: true` are permanently disabled after their first use in that cycle's combat phase.
+- Skills with `one_time: true` are disabled after their first use for the remainder of that combat phase. The flag resets at the end of the combat phase, so the skill is available again in the next cycle if the unit is re-fused (or if the unit is Persistent and survives board clear).
 - Persistent Unit cooldowns carry across board clear cycles.
 
 ---

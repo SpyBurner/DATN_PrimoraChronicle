@@ -17,5 +17,9 @@
       "Bash(python3)",
       "mcp__mcp-unity__batch_execute"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "mcp-unity"
+  ],
+  "enableAllProjectMcpServers": true
 }

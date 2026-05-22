@@ -118,6 +118,7 @@ public struct GameStateData : INetworkStruct {
     public float MatchElapsed;
     public int RoundNumber;
     public PlayerRef CurrentCombatActor;
+    [Networked, Capacity(4)] public NetworkArray<NetworkBool> PlayerReady => default;  // index by PlayerRef.PlayerId
 }
 
 public interface IGameStateSubsystem : ISubsystem {
@@ -126,12 +127,29 @@ public interface IGameStateSubsystem : ISubsystem {
     event UnityAction<float> MatchElapsedChanged;
     event UnityAction<int> RoundNumberChanged;
     event UnityAction<PlayerRef> CurrentCombatActorChanged;
+    event UnityAction<PlayerRef, bool> PlayerReadyChanged;
+    event UnityAction AllPlayersReady;              // fires once when every active player is ready
 
     GameplayPhase Phase { get; }
+    bool IsReady(PlayerRef p);
+    bool AcceptsReadyInput { get; }                 // true during StartPhase/MainPhase/DrawPhase; false during Setup/CombatPhase/GameOver
+
+    // LOCAL_INPUT_RPC — the only entry point for confirming the current phase.
+    // Server validates AcceptsReadyInput and that PlayerRef matches RPC source.
+    // Once PlayerReady[i]=true, RequestSetLocalReady(false) is rejected until the phase advances (locked).
+    void RequestSetLocalReady(bool ready);
+
     void RegisterNetworkBridge(IGameStateNetworkBridge bridge);
     void OnAuthoritativeStateReceived(GameStateData data);
 }
 ```
+
+Phase advancement rules (server, in `GameStateController`):
+- Server advances when `AllPlayersReady` fires **or** `PhaseTimeRemaining` reaches 0.
+- On phase change, server resets `PlayerReady[i] = false` for every player.
+- `AcceptsReadyInput` is false during `Setup` (deck not yet chosen), `CombatPhase` (advancement driven by `ICombatSubsystem` queue exhaustion), and `GameOver`.
+- Once `PlayerReady[i]=true`, the server ignores further `RequestSetLocalReady(false)` RPCs from that player until the phase advances.
+- `IGameStateSubsystem.PlayerReady[]` is the **only** ready flag in the system. No per-phase subsystem keeps its own ready state. Phase-confirm buttons call `RequestSetLocalReady(true)` after their payload RPC succeeds.
 
 ### 3.2 Board
 
@@ -156,15 +174,20 @@ public interface IBoardSubsystem : ISubsystem {
 ### 3.3 Unit
 
 ```csharp
-// Unit/IUnitSubsystem.cs
-public struct UnitStateData : INetworkStruct {
+// Unit/UnitPublicData.cs  — always replicated to all clients
+public struct UnitPublicData : INetworkStruct {
     public NetworkId UnitId; public PlayerRef Owner;
     public HexCoord Position; public int CurrentHP; public int MaxHP;
     public float Speed; public int DeathAnchor; public int MoveRange;
     public bool IsPersistent;
     public int GrowthStacks;
     [Networked, Capacity(8)] public NetworkArray<StatusSlot> StatusEffects => default;
-    [Networked, Capacity(4)] public NetworkArray<SkillSlot> Skills => default;
+}
+
+// Unit/UnitPrivateData.cs  — replicated ONLY to Owner via AoI
+public struct UnitPrivateData : INetworkStruct {
+    public NetworkId UnitId; public PlayerRef Owner;
+    [Networked, Capacity(4)] public NetworkArray<SkillSlot> Skills => default;  // IDs, cooldowns, one-time flags
 }
 
 public interface IUnitSubsystem : ISubsystem {
@@ -174,11 +197,16 @@ public interface IUnitSubsystem : ISubsystem {
     event UnityAction<NetworkId, HexCoord> UnitMoved;
     event UnityAction<NetworkId, string, int> StatusApplied;
     event UnityAction<NetworkId, string> StatusRemoved;
+    // owner-only event — fires only on the unit-owner's client
+    event UnityAction<NetworkId, IReadOnlyList<SkillSlot>> OwnUnitSkillsChanged;
 
     IReadOnlyList<NetworkId> AllUnits { get; }
-    bool TryGet(NetworkId id, out UnitStateData data);
+    bool TryGetPublic(NetworkId id, out UnitPublicData data);
+    bool TryGetOwnSkills(NetworkId id, out IReadOnlyList<SkillSlot> skills);   // empty for non-owners
 }
 ```
+
+> Unit state is split across two NetworkObjects per spawned unit. `UnitPublicNetworkView` holds public combat data (position, HP, status effects) and is always-replicated. `UnitPrivateNetworkView` holds the skill list (IDs, cooldowns, one-time flags) and is AoI-restricted to the owning player via `Runner.SetPlayerAlwaysInterested(unitOwner, unitPrivateObject, true)`. The `SkillPanel` UI subscribes to `OwnUnitSkillsChanged` — when the current actor belongs to the opponent, the panel shows a placeholder.
 
 ### 3.4 Combat (queue + turn)
 
@@ -199,33 +227,58 @@ public interface ICombatSubsystem : ISubsystem {
 }
 ```
 
-### 3.5 PlayerCardZone (deck/hand/discard)
+### 3.5 PlayerRoster (public profile) + PlayerCardZone (private hand)
+
+Per-player data is split into two concerns. `IPlayerRosterSubsystem` is the single source of truth for public profile data that every widget subscribes to. `IPlayerCardZoneSubsystem` is owner-private cards-only — no public counts, no Deck/Discard replication.
 
 ```csharp
-// PlayerCardZone/IPlayerCardZoneSubsystem.cs
-public struct PlayerCardZoneData : INetworkStruct {
-    public PlayerRef Owner; public int HP;
+// PlayerRoster/PlayerRosterPublicData.cs  — always replicated to all clients
+public struct PlayerRosterPublicData : INetworkStruct {
+    public PlayerRef Owner;
+    public int HP;
+    public NetworkString<_32> PlayerName;
+    public NetworkString<_32> UserId;          // for HTTP avatar fetch per-client
+}
+
+public interface IPlayerRosterSubsystem : ISubsystem {
+    event UnityAction<PlayerRef, int> HPChanged;
+    event UnityAction<PlayerRef, string> NameChanged;
+    event UnityAction<PlayerRef, string> UserIdChanged;
+
+    IReadOnlyList<PlayerRef> AllPlayers { get; }
+    int GetHP(PlayerRef p);
+    string GetName(PlayerRef p);
+    string GetUserId(PlayerRef p);
+
+    void RegisterNetworkBridge(IPlayerRosterNetworkBridge bridge);
+    void OnAuthoritativeStateReceived(PlayerRosterPublicData data);
+}
+```
+
+> **PlayerRoster** is a thin public facade for per-player profile data. `PlayerRosterPublicNetworkView` is one NetworkObject per player, always-replicated. HP drives `Profile_Gameplay.HPValueText` and `MatchResultPanel`; PlayerName drives `NameValueText` everywhere; UserId drives the local HTTP avatar fetch in both panels.
+
+```csharp
+// PlayerCardZone/PlayerCardZonePrivateData.cs  — replicated ONLY to Owner via AoI
+public struct PlayerCardZonePrivateData : INetworkStruct {
+    public PlayerRef Owner;
     [Networked, Capacity(6)] public NetworkArray<NetworkString<_32>> Hand => default;
-    [Networked, Capacity(40)] public NetworkArray<NetworkString<_32>> Deck => default;
-    [Networked, Capacity(60)] public NetworkArray<NetworkString<_32>> Discard => default;
+    // Deck and Discard are server-only — no [Networked] mirror. No UI consumes them.
 }
 
 public interface IPlayerCardZoneSubsystem : ISubsystem {
-    event UnityAction<PlayerRef, IReadOnlyList<string>> HandChanged;
-    event UnityAction<PlayerRef, int> DeckCountChanged;
-    event UnityAction<PlayerRef, int> DiscardCountChanged;
-    event UnityAction<PlayerRef, int> HPChanged;
-    event UnityAction<PlayerRef, string> NameChanged;
+    // owner-only events — fire only on the owning client (private NetworkView is not in others' AoI)
+    event UnityAction<IReadOnlyList<string>> OwnHandChanged;
 
-    IReadOnlyList<string> GetHand(PlayerRef p);
-    int GetHP(PlayerRef p);
+    IReadOnlyList<string> GetOwnHand();   // returns local player's hand; empty for non-owners
 
-    // Server intents
+    // Server intents (LOCAL_INPUT_RPC)
     void RequestDraw(PlayerRef p, int count);
     void RequestKeepCards(PlayerRef p, IReadOnlyList<string> keep);
     void RequestPlayMainPhaseSpell(string cardId, HexCoord target);
 }
 ```
+
+> **PlayerCardZone** is owner-private. Hand lives on `PlayerCardZonePrivateNetworkView` — a separate NetworkObject per player, made visible only to its `Owner` via `Runner.SetPlayerAlwaysInterested(owner, privateObject, true)`. Deck and Discard are server-side state inside `PlayerCardZoneModel`; they are never `[Networked]` because no UI consumes them. The subsystem only exposes `OwnHandChanged` — opponents have no hand events at all.
 
 ### 3.6 Fusion
 
@@ -251,7 +304,8 @@ public interface IFusionSubsystem : ISubsystem {
 
 ```csharp
 // Targeting/ITargetingSubsystem.cs
-[Flags] public enum TargetMask { None = 0, Enemy = 1, Ally = 2, EmptyTile = 4, Self = 8 }
+[Flags] public enum TargetMask { None = 0, Enemy = 1, Ally = 2, EmptyTile = 4 }
+// None (0) = self-only; no tile selection. TargetingSubsystem treats Mask == None as "apply to caster's own tile".
 
 public struct TargetingRequest {
     public TargetMask Mask;
@@ -293,13 +347,18 @@ public interface ITileEffectSubsystem : ISubsystem {
 > **Name change from original plan**: `MatchResultData` was renamed to `GameMatchResult` to avoid a collision with the existing `MatchResultData` class in `Core/Scripts/Models/APIModels.cs` (used by BackendBridge for HTTP serialization).
 
 ```csharp
-// MatchResult/GameMatchResult.cs  (plain C# struct, not INetworkStruct)
+// MatchResult/GameMatchResult.cs  (plain C# struct — public match data, not INetworkStruct)
 public struct GameMatchResult {
     public PlayerRef Winner;
     public bool IsTie;
+    public float DurationSeconds;
+}
+
+// MatchRewards/MatchRewardsPrivateData.cs  — replicated ONLY to Owner via AoI
+public struct MatchRewardsPrivateData : INetworkStruct {
+    public PlayerRef Owner;
     public int GoldEarned;
     public int XPEarned;
-    public float DurationSeconds;
 }
 
 public interface IMatchResultSubsystem : ISubsystem {
@@ -310,11 +369,24 @@ public interface IMatchResultSubsystem : ISubsystem {
     void RegisterNetworkBridge(IMatchResultNetworkBridge bridge);
     void OnAuthoritativeStateReceived(GameMatchResult data);
 }
+
+public interface IMatchRewardsSubsystem : ISubsystem {
+    // owner-only event — fires only on the owning client after AoI replication
+    event UnityAction<int, int> OwnRewardsReceived;   // (gold, xp)
+    int OwnGold { get; }
+    int OwnXP { get; }
+    void RegisterNetworkBridge(IMatchRewardsPrivateNetworkBridge bridge);
+    void OnAuthoritativeStateReceived(MatchRewardsPrivateData data);
+}
 ```
+
+> **Match-end shutdown flow.** Server writes `GameMatchResult` (Winner, IsTie, DurationSeconds) as a `[Networked]` prop on `MatchResultNetworkView` — replicated to all clients. Server then writes per-player Gold/XP to each player's `MatchRewardsPrivateNetworkView` (AoI-restricted, so each client only receives its own). After both writes are committed, server calls `await IBackendBridgeSubsystem.ReportMatchResultAsync(...)`, then `Runner.Shutdown()`. Clients' `MatchResultPanel` subscribes to both events and caches the values locally so the panel remains populated after the runner disconnects. `Button_Confirm` calls `ISceneLoaderSubsystem.LoadScene("Lobby")` — a local-only operation with no network dependency.
 
 ### 3.10 Network bridges (one per subsystem)
 
 For every subsystem above, an `IXxxNetworkBridge` with the RPC signatures it needs. These also live in `Core/Scripts/Interfaces/Features/Gameplay/<domain>/`. Track A implements the NetworkViews; Track B never sees them.
+
+New/updated bridges introduced by the AoI split: `IPlayerRosterNetworkBridge` (HP/Name/UserId mutations on `PlayerRosterPublicNetworkView`), `IPlayerCardZonePrivateNetworkBridge` (hand mutations on the per-player private object; Deck/Discard never leave the server), `IUnitPublicNetworkBridge` (position/HP/status on `UnitPublicNetworkView`), `IUnitPrivateNetworkBridge` (skills/cooldowns on `UnitPrivateNetworkView`), `IMatchRewardsPrivateNetworkBridge` (Gold/XP writes on `MatchRewardsPrivateNetworkView`). Each private bridge is registered only with the StateAuthority's view of each owner's private object; AoI ensures it replicates only to the owner.
 
 ---
 
@@ -326,11 +398,11 @@ Each row is **independently implementable and incrementally testable**. The "Com
 
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
-| F1.1 | **Scene bootstrap from Lobby** | — | `GameplayInstaller` (bindings); Gameplay scene's `NetworkSceneManagerDefault`; in Lobby `MatchMakingSubsystem` calls `_sceneLoader.LoadNetworkedScene(_runner, "Gameplay")`. |
+| F1.1 | **Scene bootstrap from Lobby** | — | `GameplayInstaller` (bindings); Gameplay scene's `NetworkSceneManagerDefault`; in Lobby `MatchMakingSubsystem` calls `_sceneLoader.LoadNetworkedScene(_runner, "Gameplay")`. Verify the `NetworkRunner` is configured for **Host mode with AreaOfInterest enabled** (or Shared mode) — `Runner.SetPlayerAlwaysInterested` is a no-op in the default replicate-everything topology. |
 | F1.2 | **Hex board generation** | §1 | `BoardModel`, `BoardController`, `BoardSubsystem`, `BoardNetworkView`, `HexTile.prefab`. Generates r∈[-4,4], numCols=9-\|r\|, rotation Euler(270,330,0), spacing horizontal=1.732 / vertical=1.5 (or computed from tile Z-bounds). Deploy areas at (4,-4) and (-4,4). |
 | F1.3 | **Phase machine + match timer** | §5 | `GameStateModel`, `GameStateController`, `GameStateSubsystem`, `GameStateNetworkView`. Durations: Start=30s, Main=60s, Draw=30s, MatchCap=3600s. |
-| F1.4 | **HUD shell** | — | `GameplayHUDController` on `Layout_Fullscreen_Gameplay.prefab`. Wires `PhaseNameValueText`, `MatchTimeValueText`, two `Profile_*` slots. Hides `Profile_Enemy2` (3-player reserved). |
-| F1.5 | **Profile bridge to HUD** | — | `GameplayPlayerProfileUI` on `Profile_Gameplay.prefab`. Inject `IProfileSubsystem` (local) + reads opponent name via `IPlayerCardZoneSubsystem.NameChanged` event (do **not** use HP/Hand as a proxy — name arrives separately via `Rpc_SetPlayerName` which changes only the `PlayerName` networked prop). `IPlayerCardZoneSubsystem` must expose `NameChanged`, wired through `IPlayerCardZoneModel.PlayerNameChanged`. Maps to `NameValueText`, `HPValueText`, `Panel` (PFP), `ReadyToggle`. |
+| F1.4 | **HUD shell** | — | `GameplayHUDController` on `Layout_Fullscreen_Gameplay.prefab`. Wires `PhaseNameValueText`, `MatchTimeValueText`, two `Profile_*` slots. Hides `Profile_Enemy2` (3-player reserved). Must call `profileUI.Bind(playerRef)` on each slot so `GameplayPlayerProfileUI` knows which PlayerRef to filter events for — used for `PlayerReadyChanged` / `HPChanged` / `NameChanged` (all sourced from `IPlayerRosterSubsystem` and `IGameStateSubsystem`). |
+| F1.5 | **Profile bridge to HUD** | — | `GameplayPlayerProfileUI` on `Profile_Gameplay.prefab`. Injects `IProfileSubsystem` (own PFP, local cache), `IPlayerRosterSubsystem` (HP / Name / UserId for all players), and `IGameStateSubsystem` (PlayerReady). Maps `HPChanged` → `HPValueText`, `NameChanged` → `NameValueText`, `PlayerReadyChanged` → `ReadyToggle` visual (always non-interactable), `UserIdChanged` → HTTP avatar fetch → `Panel` (PFP). Own PFP uses `IProfileSubsystem.ProfileChanged` directly. |
 
 ### Group F2 — Start Phase
 
@@ -338,18 +410,19 @@ Each row is **independently implementable and incrementally testable**. The "Com
 |---|---|---|---|
 | F2.1 | **Deck selection per player** | §5 Start | Existing `GameplayDeckChoose*` stack. Finish: move 5 interface files to `Core/Scripts/Interfaces/Features/Gameplay/StartPhase/`. Wire `GameplayDeckChoosePanel` to `PhaseInteractionPanel_DeckChoose.prefab`. Wire `GameplayDeckSelectOverlay` to `Overlay_Gameplay_Decks.prefab` (8 slots, populated from `IGameplayDeckSubsystem.DecksChanged` — **not** `IDeckSubsystem`; `GameplayDeckSubsystem` calls `/api/decks` directly and is bound in `GameplayInstaller`). |
 | F2.2 | **NetworkView spawn trigger** | §5 Start | `GameStateSubsystem.OnPhaseChanged(StartPhase)` → spawns one `GameplayDeckChooseNetworkView.prefab` per player via `Runner.Spawn(prefab, inputAuthority: player)`. |
-| F2.3 | **Granted-cards shuffle + opening hand** | §3 Granted, §5 Start | `PlayerCardZoneController.SetupDeckForMatch(championId, supportCardIds)`. Reads `CardLoadingManagerSubsystem.GetCardData(championId).grants_cards`, shuffles into the 20 supports, sets HP from `champion.hp`, deals 6 via `RequestDraw(6)`. |
-| F2.4 | **Auto-confirm on timer expiry** | §5 Start | `GameStateSubsystem` on phase-timer 0 fires `IGameplayDeckChooseSubsystem.AutoConfirmLastDeck()` for any player whose `IsReady==false`. |
+| F2.3 | **Granted-cards shuffle + opening hand** | §3 Granted, §5 Start | `PlayerCardZoneController.SetupDeckForMatch(championId, supportCardIds)` — reads `CardLoadingManagerSubsystem.GetCardData(championId).grants_cards`, shuffles into the 20 supports, deals 6 via `RequestDraw(6)`. HP initialization (`champion.hp`) is a separate call to `PlayerRosterController.SetupForMatch(championId)` — player HP belongs to `IPlayerRosterSubsystem`, not `PlayerCardZone`. |
+| F2.4 | **Auto-confirm Start on timer expiry** | §5 Start | `GameStateController` on phase-timer 0 calls `IGameplayDeckChooseSubsystem.AutoConfirmLastDeck()` for any unready player (commits a default deck payload), which routes through the standard `SubmitAsync` → `RequestSetLocalReady(true)` path. `PlayerReady[i]` flips as a result, not directly. |
 
 ### Group F3 — Main Phase
 
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
-| F3.1 | **Hand panel** | §13 | `HandPanel` MonoBehaviour on `PhaseInteractionPanel_Hand.prefab`. Subscribes `IPlayerCardZoneSubsystem.HandChanged` (local player only). Renders into `CardSlot [×N]`. Drawer wrapped by `HandPanelAnchor.prefab` via `PanelDrawer`. |
+| F3.1 | **Hand panel** | §13 | `HandPanel` MonoBehaviour on `PhaseInteractionPanel_Hand.prefab`. Subscribes `IPlayerCardZoneSubsystem.OwnHandChanged` (local player only). Renders into `CardSlot [×N]`. Drawer wrapped by `HandPanelAnchor.prefab` via `PanelDrawer`. |
 | F3.2 | **Fusion staging UI** | §4 | `FusionPanel` on `PhaseInteractionPanel_Fusion.prefab`. Wires `UnitSlot`, `NormalAttackSlot` (always shown from Champion/Troop card data), `MovementSlot` (always shown), `FuseSlot1..4` (drop targets, one auto-occupied if base has `grants_skill`). `Button_Confirm` → `IFusionSubsystem.ConfirmFusion()`. |
 | F3.3 | **Fusion authority** | §4 | `FusionModel`, `FusionController`, `FusionSubsystem`, `FusionNetworkView`. Validates: ≤1 unit/turn, exactly 1 base, ≤4 slots, base's `grants_skill` occupies 1 slot if present. On confirm: spawns `NetworkUnit` at deploy area, sends Troop + all EquipSpells to discard at end of Combat phase. |
 | F3.4 | **MainPhaseSpell play** | §3, §5 Main | `IPlayerCardZoneSubsystem.RequestPlayMainPhaseSpell(cardId, target)`. Routes to `BehaviorRegistrySubsystem.ResolveMainPhaseSpell(behaviorId).Execute(target)`. Card moves to discard immediately. |
 | F3.5 | **Champion always-available in fusion** | §3 | `FusionPanel` shows Champion card pinned to base slot pool; not consumed from hand. |
+| F3.6 | **Main-phase ready/confirm + auto-advance** | §5 Main | `PhaseInteractionPanel_Fusion` and/or `PhaseInteractionPanel_Hand` `Button_Confirm` calls `IGameStateSubsystem.RequestSetLocalReady(true)` after the payload RPC (ConfirmFusion / RequestKeepCards) succeeds. Timer-0 fallback: `GameStateController` flips `PlayerReady[i]=true` for any remaining unready player. |
 
 ### Group F4 — Combat Phase
 
@@ -363,10 +436,10 @@ Each row is **independently implementable and incrementally testable**. The "Com
 | F4.6 | **Targeting display** | §9, §15 | `TargetingSubsystem` reads `display_pattern` field of skill data. `LocalInteractionController`-style highlight (yellow range, green valid, red invalid). Bitmask: Enemy=1, Ally=2, EmptyTile=4. `target_condition: 0` ⇒ self-only, no tile selection. |
 | F4.7 | **3-pass damage pipeline** | §8 | `DamagePipelineSubsystem.Resolve(action)`. Aggregate → Intercept (Tile effects first then Unit effects) → Commit. Hooks: `IInterceptor` list rebuilt per action from active statuses + tile effects. |
 | F4.8 | **Status effects (ScriptableObject behaviors)** | §14 | `StatusEffectBehaviorSO` base. `barkskin_ward` (intercept −15), `burning` (10/turn), `decay` (blocks heal), `rooted`, `burning_trail`, growth-related. Resolved via `status_effect_behavior_id`. |
-| F4.9 | **Skill cooldowns & one-time** | §12 | `UnitController.OnTurnStart()` decrements every skill cooldown by 1. `one_time: true` skills are permanently disabled in the cycle after first use. Cooldowns reset at next StartPhase via `CombatSubsystem.OnCombatPhaseEnd`. |
+| F4.9 | **Skill cooldowns & one-time** | §12 | `UnitController.OnTurnStart()` decrements every skill cooldown by 1. `one_time: true` skills are disabled for the remainder of the current combat phase; `CombatSubsystem.OnCombatPhaseEnd()` resets all `one_time` flags on every unit (including Persistent). Persistent Unit cooldowns are not reset on phase end — they carry into the next cycle. |
 | F4.10 | **Tile effects (Lingering)** | §10 | `TileEffectSubsystem`. Corrupted/Seeded/Melting; one per tile (replaces). Survives board clear (but Deploy Area force-clear wipes). Owning player's units immune to own faction's negative effects. |
 | F4.11 | **Friendly-fire & faction immunity** | §2, §11 | Hardcoded checks in `DamagePipelineSubsystem.Aggregate()`: skip allied tiles unless skill has `ignore_friendly_fire: true`. |
-| F4.12 | **Death & DeathAnchor** | §5 Combat Step 3 | `UnitController.OnHPZero()` immediately destroys unit, subtracts `death_anchor` from owner's `PlayerCardZone.HP`. `GameStateSubsystem.CheckElimination()` continuously (after every commit). |
+| F4.12 | **Death & DeathAnchor** | §5 Combat Step 3 | `UnitController.OnHPZero()` immediately destroys unit, subtracts `death_anchor` from owner's HP via `IPlayerRosterController` (player HP lives in `IPlayerRosterSubsystem`, not `PlayerCardZone`). `GameStateSubsystem.CheckElimination()` continuously (after every commit). |
 | F4.13 | **Persistent units** | §6 | `is_summonable: false` units spawned via skill. Marked `IsPersistent=true` on `UnitStateData`. Survive board clear. Cooldowns persist. Deploy Area still wipes. |
 | F4.14 | **Verdant evolution** | §7 | `EvolutionBehaviorSO`. At 4 Growth Stacks → swap unit identity to next form (Seedling→Sapling→Young Treant→Thorn Colossus). Stacks reset to 0. Tracked on `UnitStateData.GrowthStacks`. |
 | F4.15 | **Board clear** | §5 Combat Step 4 | `CombatSubsystem.OnQueueExhausted()` when only one player's units remain (excluding persistent). All non-persistent → discard. Tile effects stay. Deploy Area force-wiped. |
@@ -377,14 +450,15 @@ Each row is **independently implementable and incrementally testable**. The "Com
 |---|---|---|---|
 | F5.1 | **Draw 2 + hand-keep UI** | §5 Draw, §13 | `DrawPhasePanel` on `PhaseInteractionPanel_DrawCard.prefab`. Shows 2 new + current hand. Drag-and-drop keep selection. `Button_Confirm` → `IPlayerCardZoneSubsystem.RequestKeepCards(keep)`. Drops cards go to discard. Hand max=6. |
 | F5.2 | **Reshuffle on empty deck** | §13 | `PlayerCardZoneController.DrawCard()`: if deck empty, shuffle Discard into Deck immediately, then draw. |
+| F5.3 | **Draw-phase ready/confirm + auto-advance** | §5 Draw | `DrawPhasePanel.Button_Confirm` calls `IPlayerCardZoneSubsystem.RequestKeepCards(keep)` (card payload), then on success calls `IGameStateSubsystem.RequestSetLocalReady(true)` (phase advance). Timer-0 fallback: `GameStateController` flips remaining unready players. |
 
 ### Group F6 — Match End
 
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
 | F6.1 | **Win condition** | §5 Win | `GameStateSubsystem.CheckWinCondition()`: last alive wins. 1h cap → highest HP. Tie → all players Loss + penalty (flagged in `GameMatchResult`). |
-| F6.2 | **Match result panel** | §5 Win | `MatchResultPanel` on `PhaseInteractionPanel_MatchResult.prefab`. Wires `Player0/1/2` slots (crown, PFP, name), `GoldValueText`, `XPValueText`, `TimeValueText`. `Button_Confirm` → `IMatchResultSubsystem.ReturnToLobby()` → `ISceneLoaderSubsystem.LoadScene("Lobby")`. |
-| F6.3 | **Backend report** | — | `MatchResultController.OnEnd()` calls `IBackendBridgeSubsystem.ReportMatchResultAsync(...)`. |
+| F6.2 | **Match result panel** | §5 Win | `MatchResultPanel` on `PhaseInteractionPanel_MatchResult.prefab`. Subscribes to `IMatchResultSubsystem.MatchEnded` (Winner, IsTie, DurationSeconds → ALL_CLIENTS) and `IMatchRewardsSubsystem.OwnRewardsReceived` (Gold/XP → OWNER_ONLY via AoI). Wires `Player0/1/2` slots (crown enabled only on winner, PFP fetched by UserId, name from `IPlayerRosterSubsystem`), `GoldValueText`, `XPValueText`, `TimeValueText`. Caches all values locally on arrival. `Button_Confirm` → `IMatchResultSubsystem.ReturnToLobby()` → `ISceneLoaderSubsystem.LoadScene("Lobby")` — works after runner shutdown. |
+| F6.3 | **Backend report + shutdown** | — | Server-side flow: `MatchResultController.OnEnd()` writes `GameMatchResult` to `MatchResultNetworkView`, writes per-player Gold/XP to each `MatchRewardsPrivateNetworkView`, then calls `await IBackendBridgeSubsystem.ReportMatchResultAsync(...)`, then `Runner.Shutdown()`. Clients receive rewards via AoI replication before the shutdown completes. |
 
 ### Group F7 — Engine plumbing
 
@@ -404,9 +478,11 @@ All implementation files under `Features/Gameplay/Scripts/<Domain>/`. Interfaces
 |---|---|
 | `GameState/` | `GameStateModel.cs`, `GameStateController.cs`, `GameStateSubsystem.cs`, `GameStateNetworkView.cs` |
 | `Board/` | `BoardModel.cs`, `BoardController.cs`, `BoardSubsystem.cs`, `BoardNetworkView.cs` |
-| `Unit/` | `UnitModel.cs`, `UnitController.cs`, `UnitSubsystem.cs`, `UnitNetworkView.cs` (NetworkBehaviour on every spawned unit) |
+| `Unit/` | `UnitModel.cs`, `UnitController.cs`, `UnitSubsystem.cs`, `UnitPublicNetworkView.cs`, `UnitPrivateNetworkView.cs` (one public + one private NetworkBehaviour per spawned unit) |
 | `Combat/` | `CombatModel.cs`, `CombatController.cs`, `CombatSubsystem.cs`, `CombatNetworkView.cs` |
-| `PlayerCardZone/` | `PlayerCardZoneModel.cs`, `PlayerCardZoneController.cs`, `PlayerCardZoneSubsystem.cs`, `PlayerCardZoneNetworkView.cs` (one per player) |
+| `PlayerRoster/` | `PlayerRosterModel.cs`, `PlayerRosterController.cs`, `PlayerRosterSubsystem.cs`, `PlayerRosterPublicNetworkView.cs` (one per player, always-replicated) |
+| `PlayerCardZone/` | `PlayerCardZoneModel.cs`, `PlayerCardZoneController.cs`, `PlayerCardZoneSubsystem.cs`, `PlayerCardZonePrivateNetworkView.cs` (one per player, AoI-restricted to owner) |
+| `MatchRewards/` | `MatchRewardsModel.cs`, `MatchRewardsController.cs`, `MatchRewardsSubsystem.cs`, `MatchRewardsPrivateNetworkView.cs` (one per player, AoI-restricted to owner) |
 | `Fusion/` | `FusionModel.cs`, `FusionController.cs`, `FusionSubsystem.cs`, `FusionNetworkView.cs` |
 | `TileEffect/` | `TileEffectModel.cs`, `TileEffectController.cs`, `TileEffectSubsystem.cs`, `TileEffectNetworkView.cs` |
 | `DamagePipeline/` | `DamagePipelineSubsystem.cs`, `IInterceptor.cs`, `IAggregator.cs`, `IInterceptResult.cs` |
@@ -421,8 +497,11 @@ All implementation files under `Features/Gameplay/Scripts/<Domain>/`. Interfaces
 | `BoardManager.prefab` | NetworkObject + GameObjectContext | Holds `BoardNetworkView`. References `IM_Tile.prefab` instance. |
 | `IM_Tile.prefab` | GameObject | One instance per hex. From LEGACY (visuals reusable). |
 | `GameStateManager.prefab` | NetworkObject | `GameStateNetworkView`. Spawned by host on scene start. |
-| `PlayerCardZoneState.prefab` | NetworkObject | One per player. `PlayerCardZoneNetworkView`. |
-| `NetworkUnit.prefab` | NetworkObject | `UnitNetworkView`. Spawned per fusion. |
+| `PlayerRosterPublicState.prefab` | NetworkObject | `PlayerRosterPublicNetworkView`. One per player. Always-replicated. |
+| `PlayerCardZonePrivateState.prefab` | NetworkObject | `PlayerCardZonePrivateNetworkView`. One per player. Host calls `SetPlayerAlwaysInterested(owner, this, true)` on spawn; never adds other players' interest. |
+| `NetworkUnitPublic.prefab` | NetworkObject | `UnitPublicNetworkView`. Public unit data (HP / position / owner / status effects). One per spawned unit, visible to all clients. |
+| `NetworkUnitPrivate.prefab` | NetworkObject | `UnitPrivateNetworkView`. Owner-only unit data (skills / cooldowns / one-time flags). One per spawned unit; host calls `SetPlayerAlwaysInterested(unitOwner, this, true)` on spawn. |
+| `MatchRewardsPrivateState.prefab` | NetworkObject | `MatchRewardsPrivateNetworkView`. One per player. Host writes Gold/XP at match-end; AoI restricted to the owner. Owning client caches the values locally so they survive runner shutdown. |
 | `TileEffectInstance.prefab` | NetworkObject | One per applied effect. |
 | `CombatCoordinator.prefab` | NetworkObject | Singleton, `CombatNetworkView`. |
 | `MatchResultCoordinator.prefab` | NetworkObject | Singleton, `MatchResultNetworkView`. |
@@ -449,9 +528,17 @@ Container.BindInterfacesAndSelfTo<CombatModel>().AsSingle().NonLazy();
 Container.BindInterfacesAndSelfTo<CombatController>().AsSingle().NonLazy();
 Container.BindInterfacesAndSelfTo<CombatSubsystem>().AsSingle().NonLazy();
 
+Container.BindInterfacesAndSelfTo<PlayerRosterModel>().AsSingle().NonLazy();
+Container.BindInterfacesAndSelfTo<PlayerRosterController>().AsSingle().NonLazy();
+Container.BindInterfacesAndSelfTo<PlayerRosterSubsystem>().AsSingle().NonLazy();
+
 Container.BindInterfacesAndSelfTo<PlayerCardZoneModel>().AsSingle().NonLazy();
 Container.BindInterfacesAndSelfTo<PlayerCardZoneController>().AsSingle().NonLazy();
 Container.BindInterfacesAndSelfTo<PlayerCardZoneSubsystem>().AsSingle().NonLazy();
+
+Container.BindInterfacesAndSelfTo<MatchRewardsModel>().AsSingle().NonLazy();
+Container.BindInterfacesAndSelfTo<MatchRewardsController>().AsSingle().NonLazy();
+Container.BindInterfacesAndSelfTo<MatchRewardsSubsystem>().AsSingle().NonLazy();
 
 Container.BindInterfacesAndSelfTo<FusionModel>().AsSingle().NonLazy();
 Container.BindInterfacesAndSelfTo<FusionController>().AsSingle().NonLazy();
@@ -484,8 +571,16 @@ For two-instance testing without real matchmaking, add a **dev-only** "Host Test
 3. **Unit spawn flow:** Skip to MainPhase → `IFusionSubsystem.StageBase("troop_warrior")` → ConfirmFusion → unit appears on Deploy Area for both clients.
 4. **Combat queue:** Spawn 2 units (one per player) with different Speeds → CombatPhase → log shows correct order.
 5. **Damage pipeline:** Use `troop_warrior` with normal attack on enemy adjacent → `UnitHPChanged` fires on both clients. Verify Aggregate→Intercept→Commit log order.
+5b. **Hand privacy:** Two Editor instances, Host + Client. Inspect Client's Runner: the host player's `PlayerCardZonePrivateNetworkView` is not in the Client's interest set. Add a debug log to `PlayerCardZonePrivateNetworkView.Render()` printing the Hand contents — log fires only on the owning client, never on the opponent.
+5b-2. **Skill privacy:** Spawn a unit on Host. On Client, inspect that unit's `UnitPrivateNetworkView` — its Skills array is empty (no AoI interest). Open `PhaseInteractionPanel_Skill` drawer when the host's unit is the current actor on the Client: panel renders the "opponent unit" placeholder, never the skill IDs.
+5b-3. **Rewards privacy:** Trigger match end with Host as winner. Each client's `MatchRewardsPrivateNetworkView` is only accessible by its own owner. Host's Gold/XP fields are non-zero locally; Client's reflect their own rewards, not the host's.
+5b-4. **Match-end shutdown survives the panel:** Server log order: `ReportMatchResultAsync` completes → `Runner.Shutdown()` invoked. On both clients, after the disconnect log fires, `PhaseInteractionPanel_MatchResult` remains fully populated (winner crown, names, time, owner's Gold/XP). Clicking `Button_Confirm` triggers `SceneLoader.LoadScene("Lobby")` with no network calls.
+5c. **Ready handshake via Confirm button:** Two Editor instances. Enter StartPhase. On Host, pick a deck and click `Button_Confirm` — `PlayerReady[host]` flips true on both clients; both `ReadyToggle` visuals flip on for the host's slot. On Client, do the same — `AllPlayersReady` fires; phase advances to MainPhase on both within one Render() tick.
+5d. **Toggle non-interactable on every slot:** During any phase, attempt to click `ReadyToggle` on `Profile_Player` or `Profile_Enemy1` — neither responds (interactable=false); no RPC fires; `PlayerReady[]` unchanged.
+5e. **Ready locked once true:** During StartPhase, after pressing Confirm, send a synthetic `RequestSetLocalReady(false)` — server rejects it; `PlayerReady[localPlayer]` remains true until phase advances.
+5f. **AcceptsReadyInput coverage:** In Setup phase, `IGameStateSubsystem.AcceptsReadyInput` returns false. Same in CombatPhase and GameOver. Returns true in StartPhase / MainPhase / DrawPhase.
 6. **Tile effect persistence across cycles:** Apply `corrupted` via skill → end CombatPhase → tile effect remains visible on `TileEffectInstance` prefab in next MainPhase.
-7. **Death + DeathAnchor:** Kill a unit with `death_anchor=5` → owning player's HP drops by 5 (visible on `Profile_Player.HPValueText`).
+7. **Death + DeathAnchor:** Kill a unit with `death_anchor=5` → owning player's HP drops by 5 (visible on `Profile_Player.HPValueText` via `IPlayerRosterSubsystem.HPChanged`).
 8. **Match end:** Reduce one player's HP to 0 → `GameMatchResult.Winner` fires → `ReturnToLobby` after Confirm.
 
 ---
@@ -499,7 +594,7 @@ All under `Features/Gameplay/Scripts/UI/`. Interfaces under `Core/Scripts/Interf
 | File | Prefab it lives on | Subscribes to |
 |---|---|---|
 | `GameplayHUDController.cs` | `Layout_Fullscreen_Gameplay.prefab` | `IGameStateSubsystem` (PhaseChanged, MatchElapsedChanged) |
-| `GameplayPlayerProfileUI.cs` | `Profile_Gameplay.prefab` | `IProfileSubsystem` (local) + `IPlayerCardZoneSubsystem.HPChanged` (own + opponent) |
+| `GameplayPlayerProfileUI.cs` | `Profile_Gameplay.prefab` | `IProfileSubsystem` (own PFP) + `IPlayerRosterSubsystem` (HP / Name / UserId for all players) + `IGameStateSubsystem` (PlayerReady display) |
 | `GameplayDeckChoosePanel.cs` (finish) | `PhaseInteractionPanel_DeckChoose.prefab` | `IGameplayDeckChooseSubsystem`, `IGameplayDeckSubsystem` |
 | `GameplayDeckSelectOverlay.cs` | `Overlay_Gameplay_Decks.prefab` | `IGameplayDeckSubsystem.DecksChanged` |
 | `DrawPhasePanel.cs` | `PhaseInteractionPanel_DrawCard.prefab` | `IPlayerCardZoneSubsystem.HandChanged` |
@@ -507,7 +602,7 @@ All under `Features/Gameplay/Scripts/UI/`. Interfaces under `Core/Scripts/Interf
 | `HandPanel.cs` | `PhaseInteractionPanel_Hand.prefab` | `IPlayerCardZoneSubsystem.HandChanged` |
 | `SkillPanel.cs` | `PhaseInteractionPanel_Skill.prefab` | `ICombatSubsystem.CurrentTurnChanged`, `IUnitSubsystem` |
 | `TurnOrderPanel.cs` | `PhaseInteractionPanel_TurnOrder.prefab` | `ICombatSubsystem.QueueChanged` |
-| `MatchResultPanel.cs` | `PhaseInteractionPanel_MatchResult.prefab` | `IMatchResultSubsystem.MatchEnded`, `IProfileSubsystem` |
+| `MatchResultPanel.cs` | `PhaseInteractionPanel_MatchResult.prefab` | `IMatchResultSubsystem.MatchEnded`, `IMatchRewardsSubsystem.OwnRewardsReceived`, `IPlayerRosterSubsystem` (names / UserIds for PFP fetch) |
 | `TargetingOverlay.cs` | Spawned at runtime as overlay UI / world-space tile decorator | `ITargetingSubsystem.TargetingStarted`, `HighlightedTilesChanged` |
 | `CardDragHandle.cs` | Helper component on `CardSlot` prefabs for drag-and-drop into Fusion slots | local |
 | `PanelVisibilityRouter.cs` | Empty GameObject in scene | `IGameStateSubsystem.PhaseChanged` → toggle which phase panel is active |
@@ -654,10 +749,10 @@ At end of F1 (foundation), both members run a smoke test: Lobby → Gameplay sce
 ## 11. Files Touched / Created Summary
 
 ### New interfaces (Core.Interfaces asmdef)
-`Core/Scripts/Interfaces/Features/Gameplay/{GameState, Board, Unit, Combat, PlayerCardZone, Fusion, TileEffect, DamagePipeline, BehaviorRegistry, Targeting, MatchResult, UI}/*.cs` — ~40 files.
+`Core/Scripts/Interfaces/Features/Gameplay/{GameState, Board, Unit, Combat, PlayerRoster, PlayerCardZone, Fusion, TileEffect, DamagePipeline, BehaviorRegistry, Targeting, MatchResult, MatchRewards, UI}/*.cs` — ~45 files.
 
 ### New runtime scripts (GameplayFeatures asmdef)
-- Track A: ~36 files across §5.1 domains.
+- Track A: ~44 files across §5.1 domains (PlayerRoster, MatchRewards, and Unit public/private splits add ~8 files).
 - Track B: ~13 files in `Features/Gameplay/Scripts/UI/`.
 
 ### Modified
