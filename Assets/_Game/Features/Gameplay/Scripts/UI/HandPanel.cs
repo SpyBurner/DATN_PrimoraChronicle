@@ -19,18 +19,23 @@ public class HandPanel : MonoBehaviour
 
     private readonly List<GameObject> _spawnedSlots = new();
 
+    private PlayerRef _localPlayer;
+
     private void OnEnable()
     {
-        _cardZone.OwnHandChanged += OnOwnHandChanged;
+        _cardZone.HandChanged += OnHandChanged;
         _gameState.PhaseChanged += OnPhaseChanged;
 
-        var hand = _cardZone.GetOwnHand();
+        var runner = FindObjectOfType<NetworkRunner>();
+        if (runner != null) _localPlayer = runner.LocalPlayer;
+
+        var hand = _cardZone.GetHand(_localPlayer);
         if (hand != null) RenderHand(hand);
     }
 
     private void OnDisable()
     {
-        _cardZone.OwnHandChanged -= OnOwnHandChanged;
+        _cardZone.HandChanged -= OnHandChanged;
         _gameState.PhaseChanged -= OnPhaseChanged;
     }
 
@@ -44,8 +49,9 @@ public class HandPanel : MonoBehaviour
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private void OnOwnHandChanged(IReadOnlyList<string> hand)
+    private void OnHandChanged(PlayerRef player, IReadOnlyList<string> hand)
     {
+        if (player != _localPlayer) return;
         try
         {
             RenderHand(hand);
@@ -90,7 +96,7 @@ public class HandPanel : MonoBehaviour
 
     public string GetCardIdAtIndex(int index)
     {
-        var hand = _cardZone.GetOwnHand();
+        var hand = _cardZone.GetHand(_localPlayer);
         if (hand == null || index < 0 || index >= hand.Count) return null;
         return hand[index];
     }
