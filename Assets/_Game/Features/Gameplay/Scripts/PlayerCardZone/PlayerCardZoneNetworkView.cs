@@ -9,6 +9,9 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     [Inject(Optional = true)] private IPlayerCardZoneSubsystem _subsystem;
     [Inject(Optional = true)] private ICardLoadingManagerSubsystem _cardLoading;
     [Inject(Optional = true)] private IProfileSubsystem _profileSubsystem;
+    [Inject(Optional = true)] private IBehaviorRegistrySubsystem _behaviorRegistry;
+    [Inject(Optional = true)] private IUnitSubsystem _unitSubsystem;
+    [Inject(Optional = true)] private IBoardSubsystem _boardSubsystem;
     [Inject(Optional = true)] private IDebugLogger _logger;
 
     [Networked] public PlayerRef Owner { get; set; }
@@ -41,6 +44,9 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
             _subsystem = ctx?.Container.Resolve<IPlayerCardZoneSubsystem>();
             _cardLoading = ctx?.Container.Resolve<ICardLoadingManagerSubsystem>();
             _profileSubsystem = ctx?.Container.TryResolve<IProfileSubsystem>();
+            _behaviorRegistry = ctx?.Container.Resolve<IBehaviorRegistrySubsystem>();
+            _unitSubsystem = ctx?.Container.Resolve<IUnitSubsystem>();
+            _boardSubsystem = ctx?.Container.Resolve<IBoardSubsystem>();
             _logger = ctx?.Container.Resolve<IDebugLogger>();
         }
 
@@ -211,14 +217,57 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_RequestPlayMainPhaseSpell(string cardId, HexCoord target)
     {
+        bool found = false;
         for (int i = 0; i < HandCount; i++)
         {
             if (Hand.Get(i).ToString() == cardId)
             {
                 ServerDiscardFromHand(i);
+                found = true;
                 break;
             }
         }
+
+        if (!found)
+        {
+            _logger?.LogWarning($"[PlayerCardZone] MainPhaseSpell rejected: card '{cardId}' not in hand.");
+            return;
+        }
+
+        ExecuteMainPhaseSpell(cardId, target);
+    }
+
+    private void ExecuteMainPhaseSpell(string cardId, HexCoord target)
+    {
+        if (_cardLoading == null || _behaviorRegistry == null) return;
+
+        if (!_cardLoading.TryGetCardData(cardId, out CardData cardData))
+        {
+            _logger?.LogWarning($"[PlayerCardZone] No card data for '{cardId}'.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(cardData.main_phase_spell_behavior_id))
+        {
+            _logger?.LogWarning($"[PlayerCardZone] Card '{cardId}' has no main_phase_spell_behavior_id.");
+            return;
+        }
+
+        if (!_behaviorRegistry.TryGetMainPhaseSpellBehavior(cardData.main_phase_spell_behavior_id, out var behaviorSO))
+        {
+            _logger?.LogWarning($"[PlayerCardZone] Behavior '{cardData.main_phase_spell_behavior_id}' not found in registry.");
+            return;
+        }
+
+        var spellBehavior = behaviorSO as MainPhaseSpellBehaviorSO;
+        if (spellBehavior == null)
+        {
+            _logger?.LogWarning($"[PlayerCardZone] Behavior '{cardData.main_phase_spell_behavior_id}' is not a MainPhaseSpellBehaviorSO.");
+            return;
+        }
+
+        spellBehavior.Execute(Owner, target, _unitSubsystem, _boardSubsystem, _cardLoading, _logger);
+        _logger?.Log($"[PlayerCardZone] Executed main phase spell '{cardData.main_phase_spell_behavior_id}' at ({target.P},{target.Q}).");
     }
 
     // ── State push (server → all clients) ────────────────────────────────
