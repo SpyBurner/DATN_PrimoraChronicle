@@ -212,6 +212,12 @@ public interface IUnitSubsystem : ISubsystem {
 ### 3.4 Combat (queue + turn)
 
 ```csharp
+// Combat/CombatQueueEntry.cs  — entry in the action queue; carries both identity and display data
+public struct CombatQueueEntry {
+    public NetworkId UnitId;
+    public string CardId;   // unit card id — used by TurnOrderPanel to fetch the card image
+}
+
 // Combat/CombatStateData.cs  — ALL_CLIENTS via CombatNetworkView
 public struct CombatStateData : INetworkStruct {
     public NetworkId CurrentActor;
@@ -222,11 +228,11 @@ public struct CombatStateData : INetworkStruct {
 
 // Combat/ICombatSubsystem.cs
 public interface ICombatSubsystem : ISubsystem {
-    event UnityAction<IReadOnlyList<NetworkId>> QueueChanged;
+    event UnityAction<IReadOnlyList<CombatQueueEntry>> QueueChanged;
     event UnityAction<NetworkId> CurrentTurnChanged;
     event UnityAction TurnEnded;
 
-    IReadOnlyList<NetworkId> ActionQueue { get; }
+    IReadOnlyList<CombatQueueEntry> ActionQueue { get; }
     NetworkId CurrentActor { get; }
     bool CurrentActorCanMove { get; }   // !HasMoved — read on CurrentTurnChanged or OwnUnitSkillsChanged
     bool CurrentActorCanAct { get; }    // !HasActed — same
@@ -447,7 +453,7 @@ Each row is **independently implementable and incrementally testable**. The "Com
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
 | F4.1 | **Action queue build** | §5 Combat Step 1 | `CombatController.BuildQueue()` sorts all units by Speed desc → HP asc → coin toss. Mid-combat spawns appended via `CombatController.AppendToQueue(unitId)`. |
-| F4.2 | **TurnOrder panel** | — | `TurnOrderPanel` on `PhaseInteractionPanel_TurnOrder.prefab`. Subscribes `ICombatSubsystem.QueueChanged`. Spawns card items into `Content` RectTransform. Drawer-wrapped by `TurnOrderPanelAnchor`. |
+| F4.2 | **TurnOrder panel** | — | `TurnOrderPanel` on `PhaseInteractionPanel_TurnOrder.prefab`. Subscribes `ICombatSubsystem.QueueChanged`. Each `CombatQueueEntry` carries `UnitId` (for highlight on turn change) and `CardId` (looked up via `ICardLoadingManagerSubsystem` to render the unit card image). Spawns one card item per entry into `Content` RectTransform. Drawer-wrapped by `TurnOrderPanelAnchor`. |
 | F4.3 | **Unit turn cycle** | §5 Combat Step 2 | `CombatController.AdvanceTurn()`. On enter: reset `HasMoved=false`, `HasActed=false` in `CombatStateData`; tick **all 6** skill CDs by 1 (Move[0] and N_Atk[1] tick 1→0; equip skills tick toward 0). After `RequestMove()` resolves: server sets `Skills[0].CurrentCD=1` and `HasMoved=true`. After `RequestNormalAttack()` or `RequestSkill([1-5])` resolves: server sets that slot's `CurrentCD=BaseCD` and `HasActed=true`. Both writes replicate via `CombatNetworkView.Render()` → no dedicated change events; SkillPanel re-evaluates button interactability on next `CurrentTurnChanged` or `OwnUnitSkillsChanged`. `EndTurn()` valid at any point (zero slots used = **Skip Turn**; partial = end early). Auto-end on no-input timer calls `EndTurn()`. |
 | F4.4 | **Movement & pathfinding** | §6 Combat | `BoardSubsystem.FindPath(from, to)` walks empty tiles only. `ignore_pathfinding: true` skips intermediate checks (destination must be empty). Max distance = 1 (all units move to adjacent hex only; no per-unit move range stat). Knockback stops at board boundary. |
 | F4.5 | **Skill panel + active skill use** | §15 | `SkillPanel` on `PhaseInteractionPanel_Skill.prefab` (drawer-wrapped). Shows all 6 skill slots: Move[0], NormalAttack[1], EquipSkills[2-5] as `CardSlot_Empty`. On `CurrentTurnChanged` or `OwnUnitSkillsChanged`: re-evaluate each slot — interactable only if `CurrentActorCanMove/Act == true` AND `Skills[i].CurrentCD == 0`. Click on an interactable slot → `ITargetingSubsystem.BeginTargeting(req, ...)` then on confirm: Move[0] → `RequestMove()`, NormalAttack[1] → `RequestNormalAttack()`, EquipSkills[2-5] → `RequestSkill()`. |
@@ -497,7 +503,7 @@ All implementation files under `Features/Gameplay/Scripts/<Domain>/`. Interfaces
 | `GameState/` | `GameStateModel.cs`, `GameStateController.cs`, `GameStateSubsystem.cs`, `GameStateNetworkView.cs` |
 | `Board/` | `BoardModel.cs`, `BoardController.cs`, `BoardSubsystem.cs`, `BoardNetworkView.cs` |
 | `Unit/` | `UnitModel.cs`, `UnitController.cs`, `UnitSubsystem.cs`, `UnitPublicNetworkView.cs`, `UnitPrivateNetworkView.cs` (one public + one private NetworkBehaviour per spawned unit) |
-| `Combat/` | `CombatModel.cs`, `CombatController.cs`, `CombatSubsystem.cs`, `CombatNetworkView.cs` |
+| `Combat/` | `CombatModel.cs`, `CombatController.cs`, `CombatSubsystem.cs`, `CombatNetworkView.cs`. Interface-side also requires `CombatQueueEntry.cs` in `Core/Scripts/Interfaces/Features/Gameplay/Combat/`. |
 | `PlayerRoster/` | `PlayerRosterModel.cs`, `PlayerRosterController.cs`, `PlayerRosterSubsystem.cs`, `PlayerRosterPublicNetworkView.cs` (one per player, always-replicated) |
 | `PlayerCardZone/` | `PlayerCardZoneModel.cs`, `PlayerCardZoneController.cs`, `PlayerCardZoneSubsystem.cs`, `PlayerCardZonePrivateNetworkView.cs` (one per player, AoI-restricted to owner) |
 | `MatchRewards/` | `MatchRewardsModel.cs`, `MatchRewardsController.cs`, `MatchRewardsSubsystem.cs`, `MatchRewardsPrivateNetworkView.cs` (one per player, AoI-restricted to owner) |
@@ -619,7 +625,7 @@ All under `Features/Gameplay/Scripts/UI/`. Interfaces under `Core/Scripts/Interf
 | `FusionPanel.cs` | `PhaseInteractionPanel_Fusion.prefab` | `IFusionSubsystem.StagingChanged`, `IPlayerCardZoneSubsystem.OwnHandChanged` |
 | `HandPanel.cs` | `PhaseInteractionPanel_Hand.prefab` | `IPlayerCardZoneSubsystem.OwnHandChanged` |
 | `SkillPanel.cs` | `PhaseInteractionPanel_Skill.prefab` | `ICombatSubsystem.CurrentTurnChanged`, `ICombatSubsystem.TurnEnded`, `IUnitSubsystem.OwnUnitSkillsChanged`. On each trigger: reads `CurrentActorCanMove`, `CurrentActorCanAct`, and each `Skills[i].CurrentCD` to set slot interactability. No dedicated HasMoved/HasActed events. `Button_SkipTurn` → `ICombatSubsystem.EndTurn()` (always enabled while it is the local player's unit's turn). |
-| `TurnOrderPanel.cs` | `PhaseInteractionPanel_TurnOrder.prefab` | `ICombatSubsystem.QueueChanged` |
+| `TurnOrderPanel.cs` | `PhaseInteractionPanel_TurnOrder.prefab` | `ICombatSubsystem.QueueChanged` — each `CombatQueueEntry.CardId` used to fetch card image via `ICardLoadingManagerSubsystem` |
 | `MatchResultPanel.cs` | `PhaseInteractionPanel_MatchResult.prefab` | `IMatchResultSubsystem.MatchEnded`, `IMatchRewardsSubsystem.OwnRewardsReceived`, `IPlayerRosterSubsystem` (names / UserIds for PFP fetch) |
 | `TargetingOverlay.cs` | Spawned at runtime as overlay UI / world-space tile decorator | `ITargetingSubsystem.TargetingStarted`, `HighlightedTilesChanged` |
 | `CardDragHandle.cs` | Helper component on `CardSlot` prefabs for drag-and-drop into Fusion slots | local |

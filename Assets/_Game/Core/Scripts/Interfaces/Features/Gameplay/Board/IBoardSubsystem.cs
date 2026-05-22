@@ -6,7 +6,9 @@ using UnityEngine.Events;
 public interface IBoardSubsystem : ISubsystem
 {
     event UnityAction<bool> IsGeneratedChanged;
+    event UnityAction<System.Collections.Generic.IReadOnlyList<HexCoord>> TilesChanged;
     event UnityAction<HexCoord, string> TileOccupantChanged;
+    event UnityAction<HexCoord, string> TileEffectChanged;
 
     bool IsGenerated { get; }
     IReadOnlyList<HexCoord> AllTiles { get; }

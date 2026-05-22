@@ -1,6 +1,10 @@
+using Fusion;
+
 public interface IUnitController : IController
 {
-    void RegisterBridge(IUnitNetworkBridge bridge);
-    void OnUnitStateReceived(UnitStateData data);
-    void OnUnitDestroyed(string unitNetworkId);
+    void RegisterPublicBridge(IUnitPublicNetworkBridge bridge);
+    void RegisterPrivateBridge(IUnitPrivateNetworkBridge bridge);
+    void OnUnitPublicStateReceived(UnitPublicData data);
+    void OnUnitPrivateStateReceived(UnitPrivateData data);
+    void OnUnitDestroyed(NetworkId unitId);
 }

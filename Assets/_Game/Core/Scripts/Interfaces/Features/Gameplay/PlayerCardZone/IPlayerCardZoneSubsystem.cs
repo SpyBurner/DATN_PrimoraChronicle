@@ -4,22 +4,15 @@ using UnityEngine.Events;
 
 public interface IPlayerCardZoneSubsystem : ISubsystem
 {
-    event UnityAction<PlayerRef, IReadOnlyList<string>> HandChanged;
-    event UnityAction<PlayerRef, int> DeckCountChanged;
-    event UnityAction<PlayerRef, int> DiscardCountChanged;
-    event UnityAction<PlayerRef, int> HPChanged;
-    event UnityAction<PlayerRef, string> NameChanged;
+    // owner-only — fires only on the owning client
+    event UnityAction<IReadOnlyList<string>> OwnHandChanged;
 
-    IReadOnlyList<string> GetHand(PlayerRef player);
-    int GetDeckCount(PlayerRef player);
-    int GetDiscardCount(PlayerRef player);
-    int GetHP(PlayerRef player);
-    string GetPlayerName(PlayerRef player);
+    IReadOnlyList<string> GetOwnHand();
 
-    void RequestDraw(PlayerRef player, int count);
-    void RequestKeepCards(PlayerRef player, IReadOnlyList<string> keep);
+    void RequestDraw(PlayerRef p, int count);
+    void RequestKeepCards(PlayerRef p, IReadOnlyList<string> keep);
     void RequestPlayMainPhaseSpell(string cardId, HexCoord target);
 
     void RegisterNetworkBridge(IPlayerCardZoneNetworkBridge bridge);
-    void OnAuthoritativeStateReceived(PlayerCardZoneData data);
+    void OnAuthoritativeStateReceived(PlayerCardZonePrivateData data);
 }

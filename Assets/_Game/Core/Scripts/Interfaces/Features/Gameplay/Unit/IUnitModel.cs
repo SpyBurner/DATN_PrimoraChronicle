@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
+using Fusion;
 
 public interface IUnitModel : IModel
 {
-    event Action<UnitStateData> UnitStateChanged;
-    event Action<string> UnitRemoved;
+    event Action<UnitPublicData> UnitPublicStateChanged;
+    event Action<UnitPrivateData> UnitPrivateStateChanged;
+    event Action<NetworkId> UnitRemoved;
 
-    IReadOnlyDictionary<string, UnitStateData> Units { get; }
+    IReadOnlyDictionary<NetworkId, UnitPublicData> Units { get; }
 
-    void ApplyUnitState(UnitStateData data);
-    void RemoveUnit(string unitNetworkId);
+    void ApplyPublicState(UnitPublicData data);
+    void ApplyPrivateState(UnitPrivateData data);
+    void RemoveUnit(NetworkId unitId);
 }

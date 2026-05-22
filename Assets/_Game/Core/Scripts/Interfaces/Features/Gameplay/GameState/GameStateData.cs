@@ -7,4 +7,5 @@ public struct GameStateData
     public float MatchElapsed;
     public int RoundNumber;
     public PlayerRef CurrentCombatActor;
+    public bool[] PlayerReady; // indexed by PlayerRef.PlayerId; capacity 4
 }
