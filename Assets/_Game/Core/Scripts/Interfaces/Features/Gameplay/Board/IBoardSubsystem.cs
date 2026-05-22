@@ -21,6 +21,7 @@ public interface IBoardSubsystem : ISubsystem
     IReadOnlyList<HexCoord> GetNeighbors(HexCoord coord);
     IReadOnlyList<HexCoord> GetTilesInRange(HexCoord center, int range);
     IReadOnlyList<HexCoord> FindPath(HexCoord from, HexCoord to, int maxDistance);
+    void SetOccupant(HexCoord coord, string unitId);
 
     void RegisterNetworkBridge(IBoardNetworkBridge bridge);
     void OnAuthoritativeStateReceived(BoardStateData data);
