@@ -7,20 +7,32 @@ public class ProfileController : IProfileController
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IProfileModel _model;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
-    [Inject] private readonly IAuthSessionModel _authSessionModel;
+    [Inject] private readonly IAuthSessionSubsystem _authSession;
 
-    public async void Initialize()
+    public void Initialize()
+    {
+        _authSession.CurrentUserIdChanged += OnUserIdChanged;
+
+        if (!string.IsNullOrWhiteSpace(_authSession.UserId))
+            FetchProfile(_authSession.UserId);
+    }
+
+    public void Dispose()
+    {
+        _authSession.CurrentUserIdChanged -= OnUserIdChanged;
+    }
+
+    private void OnUserIdChanged(string userId)
+    {
+        if (!string.IsNullOrWhiteSpace(userId))
+            FetchProfile(userId);
+    }
+
+    private async void FetchProfile(string userId)
     {
         try
         {
-            string userId = _authSessionModel.CurrentUserId.Value;
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                _debugLogger.LogError("Profile: Cannot load profile details without a current user id");
-                return;
-            }
-
-            _debugLogger.Log("Profile: Initializing — fetching profile details");
+            _debugLogger.Log("Profile: Fetching profile details");
             string encodedUserId = Uri.EscapeDataString(userId);
             var profile = await _httpService.Get<ProfileDetailResponse>($"/api/users/me?user_id={encodedUserId}");
 
@@ -41,10 +53,9 @@ public class ProfileController : IProfileController
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"Profile: Initialize failed: {ex.Message}");
+            _debugLogger.LogError($"Profile: FetchProfile failed: {ex.Message}");
         }
     }
-    public void Dispose() { }
 }
 
 [System.Serializable]

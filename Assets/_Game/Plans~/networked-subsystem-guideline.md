@@ -293,6 +293,7 @@ public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
     [Inject(Optional = true)] private IXxxSubsystem _subsystem;
 
     private ChangeDetector _changeDetector;
+    private bool _registeredBridge;
 
     [Networked] public NetworkString<_32> NetworkedSomeValue { get; set; }
     [Networked] public NetworkBool NetworkedIsProcessing { get; set; }
@@ -315,13 +316,26 @@ public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
         }
 
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        _subsystem.RegisterNetworkBridge(this);
+
+        // Only the local player's own view registers as the upstream bridge.
+        // Remote players' replicated views must NOT register — they only push state
+        // downstream via PushState(). Without this guard, the second spawned view
+        // overwrites the bridge and both players' RPCs route through one NetworkObject.
+        if (Object.HasInputAuthority)
+        {
+            _registeredBridge = true;
+            _subsystem.RegisterNetworkBridge(this);
+        }
+
         PushState();
     }
 
+    private bool _registeredBridge;
+
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        _subsystem?.RegisterNetworkBridge(null);
+        if (_registeredBridge)
+            _subsystem?.RegisterNetworkBridge(null);
     }
 
     // ── IXxxNetworkBridge (upstream: client → server) ───────────────────

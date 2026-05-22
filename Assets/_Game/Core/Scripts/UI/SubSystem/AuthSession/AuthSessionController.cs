@@ -4,8 +4,19 @@ using UnityEngine;
 
 public class AuthSessionController : IAuthSessionController
 {
-    private const string UserIdKey = "AuthSession_UserId";
-    private const string TokenKey = "AuthSession_Token";
+    private static readonly string InstanceSuffix = "_" + StableHash(Application.dataPath);
+    private static readonly string UserIdKey = "AuthSession_UserId" + InstanceSuffix;
+    private static readonly string TokenKey  = "AuthSession_Token"  + InstanceSuffix;
+
+    private static string StableHash(string s)
+    {
+        unchecked
+        {
+            uint hash = 2166136261u;
+            for (int i = 0; i < s.Length; i++) { hash ^= s[i]; hash *= 16777619u; }
+            return hash.ToString("X8");
+        }
+    }
 
     [Inject] private readonly IDebugLogger _debugLogger;
     [Inject] private readonly IHttpServiceSubsystem _httpService;
@@ -54,7 +65,25 @@ public class AuthSessionController : IAuthSessionController
     public async Task LoadPersistedSession()
     {
         string userId = PlayerPrefs.GetString(UserIdKey, string.Empty);
-        string token = PlayerPrefs.GetString(TokenKey, string.Empty);
+        string token  = PlayerPrefs.GetString(TokenKey,  string.Empty);
+
+        // One-time migration from legacy (unsuffixed) keys.
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+        {
+            string legacyId    = PlayerPrefs.GetString("AuthSession_UserId", string.Empty);
+            string legacyToken = PlayerPrefs.GetString("AuthSession_Token",  string.Empty);
+            if (!string.IsNullOrEmpty(legacyId) && !string.IsNullOrEmpty(legacyToken))
+            {
+                _debugLogger.Log($"AuthSession: Migrating legacy session for user {legacyId}");
+                userId = legacyId;
+                token  = legacyToken;
+                PlayerPrefs.SetString(UserIdKey, userId);
+                PlayerPrefs.SetString(TokenKey,  token);
+                PlayerPrefs.DeleteKey("AuthSession_UserId");
+                PlayerPrefs.DeleteKey("AuthSession_Token");
+                PlayerPrefs.Save();
+            }
+        }
 
         if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(token))
         {

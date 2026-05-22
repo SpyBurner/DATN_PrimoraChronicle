@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
-using Unity.Multiplayer.PlayMode;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
@@ -47,7 +45,6 @@ public class BattlePanel : UIPanel
 
     private async void OnStartMatchmaking()
     {
-        // This is for testing only.
         var args = new StartGameArgs
         {
             GameMode    = GameMode.AutoHostOrClient,
@@ -55,7 +52,7 @@ public class BattlePanel : UIPanel
             PlayerCount = _battleSetup.PlayerCnt,
             SessionProperties = new Dictionary<string, SessionProperty>
             {
-                { "ai_count", 1 }
+                { "ai_count", _battleSetup.FillRoomWithAI ? _battleSetup.PlayerCnt - 1 : 0 }
             }
         };
 

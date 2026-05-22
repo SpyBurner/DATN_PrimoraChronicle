@@ -25,7 +25,7 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
     {
         if (_roster == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             if (ctx != null)
             {
                 _roster = ctx.Container.Resolve<IPlayerRosterSubsystem>();
@@ -56,6 +56,7 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
 
             if (Object.HasStateAuthority)
             {
+                _logger?.Log($"[PlayerRoster] ALSO HAVE STATE AUTHORITY, pushing initial data for {Owner}...");
                 PlayerName = pName;
                 UserId = pId;
             }
@@ -135,6 +136,7 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_SetProfileData(string name, string id)
     {
+        _logger?.Log($"[PlayerRosterPublicNetworkView] Rpc_SetProfileData received from: name='{name}', id='{id}'");
         PlayerName = name;
         UserId = id;
     }

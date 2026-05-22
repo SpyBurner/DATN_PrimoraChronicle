@@ -108,6 +108,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     {
         foreach (var player in Runner.ActivePlayers)
         {
+            if (_spawnedPlayers.Contains(player)) continue;
             SpawnPlayerState(player);
         }
     }
@@ -188,19 +189,6 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             var pieceObj = Runner.Spawn(piecePrefab, spawnPos, spawnRot, player);
             _playerPieces[player] = pieceObj;
             _logger?.Log($"[GameplayNetworkCoordinator] Spawned player piece for {player} at index {playerIndex}.");
-        }
-    }
-
-    private void RegisterPlayerState(NetworkId stateId)
-    {
-        for (int i = 0; i < PlayerStates.Length; i++)
-        {
-            if (!PlayerStates.Get(i).IsValid)
-            {
-                PlayerStates.Set(i, stateId);
-                PlayerCount++;
-                return;
-            }
         }
     }
 
