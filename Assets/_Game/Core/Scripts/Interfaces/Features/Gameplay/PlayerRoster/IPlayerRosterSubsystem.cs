@@ -13,6 +13,6 @@ public interface IPlayerRosterSubsystem : ISubsystem
     string GetName(PlayerRef p);
     string GetUserId(PlayerRef p);
 
-    void RegisterNetworkBridge(IPlayerRosterNetworkBridge bridge);
+    void RegisterNetworkBridge(PlayerRef owner, IPlayerRosterNetworkBridge bridge);
     void OnAuthoritativeStateReceived(PlayerRosterPublicData data);
 }

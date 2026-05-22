@@ -36,7 +36,7 @@ public class PlayerRosterSubsystem : IPlayerRosterSubsystem
         _model.Dispose();
     }
 
-    public void RegisterNetworkBridge(IPlayerRosterNetworkBridge bridge) => _controller.RegisterBridge(bridge);
+    public void RegisterNetworkBridge(PlayerRef owner, IPlayerRosterNetworkBridge bridge) => _controller.RegisterBridge(owner, bridge);
     public void OnAuthoritativeStateReceived(PlayerRosterPublicData data) => _controller.OnAuthoritativeStateReceived(data);
 
     private void HandleHPChanged(PlayerRef p, int hp)

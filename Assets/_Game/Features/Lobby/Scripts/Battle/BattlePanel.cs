@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
+using Unity.Multiplayer.PlayMode;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
@@ -46,10 +47,11 @@ public class BattlePanel : UIPanel
 
     private async void OnStartMatchmaking()
     {
+        // This is for testing only.
         var args = new StartGameArgs
         {
-            GameMode    = GameMode.Shared,
-            SessionName = "test-shared-session",
+            GameMode    = GameMode.AutoHostOrClient,
+            SessionName = "test-host-session",
             PlayerCount = _battleSetup.PlayerCnt,
             SessionProperties = new Dictionary<string, SessionProperty>
             {

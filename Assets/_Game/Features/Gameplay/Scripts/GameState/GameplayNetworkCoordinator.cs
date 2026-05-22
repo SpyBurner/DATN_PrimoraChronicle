@@ -32,6 +32,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     private readonly Dictionary<PlayerRef, PlayerRosterPublicNetworkView> _rosterViews = new();
     private readonly Dictionary<PlayerRef, MatchRewardsPrivateNetworkView> _rewardsViews = new();
     private readonly Dictionary<PlayerRef, NetworkObject> _playerPieces = new();
+    private readonly HashSet<PlayerRef> _spawnedPlayers = new();
 
     public static GameplayNetworkCoordinator Instance { get; private set; }
 
@@ -54,6 +55,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         if (Instance == this) Instance = null;
+        _spawnedPlayers.Clear();
         _playerPieces.Clear();
         _playerCardZones.Clear();
         _deckChooseViews.Clear();
@@ -113,19 +115,14 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     private void HandlePlayerJoined(PlayerRef player)
     {
         if (!Object.HasStateAuthority) return;
-        if (_playerPieces.ContainsKey(player)) return;
+        if (_spawnedPlayers.Contains(player)) return;
         SpawnPlayerState(player);
     }
 
+    // Per-player spawning logic
     private void SpawnPlayerState(PlayerRef player)
     {
-        if (_playerStatePrefab.IsValid)
-        {
-            var stateObj = Runner.Spawn(_playerStatePrefab, transform.position, transform.rotation, player);
-            RegisterPlayerState(stateObj.Id);
-            _logger?.Log($"[GameplayNetworkCoordinator] Spawned PlayerState for {player}.");
-        }
-
+        _spawnedPlayers.Add(player);
         if (_playerCardZoneViewPrefab.IsValid)
         {
             var pczObj = Runner.Spawn(_playerCardZoneViewPrefab, transform.position, transform.rotation, player);
@@ -140,7 +137,9 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
 
         if (_deckChooseViewPrefab.IsValid)
         {
-            var dcObj = Runner.Spawn(_deckChooseViewPrefab, transform.position, transform.rotation, player);
+            var dcObj = Runner.Spawn(_deckChooseViewPrefab, transform.position, transform.rotation, player, (runner, o) => {
+                // DeckChoose doesn't strictly need Owner, but good practice if it has one
+            });
             var dcView = dcObj.GetComponent<GameplayDeckChooseNetworkView>();
             if (dcView != null)
                 _deckChooseViews[player] = dcView;
@@ -149,11 +148,16 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
 
         if (_playerRosterPublicViewPrefab.IsValid)
         {
-            var rObj = Runner.Spawn(_playerRosterPublicViewPrefab, transform.position, transform.rotation, player);
+            var rObj = Runner.Spawn(_playerRosterPublicViewPrefab, transform.position, transform.rotation, player, (runner, o) => {
+                var rView = o.GetComponent<PlayerRosterPublicNetworkView>();
+                if (rView != null) {
+                    rView.Owner = player;
+                    rView.HP = 100;
+                }
+            });
             var rView = rObj.GetComponent<PlayerRosterPublicNetworkView>();
             if (rView != null)
             {
-                rView.ServerInitialize(player, hp: 0, playerName: string.Empty, userId: string.Empty);
                 _rosterViews[player] = rView;
             }
             _logger?.Log($"[GameplayNetworkCoordinator] Spawned PlayerRosterPublicView for {player}.");
@@ -161,7 +165,10 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
 
         if (_matchRewardsPrivateViewPrefab.IsValid)
         {
-            var mObj = Runner.Spawn(_matchRewardsPrivateViewPrefab, transform.position, transform.rotation, player);
+            var mObj = Runner.Spawn(_matchRewardsPrivateViewPrefab, transform.position, transform.rotation, player, (runner, o) => {
+                var mView = o.GetComponent<MatchRewardsPrivateNetworkView>();
+                // Match rewards initialization if needed
+            });
             var mView = mObj.GetComponent<MatchRewardsPrivateNetworkView>();
             if (mView != null)
             {

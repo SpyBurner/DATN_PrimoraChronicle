@@ -9,6 +9,8 @@ using Zenject;
 public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetworkBridge
 {
     [Inject(Optional = true)] private IPlayerRosterSubsystem _roster;
+    [Inject(Optional = true)] private IProfileSubsystem _profile;
+    [Inject(Optional = true)] private IAuthSessionSubsystem _authSession;
     [Inject(Optional = true)] private IDebugLogger _logger;
 
     [Networked] public PlayerRef Owner { get; set; }
@@ -17,6 +19,7 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
     [Networked] public NetworkString<_32> UserId { get; set; }
 
     private ChangeDetector _changeDetector;
+    private PlayerRef _cachedInputAuthority;
 
     public override void Spawned()
     {
@@ -26,6 +29,8 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
             if (ctx != null)
             {
                 _roster = ctx.Container.Resolve<IPlayerRosterSubsystem>();
+                _profile = ctx.Container.TryResolve<IProfileSubsystem>();
+                _authSession = ctx.Container.TryResolve<IAuthSessionSubsystem>();
                 _logger = ctx.Container.Resolve<IDebugLogger>();
             }
             else
@@ -35,14 +40,37 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
             }
         }
 
+        _cachedInputAuthority = Object.InputAuthority;
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-        _roster.RegisterNetworkBridge(this);
+        _roster.RegisterNetworkBridge(_cachedInputAuthority, this);
+
+        // Strictly Host/Server mode logic
+        bool isLocal = Object.HasInputAuthority;
+
+        if (isLocal)
+        {
+            string pName = _profile?.Username ?? string.Empty;
+            string pId = _authSession?.UserId ?? string.Empty;
+
+            _logger?.Log($"[PlayerRoster] LOCAL INIT! My PlayerRef={Owner}, ProfileUsername='{pName}'");
+
+            if (Object.HasStateAuthority)
+            {
+                PlayerName = pName;
+                UserId = pId;
+            }
+            else
+            {
+                Rpc_SetProfileData(pName, pId);
+            }
+        }
+
         PushState();
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        _roster?.RegisterNetworkBridge(null);
+        _roster?.RegisterNetworkBridge(_cachedInputAuthority, null);
     }
 
     public override void Render()
@@ -96,8 +124,18 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
         if (!Object.HasStateAuthority) return;
         Owner = owner;
         HP = hp;
-        PlayerName = playerName;
-        UserId = userId;
-        _logger?.Log($"[PlayerRosterPublicNetworkView] Initialized for {owner}: HP={hp}, Name={playerName}");
+        
+        // Only overwrite name/id if provided. Otherwise preserve what the client pushed via RPC.
+        if (!string.IsNullOrEmpty(playerName)) PlayerName = playerName;
+        if (!string.IsNullOrEmpty(userId)) UserId = userId;
+
+        _logger?.Log($"[PlayerRosterPublicNetworkView] Initialized for {owner}: HP={hp}");
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void Rpc_SetProfileData(string name, string id)
+    {
+        PlayerName = name;
+        UserId = id;
     }
 }
