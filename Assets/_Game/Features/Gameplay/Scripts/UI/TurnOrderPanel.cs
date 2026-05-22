@@ -31,7 +31,7 @@ public class TurnOrderPanel : MonoBehaviour
         _combat.CurrentTurnChanged += OnCurrentTurnChanged;
         _gameState.PhaseChanged += OnPhaseChanged;
 
-        if (_combat.IsCombatActive)
+        if (_combat.ActionQueue != null && _combat.ActionQueue.Count > 0)
             RenderQueue(_combat.ActionQueue);
     }
 
@@ -51,7 +51,7 @@ public class TurnOrderPanel : MonoBehaviour
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private void OnQueueChanged(IReadOnlyList<string> queue)
+    private void OnQueueChanged(IReadOnlyList<CombatQueueEntry> queue)
     {
         try
         {
@@ -60,35 +60,35 @@ public class TurnOrderPanel : MonoBehaviour
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private void OnCurrentTurnChanged(string currentActorId)
+    private void OnCurrentTurnChanged(NetworkId currentActor)
     {
         try
         {
-            HighlightCurrentActor(currentActorId);
+            HighlightCurrentActor(currentActor);
         }
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private void RenderQueue(IReadOnlyList<string> queue)
+    private void RenderQueue(IReadOnlyList<CombatQueueEntry> queue)
     {
         ClearItems();
         if (queue == null) return;
 
         for (int i = 0; i < queue.Count; i++)
         {
-            string unitId = queue[i];
+            var entry = queue[i];
             var item = Instantiate(_turnOrderItemPrefab, _content);
             item.SetActive(true);
 
             var nameText = item.GetComponentInChildren<TMP_Text>();
             var bg = item.GetComponent<Image>();
 
-            if (_unit.TryGetUnit(unitId, out var unitData))
+            if (_unit.TryGetPublic(entry.UnitId, out var unitData))
             {
                 if (nameText != null)
                 {
-                    string displayName = unitId;
-                    if (_cardLoading.TryGetCardData(unitId, out var cardData))
+                    string displayName = entry.CardId;
+                    if (!string.IsNullOrEmpty(entry.CardId) && _cardLoading.TryGetCardData(entry.CardId, out var cardData))
                         displayName = cardData.name;
                     nameText.text = displayName;
                 }
@@ -98,10 +98,10 @@ public class TurnOrderPanel : MonoBehaviour
             }
             else
             {
-                if (nameText != null) nameText.text = unitId;
+                if (nameText != null) nameText.text = entry.CardId;
             }
 
-            bool isCurrent = unitId == _combat.CurrentActorId;
+            bool isCurrent = entry.UnitId == _combat.CurrentActor;
             if (isCurrent && bg != null)
                 bg.color = _currentActorHighlight;
 
@@ -109,7 +109,7 @@ public class TurnOrderPanel : MonoBehaviour
         }
     }
 
-    private void HighlightCurrentActor(string currentActorId)
+    private void HighlightCurrentActor(NetworkId currentActor)
     {
         var queue = _combat.ActionQueue;
         if (queue == null) return;
@@ -122,12 +122,12 @@ public class TurnOrderPanel : MonoBehaviour
             var bg = item.GetComponent<Image>();
             if (bg == null) continue;
 
-            bool isCurrent = queue[i] == currentActorId;
+            bool isCurrent = queue[i].UnitId == currentActor;
             if (isCurrent)
             {
                 bg.color = _currentActorHighlight;
             }
-            else if (_unit.TryGetUnit(queue[i], out var unitData))
+            else if (_unit.TryGetPublic(queue[i].UnitId, out var unitData))
             {
                 bg.color = unitData.Owner == _localPlayer ? _localPlayerColor : _opponentColor;
             }

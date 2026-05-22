@@ -117,7 +117,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     private void BuildActionQueue()
     {
-        var allUnitIds = _unitSubsystem?.AllUnitIds;
+        var allUnitIds = _unitSubsystem?.AllUnits;
         if (allUnitIds == null || allUnitIds.Count == 0)
         {
             QueueCount = 0;
@@ -126,9 +126,10 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
         var unitEntries = new List<(string id, float speed, int hp)>();
 
-        foreach (var id in allUnitIds)
+        foreach (var netId in allUnitIds)
         {
-            if (_unitSubsystem.TryGetUnit(id, out UnitStateData data) && data.CurrentHP > 0)
+            string id = netId.ToString();
+            if (TryGetUnitData(id, out UnitPublicData data) && data.CurrentHP > 0)
             {
                 unitEntries.Add((id, data.Speed, data.CurrentHP));
             }
@@ -171,7 +172,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
         string actorId = ActionQueue.Get(CurrentIndex).ToString();
 
-        if (!_unitSubsystem.TryGetUnit(actorId, out UnitStateData data) || data.CurrentHP <= 0)
+        if (!TryGetUnitData(actorId, out UnitPublicData data) || data.CurrentHP <= 0)
         {
             AdvanceTurn();
             return;
@@ -191,7 +192,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         ApplyStartOfTurnEffects(actorId, data);
 
         // Re-check HP after start-of-turn effects
-        if (_unitSubsystem.TryGetUnit(actorId, out data) && data.CurrentHP <= 0)
+        if (TryGetUnitData(actorId, out data) && data.CurrentHP <= 0)
         {
             ProcessDeath(actorId);
             AdvanceTurn();
@@ -234,7 +235,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             return;
         }
 
-        if (!_unitSubsystem.TryGetUnit(unitId, out UnitStateData data)) return;
+        if (!TryGetUnitData(unitId, out UnitPublicData data)) return;
 
         if (!_boardSubsystem.IsEmpty(destination))
         {
@@ -242,10 +243,10 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             return;
         }
 
-        var path = _boardSubsystem.FindPath(data.Position, destination, data.MoveRange);
+        var path = _boardSubsystem.FindPath(data.Position, destination, 1);
         if (path == null || path.Count == 0)
         {
-            _logger?.LogWarning($"[Combat] No valid path from {data.Position} to {destination} within range {data.MoveRange}.");
+            _logger?.LogWarning($"[Combat] No valid path from {data.Position} to {destination} within range 1.");
             return;
         }
 
@@ -273,7 +274,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             return;
         }
 
-        if (!_unitSubsystem.TryGetUnit(unitId, out UnitStateData attackerData)) return;
+        if (!TryGetUnitData(unitId, out UnitPublicData attackerData)) return;
 
         // Validate range (normal attack range = 1)
         if (_boardSubsystem.Distance(attackerData.Position, target) > 1)
@@ -289,7 +290,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             return;
         }
 
-        if (!_unitSubsystem.TryGetUnit(targetUnitId, out UnitStateData targetData)) return;
+        if (!TryGetUnitData(targetUnitId, out UnitPublicData targetData)) return;
 
         // F4.11: Friendly-fire check
         if (targetData.Owner == attackerData.Owner)
@@ -319,7 +320,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             targetView?.ServerApplyDamage(finalDamage);
             _logger?.Log($"[Combat] Unit {unitId} attacked {targetUnitId} for {finalDamage} damage (raw={rawDamage}).");
 
-            if (_unitSubsystem.TryGetUnit(targetUnitId, out var postData) && postData.CurrentHP <= 0)
+            if (TryGetUnitData(targetUnitId, out var postData) && postData.CurrentHP <= 0)
                 ProcessDeath(targetUnitId);
         }
 
@@ -341,7 +342,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             return;
         }
 
-        if (!_unitSubsystem.TryGetUnit(unitId, out UnitStateData casterData)) return;
+        if (!TryGetUnitData(unitId, out UnitPublicData casterData)) return;
 
         var unitView = FindUnitNetworkView(unitId);
         if (unitView == null) return;
@@ -407,7 +408,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         CheckAutoEndTurn();
     }
 
-    private void ExecuteSkillBehavior(string casterId, string skillId, HexCoord target, UnitStateData casterData, SkillData skillData)
+    private void ExecuteSkillBehavior(string casterId, string skillId, HexCoord target, UnitPublicData casterData, SkillData skillData)
     {
         if (string.IsNullOrEmpty(skillData.skill_behavior_id)) return;
 
@@ -439,7 +440,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         behavior.Execute(context);
     }
 
-    private bool ValidateSkillTarget(UnitStateData casterData, HexCoord target, SkillData skillData)
+    private bool ValidateSkillTarget(UnitPublicData casterData, HexCoord target, SkillData skillData)
     {
         // Check range from skill behavior definition
         int range = 1;
@@ -458,7 +459,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         string targetUnitId = FindUnitAtPosition(target);
         bool hasUnit = !string.IsNullOrEmpty(targetUnitId);
 
-        if (hasUnit && _unitSubsystem.TryGetUnit(targetUnitId, out UnitStateData targetData))
+        if (hasUnit && TryGetUnitData(targetUnitId, out UnitPublicData targetData))
         {
             bool isEnemy = targetData.Owner != casterData.Owner;
             if (isEnemy && (mask & 1) != 0) return true;
@@ -474,7 +475,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     // ── F4.7/F4.8: Start-of-turn effects (burning, etc.) ────────────────
 
-    private void ApplyStartOfTurnEffects(string unitId, UnitStateData data)
+    private void ApplyStartOfTurnEffects(string unitId, UnitPublicData data)
     {
         if (data.StatusEffects == null) return;
 
@@ -519,7 +520,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         CheckEvolution(unitId, data, unitView);
     }
 
-    private void ApplyStatusDamage(string unitId, UnitStateData data, int amount, string sourceId)
+    private void ApplyStatusDamage(string unitId, UnitPublicData data, int amount, string sourceId)
     {
         var context = new DamageContext
         {
@@ -540,7 +541,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         }
     }
 
-    private void TickStatusDurations(UnitNetworkView unitView, UnitStateData data)
+    private void TickStatusDurations(UnitNetworkView unitView, UnitPublicData data)
     {
         if (data.StatusEffects == null) return;
 
@@ -555,7 +556,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
                 {
                     string removedId = unitView.StatusEffectIds.Get(i).ToString();
                     unitView.ServerRemoveStatus(removedId);
-                    _logger?.Log($"[Combat] Status '{removedId}' expired on unit {data.UnitNetworkId}.");
+                    _logger?.Log($"[Combat] Status '{removedId}' expired on unit {data.UnitId}.");
                 }
             }
         }
@@ -565,7 +566,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     private void ProcessDeath(string unitId)
     {
-        if (!_unitSubsystem.TryGetUnit(unitId, out UnitStateData data)) return;
+        if (!TryGetUnitData(unitId, out UnitPublicData data)) return;
 
         int deathAnchor = data.DeathAnchor;
         PlayerRef owner = data.Owner;
@@ -598,13 +599,14 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     private void CheckAllUnitDeaths()
     {
-        var allUnits = _unitSubsystem?.AllUnitIds;
+        var allUnits = _unitSubsystem?.AllUnits;
         if (allUnits == null) return;
 
         var deadUnits = new List<string>();
-        foreach (var id in allUnits)
+        foreach (var netId in allUnits)
         {
-            if (_unitSubsystem.TryGetUnit(id, out UnitStateData data) && data.CurrentHP <= 0)
+            string id = netId.ToString();
+            if (TryGetUnitData(id, out UnitPublicData data) && data.CurrentHP <= 0)
                 deadUnits.Add(id);
         }
 
@@ -618,7 +620,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     // ── F4.14: Verdant evolution ─────────────────────────────────────────
 
-    private void CheckEvolution(string unitId, UnitStateData data, UnitNetworkView unitView)
+    private void CheckEvolution(string unitId, UnitPublicData data, UnitNetworkView unitView)
     {
         if (data.GrowthStacks < 4) return;
 
@@ -655,15 +657,16 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     private void CheckBoardClear()
     {
-        var allUnits = _unitSubsystem?.AllUnitIds;
+        var allUnits = _unitSubsystem?.AllUnits;
         if (allUnits == null || allUnits.Count == 0) return;
 
         var playerUnits = new Dictionary<int, List<string>>();
         int playersWithUnits = 0;
 
-        foreach (var id in allUnits)
+        foreach (var netId in allUnits)
         {
-            if (!_unitSubsystem.TryGetUnit(id, out UnitStateData data)) continue;
+            string id = netId.ToString();
+            if (!TryGetUnitData(id, out UnitPublicData data)) continue;
             if (data.CurrentHP <= 0) continue;
             if (data.IsPersistent) continue; // Persistent units don't count
 
@@ -682,9 +685,10 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         _logger?.Log("[Combat] Board clear triggered — only one player has non-persistent units remaining.");
 
         // Destroy all non-persistent units
-        foreach (var id in allUnits.ToList())
+        foreach (var netId in allUnits.ToList())
         {
-            if (!_unitSubsystem.TryGetUnit(id, out UnitStateData data)) continue;
+            string id = netId.ToString();
+            if (!TryGetUnitData(id, out UnitPublicData data)) continue;
             if (data.CurrentHP <= 0) continue;
             if (data.IsPersistent) continue;
 
@@ -741,14 +745,14 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     // ── ICombatNetworkBridge ─────────────────────────────────────────────
 
-    public void SendMoveRpc(string unitId, HexCoord destination)
-        => Rpc_RequestMove(unitId, destination.P, destination.Q);
+    public void SendMoveRpc(NetworkId unit, HexCoord destination)
+        => Rpc_RequestMove(unit.ToString(), destination.P, destination.Q);
 
-    public void SendNormalAttackRpc(string unitId, HexCoord target)
-        => Rpc_RequestNormalAttack(unitId, target.P, target.Q);
+    public void SendNormalAttackRpc(NetworkId unit, HexCoord target)
+        => Rpc_RequestNormalAttack(unit.ToString(), target.P, target.Q);
 
-    public void SendSkillRpc(string unitId, string skillId, HexCoord target)
-        => Rpc_RequestSkill(unitId, skillId, target.P, target.Q);
+    public void SendSkillRpc(NetworkId unit, string skillId, HexCoord target)
+        => Rpc_RequestSkill(unit.ToString(), skillId, target.P, target.Q);
 
     public void SendEndTurnRpc()
         => Rpc_RequestEndTurn();
@@ -781,6 +785,15 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     // ── Helpers ──────────────────────────────────────────────────────────
 
+    private bool TryGetUnitData(string unitId, out UnitPublicData data)
+    {
+        data = default;
+        if (string.IsNullOrEmpty(unitId)) return false;
+        if (!uint.TryParse(unitId, out uint raw)) return false;
+        var netId = new NetworkId { Raw = raw };
+        return _unitSubsystem != null && _unitSubsystem.TryGetPublic(netId, out data);
+    }
+
     private bool ValidateIsCurrentActor(string unitId)
     {
         if (!IsCombatActive) return false;
@@ -803,12 +816,13 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     private string FindUnitAtPosition(HexCoord position)
     {
-        var allUnits = _unitSubsystem?.AllUnitIds;
+        var allUnits = _unitSubsystem?.AllUnits;
         if (allUnits == null) return null;
 
-        foreach (var id in allUnits)
+        foreach (var netId in allUnits)
         {
-            if (_unitSubsystem.TryGetUnit(id, out UnitStateData data) && data.Position == position && data.CurrentHP > 0)
+            string id = netId.ToString();
+            if (TryGetUnitData(id, out UnitPublicData data) && data.Position == position && data.CurrentHP > 0)
                 return id;
         }
         return null;
@@ -818,8 +832,9 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
     {
         if (string.IsNullOrEmpty(unitId) || !Runner.IsRunning) return null;
 
-        if (NetworkId.TryParse(unitId, out NetworkId netId))
+        if (uint.TryParse(unitId, out uint raw))
         {
+            var netId = new NetworkId { Raw = raw };
             if (Runner.TryFindObject(netId, out var netObj))
                 return netObj.GetComponent<UnitNetworkView>();
         }
@@ -836,7 +851,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         return -1;
     }
 
-    private bool HasStatus(UnitStateData data, string statusId)
+    private bool HasStatus(UnitPublicData data, string statusId)
     {
         if (data.StatusEffects == null) return false;
         foreach (var s in data.StatusEffects)
@@ -848,20 +863,28 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
     {
         if (_combatSubsystem == null) return;
 
-        var queue = new List<string>();
+        var queue = new List<CombatQueueEntry>();
         for (int i = 0; i < QueueCount; i++)
         {
-            string id = ActionQueue.Get(i).ToString();
-            if (!string.IsNullOrEmpty(id)) queue.Add(id);
+            string idStr = ActionQueue.Get(i).ToString();
+            if (string.IsNullOrEmpty(idStr)) continue;
+
+            NetworkId entryNetId = default;
+            if (uint.TryParse(idStr, out uint entryRaw)) entryNetId = new NetworkId { Raw = entryRaw };
+            string cardId = FindUnitNetworkView(idStr)?.BaseCardId.ToString() ?? string.Empty;
+            queue.Add(new CombatQueueEntry { UnitId = entryNetId, CardId = cardId });
         }
 
-        string currentActor = CurrentIndex < QueueCount ? ActionQueue.Get(CurrentIndex).ToString() : string.Empty;
+        string currentActorStr = CurrentIndex < QueueCount ? ActionQueue.Get(CurrentIndex).ToString() : string.Empty;
+        NetworkId currentActorId = default;
+        if (uint.TryParse(currentActorStr, out uint actorRaw)) currentActorId = new NetworkId { Raw = actorRaw };
 
         _combatSubsystem.OnAuthoritativeStateReceived(new CombatStateData
         {
             ActionQueue = queue,
-            CurrentActorId = currentActor,
-            IsCombatActive = IsCombatActive
+            CurrentActor = currentActorId,
+            HasMoved = CurrentActorHasMoved,
+            HasActed = CurrentActorHasActed
         });
     }
 }

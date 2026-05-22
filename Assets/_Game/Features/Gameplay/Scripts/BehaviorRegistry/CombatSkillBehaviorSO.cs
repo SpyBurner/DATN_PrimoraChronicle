@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CombatSkillBehavior", menuName = "Primora/Skills/CombatSkillBehavior")]
@@ -83,12 +84,13 @@ public class CombatSkillBehaviorSO : ScriptableObject
 
     protected string FindUnitAtPosition(SkillExecutionContext ctx, HexCoord position)
     {
-        var allUnits = ctx.UnitSubsystem?.AllUnitIds;
+        var allUnits = ctx.UnitSubsystem?.AllUnits;
         if (allUnits == null) return null;
 
-        foreach (var id in allUnits)
+        foreach (var netId in allUnits)
         {
-            if (ctx.UnitSubsystem.TryGetUnit(id, out UnitStateData data) && data.Position == position && data.CurrentHP > 0)
+            string id = netId.ToString();
+            if (TryGetPublic(ctx, id, out UnitPublicData data) && data.Position == position && data.CurrentHP > 0)
                 return id;
         }
         return null;
@@ -96,7 +98,7 @@ public class CombatSkillBehaviorSO : ScriptableObject
 
     protected bool HasStatus(SkillExecutionContext ctx, string unitId, string statusId)
     {
-        if (!ctx.UnitSubsystem.TryGetUnit(unitId, out UnitStateData data)) return false;
+        if (!TryGetPublic(ctx, unitId, out UnitPublicData data)) return false;
         if (data.StatusEffects == null) return false;
         foreach (var s in data.StatusEffects)
             if (s.StatusId == statusId) return true;
@@ -106,8 +108,9 @@ public class CombatSkillBehaviorSO : ScriptableObject
     protected UnitNetworkView FindUnitView(SkillExecutionContext ctx, string unitId)
     {
         if (string.IsNullOrEmpty(unitId) || !ctx.Runner.IsRunning) return null;
-        if (Fusion.NetworkId.TryParse(unitId, out var netId))
+        if (uint.TryParse(unitId, out uint raw))
         {
+            var netId = new NetworkId { Raw = raw };
             if (ctx.Runner.TryFindObject(netId, out var netObj))
                 return netObj.GetComponent<UnitNetworkView>();
         }
@@ -116,8 +119,17 @@ public class CombatSkillBehaviorSO : ScriptableObject
 
     private HexCoord GetUnitPosition(SkillExecutionContext ctx, string unitId)
     {
-        if (ctx.UnitSubsystem.TryGetUnit(unitId, out UnitStateData data))
+        if (TryGetPublic(ctx, unitId, out UnitPublicData data))
             return data.Position;
         return HexCoord.Invalid;
+    }
+
+    protected bool TryGetPublic(SkillExecutionContext ctx, string unitId, out UnitPublicData data)
+    {
+        data = default;
+        if (string.IsNullOrEmpty(unitId)) return false;
+        if (!uint.TryParse(unitId, out uint raw)) return false;
+        var netId = new NetworkId { Raw = raw };
+        return ctx.UnitSubsystem != null && ctx.UnitSubsystem.TryGetPublic(netId, out data);
     }
 }

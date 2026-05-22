@@ -4,7 +4,7 @@ using Core.GDS;
 public struct SkillExecutionContext
 {
     public string CasterId;
-    public UnitStateData CasterData;
+    public UnitPublicData CasterData;
     public HexCoord Target;
     public SkillData SkillData;
     public NetworkRunner Runner;

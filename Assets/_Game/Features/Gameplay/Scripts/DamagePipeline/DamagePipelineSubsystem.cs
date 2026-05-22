@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 using Zenject;
 
@@ -35,8 +36,8 @@ public class DamagePipelineSubsystem : IDamagePipelineSubsystem
         // F4.11: Friendly-fire check
         if (!context.IsAOE && !string.IsNullOrEmpty(context.SourceUnitId) && !string.IsNullOrEmpty(context.TargetUnitId))
         {
-            if (_unitSubsystem.TryGetUnit(context.SourceUnitId, out UnitStateData sourceData)
-                && _unitSubsystem.TryGetUnit(context.TargetUnitId, out UnitStateData targetData))
+            if (TryGetPublic(context.SourceUnitId, out UnitPublicData sourceData)
+                && TryGetPublic(context.TargetUnitId, out UnitPublicData targetData))
             {
                 if (sourceData.Owner == targetData.Owner)
                     return 0; // Block friendly fire by default
@@ -68,7 +69,7 @@ public class DamagePipelineSubsystem : IDamagePipelineSubsystem
         {
             // Owner's units are immune to their own negative tile effects
             if (!string.IsNullOrEmpty(context.TargetUnitId)
-                && _unitSubsystem.TryGetUnit(context.TargetUnitId, out UnitStateData targetData))
+                && TryGetPublic(context.TargetUnitId, out UnitPublicData targetData))
             {
                 if (effect.Owner == targetData.Owner)
                 {
@@ -90,7 +91,7 @@ public class DamagePipelineSubsystem : IDamagePipelineSubsystem
     private int InterceptByStatusEffects(DamageContext context, int currentAmount)
     {
         if (string.IsNullOrEmpty(context.TargetUnitId)) return currentAmount;
-        if (!_unitSubsystem.TryGetUnit(context.TargetUnitId, out UnitStateData targetData)) return currentAmount;
+        if (!TryGetPublic(context.TargetUnitId, out UnitPublicData targetData)) return currentAmount;
         if (targetData.StatusEffects == null) return currentAmount;
 
         foreach (var status in targetData.StatusEffects)
@@ -110,5 +111,14 @@ public class DamagePipelineSubsystem : IDamagePipelineSubsystem
         }
 
         return currentAmount;
+    }
+
+    private bool TryGetPublic(string unitId, out UnitPublicData data)
+    {
+        data = default;
+        if (string.IsNullOrEmpty(unitId)) return false;
+        if (!uint.TryParse(unitId, out uint raw)) return false;
+        var netId = new NetworkId { Raw = raw };
+        return _unitSubsystem != null && _unitSubsystem.TryGetPublic(netId, out data);
     }
 }

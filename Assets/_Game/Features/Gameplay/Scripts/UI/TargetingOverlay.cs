@@ -196,9 +196,9 @@ public class TargetingOverlay : MonoBehaviour
 
     private bool IsEnemyAt(HexCoord coord)
     {
-        foreach (var unitId in _unit.AllUnitIds)
+        foreach (var netId in _unit.AllUnits)
         {
-            if (!_unit.TryGetUnit(unitId, out var unitData)) continue;
+            if (!_unit.TryGetPublic(netId, out var unitData)) continue;
             if (unitData.Position == coord)
                 return unitData.Owner != _localPlayer;
         }

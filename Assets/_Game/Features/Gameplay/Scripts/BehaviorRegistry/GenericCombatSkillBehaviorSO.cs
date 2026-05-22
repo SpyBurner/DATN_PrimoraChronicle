@@ -110,7 +110,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
 
-        if (!ctx.UnitSubsystem.TryGetUnit(targetId, out var targetData)) return;
+        if (!TryGetPublic(ctx, targetId, out var targetData)) return;
         if (targetData.Owner == ctx.CasterData.Owner) return;
 
         DealDamage(ctx, targetId, 15);
@@ -125,7 +125,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
             string unitId = FindUnitAtPosition(ctx, tile);
             if (string.IsNullOrEmpty(unitId)) continue;
 
-            if (ctx.UnitSubsystem.TryGetUnit(unitId, out var data) && data.Owner != ctx.CasterData.Owner)
+            if (TryGetPublic(ctx, unitId, out var data) && data.Owner != ctx.CasterData.Owner)
             {
                 DealDamage(ctx, unitId, 12);
                 DealDamage(ctx, unitId, 12);
@@ -138,7 +138,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
 
-        if (!ctx.UnitSubsystem.TryGetUnit(targetId, out var targetData)) return;
+        if (!TryGetPublic(ctx, targetId, out var targetData)) return;
         if (targetData.Owner == ctx.CasterData.Owner) return;
 
         ApplyStatus(ctx, targetId, "decay", 3);
@@ -162,7 +162,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
             foreach (var neighbor in ctx.BoardSubsystem.GetNeighbors(ctx.Target))
             {
                 string allyId = FindUnitAtPosition(ctx, neighbor);
-                if (!string.IsNullOrEmpty(allyId) && ctx.UnitSubsystem.TryGetUnit(allyId, out var allyData)
+                if (!string.IsNullOrEmpty(allyId) && TryGetPublic(ctx, allyId, out var allyData)
                     && allyData.Owner == ctx.CasterData.Owner)
                 {
                     HealUnit(ctx, allyId, 20);
@@ -195,7 +195,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         foreach (var neighbor in ctx.BoardSubsystem.GetNeighbors(ctx.CasterData.Position))
         {
             string allyId = FindUnitAtPosition(ctx, neighbor);
-            if (!string.IsNullOrEmpty(allyId) && ctx.UnitSubsystem.TryGetUnit(allyId, out var allyData)
+            if (!string.IsNullOrEmpty(allyId) && TryGetPublic(ctx, allyId, out var allyData)
                 && allyData.Owner == ctx.CasterData.Owner)
             {
                 HealUnit(ctx, allyId, 10);
@@ -208,7 +208,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
 
-        if (ctx.UnitSubsystem.TryGetUnit(targetId, out var data) && data.Owner != ctx.CasterData.Owner)
+        if (TryGetPublic(ctx, targetId, out var data) && data.Owner != ctx.CasterData.Owner)
             ApplyStatus(ctx, targetId, "rooted", 3);
     }
 
@@ -223,7 +223,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
 
-        if (ctx.UnitSubsystem.TryGetUnit(targetId, out var data) && data.Owner == ctx.CasterData.Owner)
+        if (TryGetPublic(ctx, targetId, out var data) && data.Owner == ctx.CasterData.Owner)
         {
             var view = FindUnitView(ctx, targetId);
             view?.ServerAddGrowthStack(1);
@@ -235,7 +235,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
 
-        if (ctx.UnitSubsystem.TryGetUnit(targetId, out var data) && data.Owner != ctx.CasterData.Owner)
+        if (TryGetPublic(ctx, targetId, out var data) && data.Owner != ctx.CasterData.Owner)
         {
             DealDamage(ctx, targetId, 15);
 
@@ -250,7 +250,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         if (ctx.TileEffectSubsystem.TryGet(ctx.Target, out var existing) && existing.EffectId == "Seeded")
         {
             string targetId = FindUnitAtPosition(ctx, ctx.Target);
-            if (!string.IsNullOrEmpty(targetId) && ctx.UnitSubsystem.TryGetUnit(targetId, out var data)
+            if (!string.IsNullOrEmpty(targetId) && TryGetPublic(ctx, targetId, out var data)
                 && data.Owner == ctx.CasterData.Owner)
             {
                 var view = FindUnitView(ctx, targetId);
@@ -265,10 +265,11 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
 
     private void ExecuteSporeBurst(SkillExecutionContext ctx)
     {
-        var allUnits = ctx.UnitSubsystem.AllUnitIds;
-        foreach (var id in allUnits)
+        var allUnits = ctx.UnitSubsystem.AllUnits;
+        foreach (var netId in allUnits)
         {
-            if (!ctx.UnitSubsystem.TryGetUnit(id, out var data)) continue;
+            string id = netId.ToString();
+            if (!TryGetPublic(ctx, id, out var data)) continue;
             if (data.Owner == ctx.CasterData.Owner) continue;
             if (data.CurrentHP <= 0) continue;
 
@@ -282,7 +283,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
 
-        if (ctx.UnitSubsystem.TryGetUnit(targetId, out var data) && data.Owner == ctx.CasterData.Owner)
+        if (TryGetPublic(ctx, targetId, out var data) && data.Owner == ctx.CasterData.Owner)
             ApplyStatus(ctx, targetId, "barkskin_ward", 3);
     }
 
@@ -317,10 +318,11 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
 
     private void ExecuteMasteryOfFlame(SkillExecutionContext ctx)
     {
-        var allUnits = ctx.UnitSubsystem.AllUnitIds;
-        foreach (var id in allUnits)
+        var allUnits = ctx.UnitSubsystem.AllUnits;
+        foreach (var netId in allUnits)
         {
-            if (!ctx.UnitSubsystem.TryGetUnit(id, out var data)) continue;
+            string id = netId.ToString();
+            if (!TryGetPublic(ctx, id, out var data)) continue;
             if (data.CurrentHP <= 0) continue;
 
             if (HasStatus(ctx, id, "burning"))
@@ -362,7 +364,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         foreach (var neighbor in ctx.BoardSubsystem.GetNeighbors(ctx.Target))
         {
             string unitId = FindUnitAtPosition(ctx, neighbor);
-            if (!string.IsNullOrEmpty(unitId) && ctx.UnitSubsystem.TryGetUnit(unitId, out var data)
+            if (!string.IsNullOrEmpty(unitId) && TryGetPublic(ctx, unitId, out var data)
                 && data.Owner != ctx.CasterData.Owner)
             {
                 ApplyStatus(ctx, unitId, "burning", 1);
@@ -380,13 +382,14 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
     private void ExecuteLegionsLastStand(SkillExecutionContext ctx)
     {
         int removedCount = 0;
-        var allUnits = ctx.UnitSubsystem.AllUnitIds;
+        var allUnits = ctx.UnitSubsystem.AllUnits;
 
         var toRemove = new List<string>();
-        foreach (var id in allUnits)
+        foreach (var netId in allUnits)
         {
+            string id = netId.ToString();
             if (id == ctx.CasterId) continue;
-            if (!ctx.UnitSubsystem.TryGetUnit(id, out var data)) continue;
+            if (!TryGetPublic(ctx, id, out var data)) continue;
             if (data.Owner != ctx.CasterData.Owner) continue;
             if (data.IsPersistent) continue;
             toRemove.Add(id);
@@ -394,7 +397,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
 
         foreach (var id in toRemove)
         {
-            if (ctx.UnitSubsystem.TryGetUnit(id, out var data))
+            if (TryGetPublic(ctx, id, out var data))
                 ctx.BoardSubsystem.SetOccupant(data.Position, null);
 
             var view = FindUnitView(ctx, id);

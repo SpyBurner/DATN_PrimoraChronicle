@@ -29,7 +29,7 @@ public class SkillPanel : MonoBehaviour
 
     private readonly List<SkillSlotUI> _spawnedSlots = new();
     private PlayerRef _localPlayer;
-    private string _currentActorId;
+    private NetworkId _currentActor;
 
     private struct SkillSlotUI
     {
@@ -50,8 +50,8 @@ public class SkillPanel : MonoBehaviour
         _targeting.TargetingCancelled += OnTargetingCancelled;
         _endTurnButton?.onClick.AddListener(OnEndTurnClicked);
 
-        if (_combat.IsCombatActive && !string.IsNullOrEmpty(_combat.CurrentActorId))
-            OnCurrentTurnChanged(_combat.CurrentActorId);
+        if (_combat.CurrentActor != default)
+            OnCurrentTurnChanged(_combat.CurrentActor);
     }
 
     private void OnDisable()
@@ -71,11 +71,11 @@ public class SkillPanel : MonoBehaviour
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private void OnCurrentTurnChanged(string actorId)
+    private void OnCurrentTurnChanged(NetworkId actorId)
     {
         try
         {
-            _currentActorId = actorId;
+            _currentActor = actorId;
             bool isLocalTurn = IsLocalPlayerActor(actorId);
             SetInteractable(isLocalTurn);
             RenderSkills(actorId);
@@ -87,38 +87,38 @@ public class SkillPanel : MonoBehaviour
     {
         try
         {
-            SetInteractable(IsLocalPlayerActor(_currentActorId));
+            SetInteractable(IsLocalPlayerActor(_currentActor));
         }
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private bool IsLocalPlayerActor(string actorId)
+    private bool IsLocalPlayerActor(NetworkId actorId)
     {
-        if (string.IsNullOrEmpty(actorId)) return false;
-        if (!_unit.TryGetUnit(actorId, out var data)) return false;
+        if (actorId == default) return false;
+        if (!_unit.TryGetPublic(actorId, out var data)) return false;
         return data.Owner == _localPlayer;
     }
 
-    private void RenderSkills(string actorId)
+    private void RenderSkills(NetworkId actorId)
     {
         ClearSlots();
 
-        if (string.IsNullOrEmpty(actorId)) return;
-        if (!_unit.TryGetUnit(actorId, out var unitData)) return;
+        if (actorId == default) return;
+        if (!_unit.TryGetPublic(actorId, out var unitData)) return;
 
         if (_actorNameText != null)
         {
-            string displayName = actorId;
-            if (_cardLoading.TryGetCardData(actorId, out var cardData))
+            string displayName = actorId.ToString();
+            if (!string.IsNullOrEmpty(unitData.UnitId.ToString()) && _cardLoading.TryGetCardData(actorId.ToString(), out var cardData))
                 displayName = cardData.name;
             _actorNameText.text = displayName;
         }
 
-        if (unitData.Skills == null) return;
+        if (!_unit.TryGetOwnSkills(actorId, out var skills) || skills == null) return;
 
-        for (int i = 0; i < unitData.Skills.Count; i++)
+        for (int i = 0; i < skills.Count; i++)
         {
-            var skill = unitData.Skills[i];
+            var skill = skills[i];
             if (string.IsNullOrEmpty(skill.SkillId)) continue;
 
             var slot = Instantiate(_skillSlotPrefab, _skillSlotContainer);
@@ -176,8 +176,7 @@ public class SkillPanel : MonoBehaviour
 
     private void OnSkillClicked(string skillId)
     {
-        if (string.IsNullOrEmpty(_currentActorId)) return;
-        if (!_unit.TryGetUnit(_currentActorId, out var unitData)) return;
+        if (_currentActor == default) return;
         if (_targeting.IsTargeting) return;
 
         _cardLoading.TryGetSkillData(skillId, out var skillData);
@@ -201,7 +200,7 @@ public class SkillPanel : MonoBehaviour
             Mask = mask,
             Range = range,
             DisplayPattern = displayPattern,
-            CasterUnitId = _currentActorId,
+            CasterUnitId = _currentActor.ToString(),
             IgnorePathfinding = true,
         };
 
@@ -211,13 +210,13 @@ public class SkillPanel : MonoBehaviour
 
     private void OnTargetConfirmed(string skillId, HexCoord target)
     {
-        _combat.RequestSkill(_currentActorId, skillId, target);
+        _combat.RequestSkill(_currentActor, skillId, target);
     }
 
     private void OnEndTurnClicked()
     {
-        if (!IsLocalPlayerActor(_currentActorId)) return;
-        _combat.RequestEndTurn();
+        if (!IsLocalPlayerActor(_currentActor)) return;
+        _combat.EndTurn();
     }
 
     private void SetInteractable(bool interactable)
@@ -231,11 +230,10 @@ public class SkillPanel : MonoBehaviour
 
     private bool IsSkillReady(string skillId)
     {
-        if (string.IsNullOrEmpty(_currentActorId)) return false;
-        if (!_unit.TryGetUnit(_currentActorId, out var unitData)) return false;
-        if (unitData.Skills == null) return false;
+        if (_currentActor == default) return false;
+        if (!_unit.TryGetOwnSkills(_currentActor, out var skills) || skills == null) return false;
 
-        foreach (var skill in unitData.Skills)
+        foreach (var skill in skills)
         {
             if (skill.SkillId == skillId)
                 return !skill.IsOneTimeDisabled && skill.CurrentCooldown <= 0;
