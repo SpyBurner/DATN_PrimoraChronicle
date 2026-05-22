@@ -208,6 +208,8 @@ public interface IUnitSubsystem : ISubsystem {
 ```
 
 > Unit state is split across two NetworkObjects per spawned unit. `UnitPublicNetworkView` holds public combat data (position, HP, status effects) and is always-replicated. `UnitPrivateNetworkView` holds the skill list (IDs, cooldowns, one-time flags) and is AoI-restricted to the owning player via `Runner.SetPlayerAlwaysInterested(unitOwner, unitPrivateObject, true)`. The `SkillPanel` UI subscribes to `OwnUnitSkillsChanged` — when the current actor belongs to the opponent, the panel shows a placeholder.
+>
+> **Topology**: per-entity always-replicated (`UnitPublicNetworkView`) + per-entity AoI-restricted (`UnitPrivateNetworkView`). See §5.2.1 for registration rules.
 
 ### 3.4 Combat (queue + turn)
 
@@ -280,6 +282,8 @@ public interface IPlayerRosterSubsystem : ISubsystem {
 ```
 
 > **PlayerRoster** is a thin public facade for per-player profile data. `PlayerRosterPublicNetworkView` is one NetworkObject per player, always-replicated. HP drives `Profile_Gameplay.HPValueText` and `MatchResultPanel`; PlayerName drives `NameValueText` everywhere; UserId drives the local HTTP avatar fetch in both panels.
+>
+> **Topology**: per-player always-replicated. Canonical verified reference — see §5.2.1 for registration rules. **PlayerCardZone** is per-player AoI-restricted — same rules, add `SetPlayerAlwaysInterested`.
 
 ```csharp
 // PlayerCardZone/PlayerCardZonePrivateData.cs  — replicated ONLY to Owner via AoI
@@ -404,6 +408,8 @@ public interface IMatchRewardsSubsystem : ISubsystem {
 }
 ```
 
+> **Topology**: `MatchRewardsPrivateNetworkView` is per-player AoI-restricted. See §5.2.1.
+>
 > **Match-end shutdown flow.** Server writes `GameMatchResult` (Winner, IsTie, DurationSeconds) as a `[Networked]` prop on `MatchResultNetworkView` — replicated to all clients. Server then writes per-player Gold/XP to each player's `MatchRewardsPrivateNetworkView` (AoI-restricted, so each client only receives its own). After both writes are committed, server calls `await IBackendBridgeSubsystem.ReportMatchResultAsync(...)`, then `Runner.Shutdown()`. Clients' `MatchResultPanel` subscribes to both events and caches the values locally so the panel remains populated after the runner disconnects. `Button_Confirm` calls `ISceneLoaderSubsystem.LoadScene("Lobby")` — a local-only operation with no network dependency.
 
 ### 3.10 Network bridges (one per subsystem)
@@ -532,6 +538,27 @@ All implementation files under `Features/Gameplay/Scripts/<Domain>/`. Interfaces
 
 Register every prefab in `NetworkViewRegistry` SO referenced from the scene.
 
+### 5.2.1 Per-player & per-entity NetworkView requirements
+
+Any NetworkView spawned more than once per peer (marked per-player or per-entity above)
+must follow the full per-player rules in `networked-subsystem-guideline.md §Topology`.
+Quick summary:
+
+- **Bridge registration**: subsystem + controller use `RegisterNetworkBridge(PlayerRef owner, IXxxNetworkBridge bridge)`; controller holds `Dictionary<PlayerRef, IXxxNetworkBridge>`. Every replicated view calls `RegisterNetworkBridge(Object.InputAuthority, this)` unconditionally in `Spawned()` — no `HasInputAuthority` gate needed.
+- **`PushState()` guards `Owner != PlayerRef.None`** — the first `Spawned()` call may fire before the pre-spawn callback sets `Owner`.
+- **AoI-restricted views**: call `Runner.SetPlayerAlwaysInterested(Owner, Object, true)` in `Spawned()` when `HasStateAuthority`.
+- **Cleanup**: `Despawned()` calls `RegisterNetworkBridge(_cachedInputAuthority, null)`.
+- **Spawn site**: pass `Owner` and any initial state via `Runner.Spawn` pre-spawn callback.
+- **Server-side writes** (e.g. HP from damage): the server calls bridge methods directly on the view reference it holds (from coordinator dicts), NOT via the subsystem's bridge dict. `HasStateAuthority` guard inside each method makes it a no-op on non-authority peers.
+
+Canonical reference: `PlayerRosterPublicNetworkView.cs` (always-replicated, verified).
+AoI-restricted views follow the same shape plus the `SetPlayerAlwaysInterested` call;
+no AoI-restricted view has been end-to-end verified yet — treat as unproven until tested.
+
+> **Context**: the HUD name-sync failures fixed in commits `7d10bb1 / fc6c7ab / 1f7913b`
+> were caused by MPPM PlayerPrefs sharing (see §5.4) combined with an older single-bridge
+> architecture that made debugging non-deterministic. Both issues are now addressed.
+
 ### 5.3 DI bindings to add in `GameplayInstaller.cs`
 
 ```csharp
@@ -588,6 +615,18 @@ Container.BindInterfacesAndSelfTo<MatchResultSubsystem>().AsSingle().NonLazy();
 
 For two-instance testing without real matchmaking, add a **dev-only** "Host Test Match" and "Join Test Match" pair on the Lobby Battle screen (gated behind `#if UNITY_EDITOR || DEVELOPMENT_BUILD`). They use a fixed session name `"primora-dev-match"`.
 
+> **⚠ MPPM PlayerPrefs sharing.** Unity's Multiplayer Play Mode package shares `PlayerPrefs`
+> across all virtual player instances on the same machine. Any read from `PlayerPrefs` —
+> `IAuthSessionSubsystem.UserId`, cached `IProfileSubsystem.Username`, auth tokens — returns
+> the **last-logged-in instance's** value in every virtual player. Both players appear to be
+> the same user. Symptoms: both HUD name slots show the same name; identity RPCs push
+> duplicate strings; HUD sync looks broken even though the network code is correct.
+>
+> **Use two separate Editor instances** (ParrelSync or a second checkout) — not MPPM virtual
+> players — for any test that involves per-player identity. MPPM is fine for non-identity
+> testing (phase machine, combat, board generation). Running one Editor + one standalone build
+> also works (separate PlayerPrefs namespaces).
+
 ### 5.5 Verification steps
 
 1. **Phase loop heartbeat:** Open two Editor instances → Host + Client. Both transition `Setup → StartPhase`. Console logs from `GameStateSubsystem.PhaseChanged` fire on both sides within one Render() tick. Expand: progress through all 5 phases by clicking Confirm/auto-timeout.
@@ -599,7 +638,7 @@ For two-instance testing without real matchmaking, add a **dev-only** "Host Test
 5b-2. **Skill privacy:** Spawn a unit on Host. On Client, inspect that unit's `UnitPrivateNetworkView` — its Skills array is empty (no AoI interest). Open `PhaseInteractionPanel_Skill` drawer when the host's unit is the current actor on the Client: panel renders the "opponent unit" placeholder, never the skill IDs.
 5b-3. **Rewards privacy:** Trigger match end with Host as winner. Each client's `MatchRewardsPrivateNetworkView` is only accessible by its own owner. Host's Gold/XP fields are non-zero locally; Client's reflect their own rewards, not the host's.
 5b-4. **Match-end shutdown survives the panel:** Server log order: `ReportMatchResultAsync` completes → `Runner.Shutdown()` invoked. On both clients, after the disconnect log fires, `PhaseInteractionPanel_MatchResult` remains fully populated (winner crown, names, time, owner's Gold/XP). Clicking `Button_Confirm` triggers `SceneLoader.LoadScene("Lobby")` with no network calls.
-5c. **Ready handshake via Confirm button:** Two Editor instances. Enter StartPhase. On Host, pick a deck and click `Button_Confirm` — `PlayerReady[host]` flips true on both clients; both `ReadyToggle` visuals flip on for the host's slot. On Client, do the same — `AllPlayersReady` fires; phase advances to MainPhase on both within one Render() tick.
+5c. **Ready handshake via Confirm button:** Two **separate Editor instances** (not MPPM — see §5.4 MPPM warning). Enter StartPhase. On Host, pick a deck and click `Button_Confirm` — `PlayerReady[host]` flips true on both clients; both `ReadyToggle` visuals flip on for the host's slot. On Client, do the same — `AllPlayersReady` fires; phase advances to MainPhase on both within one Render() tick.
 5d. **Toggle non-interactable on every slot:** During any phase, attempt to click `ReadyToggle` on `Profile_Player` or `Profile_Enemy1` — neither responds (interactable=false); no RPC fires; `PlayerReady[]` unchanged.
 5e. **Ready locked once true:** During StartPhase, after pressing Confirm, send a synthetic `RequestSetLocalReady(false)` — server rejects it; `PlayerReady[localPlayer]` remains true until phase advances.
 5f. **AcceptsReadyInput coverage:** In Setup phase, `IGameStateSubsystem.AcceptsReadyInput` returns false. Same in CombatPhase and GameOver. Returns true in StartPhase / MainPhase / DrawPhase.
@@ -766,7 +805,7 @@ At end of F1 (foundation), both members run a smoke test: Lobby → Gameplay sce
 
 ## 10. End-to-End Verification (after both tracks merge)
 
-1. Two Editor instances. Both log in as different users.
+1. Two **separate Editor instances** (not MPPM — see §5.4 for why MPPM breaks identity). Both log in as different users.
 2. Host clicks Battle in Lobby → Gameplay scene loads on both sides.
 3. Both players see their decks listed in DeckChoose overlay, pick one, confirm.
 4. StartPhase counts down, opening hand of 6 deals on each side.

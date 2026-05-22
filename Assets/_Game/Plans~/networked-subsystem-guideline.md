@@ -20,6 +20,47 @@ touch, keep that seam thin, and ensure everything on either side stays ignorant 
 
 ---
 
+## SSoT Under Fusion
+
+In a **local-only** subsystem (Auth, Profile, Deck-listing) the Model is the single source
+of truth — it owns all mutable state and all writes go through `ApplyState()`.
+
+When Fusion is involved the SSoT shifts to the wire:
+
+| Subsystem type | Where the SSoT lives | Model's role |
+|---|---|---|
+| Local-only | `XxxModel` | Owns state |
+| Networked — singleton view | `[Networked]` props on the single NetworkObject | Downstream projection |
+| Networked — per-player views | N `[Networked]` blocks, one per player's NetworkObject | Downstream projection, aggregated into a `PlayerRef`-keyed dict |
+
+`Model.ApplyState()` is still the only write path into the model, but in the networked case
+it is called *after* Fusion: `Render()` → `PushState()` → `subsystem.OnAuthoritativeStateReceived()`
+→ `controller.OnAuthoritativeStateReceived()` → `model.ApplyState()`. This path runs on
+**every peer including the StateAuthority** — the server does not bypass it.
+
+N NetworkObjects + 1 Model does not mean N sources of truth. There is one model (the dict),
+one set of `[Networked]` props per NetworkObject, and the model is the observable cache of
+the wire — not its replacement.
+
+---
+
+## Topology
+
+Choose before implementing. The spawn shape determines the bridge registration pattern.
+
+| Topology | When | Examples | Notes |
+|---|---|---|---|
+| **Singleton** | Match-wide state | `GameStateNetworkView`, `BoardNetworkView`, `CombatNetworkView` | One NetworkObject. `HasStateAuthority` writes only. No per-owner dict. |
+| **Per-player, always-replicated** | Public per-player data every client must see | `PlayerRosterPublicNetworkView` | One NO per player, all replicated to all peers. Each view registers itself by `Owner` in `Spawned()` unconditionally. Model holds a `PlayerRef`-keyed dict. |
+| **Per-player, AoI-restricted** | Private per-player data only the owner should see | `PlayerCardZonePrivateNetworkView`, `MatchRewardsPrivateNetworkView` | Same per-owner registration. Add `Runner.SetPlayerAlwaysInterested(Owner, Object, true)` on `HasStateAuthority` in `Spawned()` — only the owner's peer ever receives this object. |
+| **Per-entity** | One per unit / tile-effect | `UnitPublicNetworkView`, `UnitPrivateNetworkView` | Same per-owner registration pattern; identity key is `NetworkId` + `Owner`. |
+
+The singleton pattern uses a **single nullable bridge** in the controller. The per-player
+and per-entity patterns use a **`Dictionary<PlayerRef, IXxxNetworkBridge>`** keyed by owner,
+so every replicated view can register without collision.
+
+---
+
 ## Layer Responsibilities
 
 ```
@@ -44,7 +85,8 @@ touch, keep that seam thin, and ensure everything on either side stays ignorant 
 ┌────────────────────────▼────────────────────────────┐         │
 │                 Controller Layer                    │         │
 │  XxxController : IXxxController, IXxxStateReceiver  │         │
-│  - Holds nullable IXxxNetworkBridge                 │         │
+│  - Singleton: holds nullable IXxxNetworkBridge      │         │
+│  - Per-player: holds Dictionary<PlayerRef, bridge>  │         │
 │  - Local path: mutates model directly               │         │
 │  - Networked path: delegates to bridge RPC          │         │
 │  - IXxxStateReceiver: sole writer to model          │         │
@@ -81,6 +123,8 @@ public interface IXxxSubsystem : ISubsystem
     Task SubmitAsync();
 
     // Network registration — called by XxxNetworkView after Spawned()
+    // Singleton topology:     RegisterNetworkBridge(IXxxNetworkBridge bridge)
+    // Per-player topology:    RegisterNetworkBridge(PlayerRef owner, IXxxNetworkBridge bridge)
     void RegisterNetworkBridge(IXxxNetworkBridge bridge);
 
     // Authoritative sync — called by XxxNetworkView from Render()
@@ -92,6 +136,8 @@ internal interface IXxxController : IController
 {
     void DoSomething(string input);
     Task SubmitAsync();
+    // Singleton:   RegisterBridge(IXxxNetworkBridge bridge)
+    // Per-player:  RegisterBridge(PlayerRef owner, IXxxNetworkBridge bridge)
     void RegisterBridge(IXxxNetworkBridge bridge);
     void OnAuthoritativeStateReceived(XxxStateData data);
 }
@@ -157,6 +203,36 @@ internal class XxxModel : IXxxModel
 `ApplyState` is the **only** method that writes to observables. There are no individual
 setters exposed. This enforces that all writes come through one path.
 
+**Per-player variant** — when the subsystem holds data for multiple players, the model
+holds parallel dicts keyed by `PlayerRef.RawEncoded` rather than scalar observables, and
+`ApplyState` emits per-owner events. The single-write-path rule still holds.
+
+```csharp
+// Per-player model — one dict per replicated field, keyed by PlayerRef.RawEncoded
+internal class XxxModel : IXxxModel
+{
+    public event Action<PlayerRef, int> ValueChanged;
+
+    private readonly Dictionary<int, int> _values = new();
+    private readonly List<PlayerRef> _allOwners = new();
+
+    public IReadOnlyList<PlayerRef> AllOwners => _allOwners;
+    public int GetValue(PlayerRef p) => _values.TryGetValue(p.RawEncoded, out var v) ? v : 0;
+
+    public void ApplyState(XxxStateData data)   // data carries Owner + Value
+    {
+        int key = data.Owner.RawEncoded;
+        if (!_allOwners.Contains(data.Owner)) _allOwners.Add(data.Owner);
+
+        bool changed = !_values.TryGetValue(key, out int prev) || prev != data.Value;
+        _values[key] = data.Value;
+        if (changed) ValueChanged?.Invoke(data.Owner, data.Value);
+    }
+
+    public void Dispose() { _values.Clear(); _allOwners.Clear(); }
+}
+```
+
 ---
 
 ## Controller
@@ -180,11 +256,20 @@ internal class XxxController : IXxxController
         _logger = logger;
     }
 
+    // Singleton topology — single nullable bridge
     public void RegisterBridge(IXxxNetworkBridge bridge)
     {
         _bridge = bridge;
         _logger.Log($"[XxxController] Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
+
+    // Per-player topology — replace the above with this dict variant:
+    // private readonly Dictionary<PlayerRef, IXxxNetworkBridge> _bridges = new();
+    // public void RegisterBridge(PlayerRef owner, IXxxNetworkBridge bridge)
+    // {
+    //     if (bridge == null) _bridges.Remove(owner);
+    //     else _bridges[owner] = bridge;
+    // }
 
     // ── Intent (UI/subsystem facing) ────────────────────────────────────
 
@@ -286,59 +371,36 @@ A `NetworkBehaviour` that lives on a Fusion-spawned prefab. It is the only objec
 knows about both worlds. Its single Zenject injection is `IXxxSubsystem` — the same
 interface the UI panel uses. Controller and state receiver are never visible to it.
 
+### Singleton view
+
+One instance for the whole match. No per-owner registration needed.
+
 ```csharp
 public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
 {
-    // Optional so Fusion-replicated instances don't throw before Spawned() fallback runs.
     [Inject(Optional = true)] private IXxxSubsystem _subsystem;
 
     private ChangeDetector _changeDetector;
-    private bool _registeredBridge;
 
     [Networked] public NetworkString<_32> NetworkedSomeValue { get; set; }
     [Networked] public NetworkBool NetworkedIsProcessing { get; set; }
 
     public override void Spawned()
     {
-        // Fusion can instantiate prefabs in ways that bypass normal Unity Awake() ordering,
-        // so GameObjectContext injection is not reliable across all clients/modes.
-        // Resolve directly from SceneContext as the guaranteed fallback.
         if (_subsystem == null)
         {
             var ctx = FindObjectOfType<SceneContext>();
-            if (ctx != null)
-                _subsystem = ctx.Container.Resolve<IXxxSubsystem>();
-            else
-            {
-                Debug.LogError("[XxxNetworkView] SceneContext not found — injection failed.");
-                return;
-            }
+            if (ctx != null) _subsystem = ctx.Container.Resolve<IXxxSubsystem>();
+            else { Debug.LogError("[XxxNetworkView] SceneContext not found."); return; }
         }
 
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-
-        // Only the local player's own view registers as the upstream bridge.
-        // Remote players' replicated views must NOT register — they only push state
-        // downstream via PushState(). Without this guard, the second spawned view
-        // overwrites the bridge and both players' RPCs route through one NetworkObject.
-        if (Object.HasInputAuthority)
-        {
-            _registeredBridge = true;
-            _subsystem.RegisterNetworkBridge(this);
-        }
-
+        _subsystem.RegisterNetworkBridge(this);
         PushState();
     }
 
-    private bool _registeredBridge;
-
     public override void Despawned(NetworkRunner runner, bool hasState)
-    {
-        if (_registeredBridge)
-            _subsystem?.RegisterNetworkBridge(null);
-    }
-
-    // ── IXxxNetworkBridge (upstream: client → server) ───────────────────
+        => _subsystem?.RegisterNetworkBridge(null);
 
     public void SendSubmitRpc(string input) => Rpc_RequestSubmit(input);
 
@@ -349,16 +411,10 @@ public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
         NetworkedIsProcessing = false;
     }
 
-    // ── Downstream: server → all clients ────────────────────────────────
-
     public override void Render()
     {
         if (_changeDetector == null) return;
-        foreach (var _ in _changeDetector.DetectChanges(this))
-        {
-            PushState();
-            break;
-        }
+        foreach (var _ in _changeDetector.DetectChanges(this)) { PushState(); break; }
     }
 
     private void PushState()
@@ -372,6 +428,106 @@ public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
     }
 }
 ```
+
+### Per-player view
+
+One instance per player, spawned by the coordinator with `InputAuthority = player`.
+All N replicated instances exist on every peer. The controller holds a `Dictionary<PlayerRef, IXxxNetworkBridge>`.
+
+```csharp
+public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
+{
+    [Inject(Optional = true)] private IXxxSubsystem _subsystem;
+
+    [Networked] public PlayerRef Owner { get; set; }
+    [Networked] public int SomeValue { get; set; }
+
+    private ChangeDetector _changeDetector;
+    // Cache InputAuthority at Spawned() — Object may be gone by Despawned().
+    private PlayerRef _cachedInputAuthority;
+
+    public override void Spawned()
+    {
+        if (_subsystem == null)
+        {
+            var ctx = FindFirstObjectByType<SceneContext>();
+            if (ctx != null) _subsystem = ctx.Container.Resolve<IXxxSubsystem>();
+            else { Debug.LogError("[XxxNetworkView] SceneContext not found."); return; }
+        }
+
+        _cachedInputAuthority = Object.InputAuthority;
+        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+
+        // Register unconditionally — the controller's dict disambiguates by owner.
+        // Every peer registers every replicated view; only the matching view on the
+        // StateAuthority peer can actually write [Networked] props (HasStateAuthority guard).
+        _subsystem.RegisterNetworkBridge(_cachedInputAuthority, this);
+
+        // Local-only init: push identity data the server may not have yet.
+        if (Object.HasInputAuthority)
+        {
+            if (Object.HasStateAuthority)
+                SomeValue = GetLocalValue();          // host writes directly
+            else
+                Rpc_PushLocalData(GetLocalValue());   // client sends RPC to server
+        }
+
+        PushState();
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+        => _subsystem?.RegisterNetworkBridge(_cachedInputAuthority, null);
+
+    public override void Render()
+    {
+        if (_changeDetector == null) return;
+        foreach (var _ in _changeDetector.DetectChanges(this)) { PushState(); break; }
+    }
+
+    private void PushState()
+    {
+        // Guard Owner so the first Spawned() push (before pre-spawn callback sets Owner)
+        // doesn't fire with default values.
+        if (_subsystem == null || Owner == PlayerRef.None) return;
+        _subsystem.OnAuthoritativeStateReceived(new XxxStateData
+        {
+            Owner = Owner,
+            SomeValue = SomeValue
+        });
+    }
+
+    // ── IXxxNetworkBridge — server-side write path ───────────────────────
+    // These are NOT Fusion RPCs. The server calls them directly on the view reference.
+    // HasStateAuthority guard makes them no-ops on non-authority peers.
+
+    public void ServerSetValue(PlayerRef owner, int value)
+    {
+        if (!Object.HasStateAuthority) return;
+        SomeValue = value;
+    }
+
+    // ── Upstream RPC (client → server) ──────────────────────────────────
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void Rpc_PushLocalData(int value) => SomeValue = value;
+}
+```
+
+**Server-side write flow for remote player data** (e.g. damage from combat):
+
+The server does NOT route HP changes through the subsystem bridge dict. It holds direct
+`NetworkView` references (from `GameplayNetworkCoordinator._rosterViews[player]`) and calls
+server-side write methods directly:
+
+```csharp
+// In a server-side controller after damage resolves:
+_rosterViews[targetPlayer].ServerSetValue(targetPlayer, newHP);
+// Fusion replicates HP; Render() → PushState() → model.ApplyState() on all clients.
+```
+
+The bridge dict is used for the **upstream** path only: local player → subsystem →
+controller → `_bridges[localPlayer].SendSomeRpc(...)` → server RPC. Remote players'
+bridge entries are stored but dormant for upstream intent.
 
 ### Injection pattern for Fusion-spawned NetworkViews
 
@@ -526,15 +682,25 @@ whether state arrived from a local method call or a Fusion `Render()`.
 
 ## Checklist: Adding a New Networked Subsystem
 
+- [ ] Choose topology: **singleton** / **per-player always-replicated** / **per-player AoI-restricted** / **per-entity**
 - [ ] Define `IXxxSubsystem` with intent methods, `RegisterNetworkBridge`, and `OnAuthoritativeStateReceived`
+  - Per-player: `RegisterNetworkBridge(PlayerRef owner, IXxxNetworkBridge bridge)`
+  - Singleton: `RegisterNetworkBridge(IXxxNetworkBridge bridge)`
 - [ ] Define `IXxxController` (internal), `IXxxNetworkBridge` (public)
+  - Per-player: controller holds `Dictionary<PlayerRef, IXxxNetworkBridge>`
 - [ ] Define `XxxStateData` struct with all synced fields
-- [ ] Implement `XxxModel` — observables and `ApplyState()` only
-- [ ] Implement `XxxController` — staged input, nullable bridge, single `ApplyState` call
-- [ ] Implement `XxxSubsystem` — facade, observable subscriptions, event forwarding, bridge and sync delegation
-- [ ] Implement `XxxNetworkView` — injects `IXxxSubsystem` only, `[Networked]` props, RPCs, `Render()` → `PushState()`
-- [ ] Add `GameObjectContext` + `MonoInstaller` to network prefab (typically empty)
-- [ ] Add prefab reference to `NetworkViewRegistry`
-- [ ] Add spawn trigger to `NetworkSpawnCoordinator`
-- [ ] Bind `IXxxModel`, `IXxxController`, `IXxxSubsystem` as `AsSingle` in scene installer
+  - Per-player: include `PlayerRef Owner` field in the struct
+- [ ] Implement `XxxModel`
+  - Per-player: parallel `Dictionary<int, T>` fields keyed by `PlayerRef.RawEncoded`; `ApplyState` emits per-owner events
+  - Singleton: observables only
+- [ ] Implement `XxxController` — staged input, bridge (nullable or dict), single `ApplyState` call
+- [ ] Implement `XxxSubsystem` — facade, observable/event subscriptions, bridge and sync delegation
+- [ ] Implement `XxxNetworkView`
+  - Singleton: `RegisterNetworkBridge(this)` + `RegisterNetworkBridge(null)` in `Spawned`/`Despawned`
+  - Per-player: cache `_cachedInputAuthority = Object.InputAuthority`; call `RegisterNetworkBridge(_cachedInputAuthority, this)` unconditionally; `PushState()` guards `Owner != PlayerRef.None`; `Despawned` calls `RegisterNetworkBridge(_cachedInputAuthority, null)`
+  - AoI-restricted: add `Runner.SetPlayerAlwaysInterested(Owner, Object, true)` on `HasStateAuthority` in `Spawned()`
+- [ ] Spawn site: pass `Owner` and initial state via `Runner.Spawn` pre-spawn callback
+- [ ] Add prefab reference to `NetworkViewRegistry` (or coordinator's serialized field)
+- [ ] Add spawn trigger to coordinator (`GameplayNetworkCoordinator.SpawnPlayerState` for per-player)
+- [ ] Bind `IXxxModel`, `IXxxController`, `IXxxSubsystem` as `AsSingle().NonLazy()` in scene installer
 - [ ] Bind `NetworkRunner` in scene or project installer (once, not per subsystem)
