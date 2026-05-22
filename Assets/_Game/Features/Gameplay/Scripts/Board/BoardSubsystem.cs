@@ -11,7 +11,9 @@ public class BoardSubsystem : IBoardSubsystem
     [Inject] private readonly IBoardModel _model;
 
     public event UnityAction<bool> IsGeneratedChanged;
+    public event UnityAction<System.Collections.Generic.IReadOnlyList<HexCoord>> TilesChanged;
     public event UnityAction<HexCoord, string> TileOccupantChanged;
+    public event UnityAction<HexCoord, string> TileEffectChanged;
 
     public bool IsGenerated => _model.IsGenerated.Value;
 
@@ -48,6 +50,8 @@ public class BoardSubsystem : IBoardSubsystem
         AllTiles = tiles;
         _tilePositions.Clear();
         foreach (var kvp in positions) _tilePositions[kvp.Key] = kvp.Value;
+        try { TilesChanged?.Invoke(tiles); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
     }
 
     public void RegisterDeployArea(PlayerRef owner, HexCoord coord) => _deployAreas[owner.RawEncoded] = coord;

@@ -244,14 +244,10 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
             if (!string.IsNullOrEmpty(s)) hand.Add(s);
         }
 
-        _subsystem.OnAuthoritativeStateReceived(new PlayerCardZoneData
+        _subsystem.OnAuthoritativeStateReceived(new PlayerCardZonePrivateData
         {
             Owner = Owner,
-            HP = HP,
-            Hand = hand,
-            DeckCount = DeckCount,
-            DiscardCount = DiscardCount,
-            PlayerName = PlayerName.ToString()
+            Hand = hand
         });
     }
 

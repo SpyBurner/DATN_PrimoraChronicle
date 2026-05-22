@@ -1,3 +1,4 @@
+using Fusion;
 using Zenject;
 
 internal class CombatController : ICombatController
@@ -19,23 +20,8 @@ internal class CombatController : ICombatController
 
     public void OnAuthoritativeStateReceived(CombatStateData data) => _model.ApplyState(data);
 
-    public void RequestMove(string unitId, HexCoord destination)
-    {
-        if (_bridge != null) _bridge.SendMoveRpc(unitId, destination);
-    }
-
-    public void RequestNormalAttack(string unitId, HexCoord target)
-    {
-        if (_bridge != null) _bridge.SendNormalAttackRpc(unitId, target);
-    }
-
-    public void RequestSkill(string unitId, string skillId, HexCoord target)
-    {
-        if (_bridge != null) _bridge.SendSkillRpc(unitId, skillId, target);
-    }
-
-    public void RequestEndTurn()
-    {
-        if (_bridge != null) _bridge.SendEndTurnRpc();
-    }
+    public void RequestMove(NetworkId unit, HexCoord destination) => _bridge?.SendMoveRpc(unit, destination);
+    public void RequestNormalAttack(NetworkId unit, HexCoord target) => _bridge?.SendNormalAttackRpc(unit, target);
+    public void RequestSkill(NetworkId unit, string skillId, HexCoord target) => _bridge?.SendSkillRpc(unit, skillId, target);
+    public void EndTurn() => _bridge?.SendEndTurnRpc();
 }

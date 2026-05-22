@@ -13,12 +13,26 @@ public class GameStateSubsystem : IGameStateSubsystem
     public event UnityAction<float> MatchElapsedChanged;
     public event UnityAction<int> RoundNumberChanged;
     public event UnityAction<PlayerRef> CurrentCombatActorChanged;
+    public event UnityAction<PlayerRef, bool> PlayerReadyChanged;
+    public event UnityAction AllPlayersReady;
 
     public GameplayPhase Phase => _model.Phase.Value;
     public float PhaseTimeRemaining => _model.PhaseTimeRemaining.Value;
     public float MatchElapsed => _model.MatchElapsed.Value;
     public int RoundNumber => _model.RoundNumber.Value;
     public PlayerRef CurrentCombatActor => _model.CurrentCombatActor.Value;
+
+
+    public bool AcceptsReadyInput
+    {
+        get
+        {
+            var p = Phase;
+            return p == GameplayPhase.StartPhase || p == GameplayPhase.MainPhase || p == GameplayPhase.DrawPhase;
+        }
+    }
+
+    public bool IsReady(PlayerRef p) => _model.IsPlayerReady(p.PlayerId);
 
     public void Initialize()
     {
@@ -41,6 +55,7 @@ public class GameStateSubsystem : IGameStateSubsystem
         _model.Dispose();
     }
 
+    public void RequestSetLocalReady(bool ready) => _controller.RequestSetLocalReady(ready);
     public void RegisterNetworkBridge(IGameStateNetworkBridge bridge) => _controller.RegisterBridge(bridge);
     public void OnAuthoritativeStateReceived(GameStateData data) => _controller.OnAuthoritativeStateReceived(data);
 
@@ -72,5 +87,20 @@ public class GameStateSubsystem : IGameStateSubsystem
     {
         try { CurrentCombatActorChanged?.Invoke(_model.CurrentCombatActor.Value); }
         catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+    }
+
+    public void OnPlayerReadyChanged(PlayerRef player, bool ready)
+    {
+        _model.SetPlayerReady(player.PlayerId, ready);
+        try { PlayerReadyChanged?.Invoke(player, ready); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+
+        if (!ready) return;
+        // Fire AllPlayersReady when both base player slots are ready (2-player scope)
+        if (_model.IsPlayerReady(1) && _model.IsPlayerReady(2))
+        {
+            try { AllPlayersReady?.Invoke(); }
+            catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+        }
     }
 }

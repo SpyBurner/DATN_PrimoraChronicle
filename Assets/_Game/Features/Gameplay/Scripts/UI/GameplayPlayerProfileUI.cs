@@ -7,7 +7,7 @@ using Zenject;
 
 public class GameplayPlayerProfileUI : MonoBehaviour
 {
-    [Inject] private readonly IPlayerCardZoneSubsystem _cardZone;
+    [Inject] private readonly IPlayerRosterSubsystem _roster;
     [Inject] private readonly IGameplayDeckChooseSubsystem _deckChoose;
 
     [SerializeField] private TMP_Text _nameText;
@@ -34,15 +34,15 @@ public class GameplayPlayerProfileUI : MonoBehaviour
 
     private void OnEnable()
     {
-        _cardZone.HPChanged += OnHPChanged;
-        _cardZone.NameChanged += OnNameChanged;
+        _roster.HPChanged += OnHPChanged;
+        _roster.NameChanged += OnNameChanged;
         _deckChoose.IsReadyChanged += OnIsReadyChanged;
     }
 
     private void OnDisable()
     {
-        _cardZone.HPChanged -= OnHPChanged;
-        _cardZone.NameChanged -= OnNameChanged;
+        _roster.HPChanged -= OnHPChanged;
+        _roster.NameChanged -= OnNameChanged;
         _deckChoose.IsReadyChanged -= OnIsReadyChanged;
     }
 
@@ -69,15 +69,15 @@ public class GameplayPlayerProfileUI : MonoBehaviour
 
     private void Refresh()
     {
-        RefreshName();
         if (_hpText != null)
-            _hpText.text = _cardZone.GetHP(_playerRef).ToString();
+            _hpText.text = _roster.GetHP(_playerRef).ToString();
+        RefreshName();
     }
 
     private void RefreshName()
     {
         if (_nameText == null || !_bound) return;
-        var name = _cardZone.GetPlayerName(_playerRef);
+        var name = _roster.GetName(_playerRef);
         if (!string.IsNullOrEmpty(name))
             _nameText.text = name;
     }

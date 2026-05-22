@@ -17,5 +17,7 @@ internal class GameStateController : IGameStateController
         _logger.Log($"[GameState] Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
+    public void RequestSetLocalReady(bool ready) => _bridge?.SendSetReadyRpc(ready);
+
     public void OnAuthoritativeStateReceived(GameStateData data) => _model.ApplyState(data);
 }

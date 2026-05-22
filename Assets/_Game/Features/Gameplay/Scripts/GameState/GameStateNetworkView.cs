@@ -169,6 +169,17 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     public void SendPhaseTransitionRpc(GameplayPhase phase)
         => Rpc_RequestPhaseTransition(phase);
 
+    public void SendSetReadyRpc(bool ready)
+        => Rpc_SetReady(ready);
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void Rpc_SetReady(bool ready)
+    {
+        // Server validates AcceptsReadyInput; once true, reject false until phase advances
+        // Phase advancement logic is in GameStateSubsystem; NetworkView just records the flag
+        _logger?.Log($"[GameStateNetworkView] Rpc_SetReady({ready}) from {Runner.LocalPlayer}");
+    }
+
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_RequestPhaseTransition(GameplayPhase phase)
     {

@@ -1,28 +1,43 @@
 using System;
 using System.Collections.Generic;
+using Fusion;
 
 internal class UnitModel : IUnitModel
 {
-    private readonly Dictionary<string, UnitStateData> _units = new();
+    private readonly Dictionary<NetworkId, UnitPublicData> _publicUnits = new();
+    private readonly Dictionary<NetworkId, List<SkillSlot>> _privateSkills = new();
 
-    public event Action<UnitStateData> UnitStateChanged;
-    public event Action<string> UnitRemoved;
+    public event Action<UnitPublicData> UnitPublicStateChanged;
+    public event Action<UnitPrivateData> UnitPrivateStateChanged;
+    public event Action<NetworkId> UnitRemoved;
 
-    public IReadOnlyDictionary<string, UnitStateData> Units => _units;
+    public IReadOnlyDictionary<NetworkId, UnitPublicData> Units => _publicUnits;
 
     public void Initialize() { }
 
-    public void Dispose() => _units.Clear();
-
-    public void ApplyUnitState(UnitStateData data)
+    public void Dispose()
     {
-        _units[data.UnitNetworkId] = data;
-        UnitStateChanged?.Invoke(data);
+        _publicUnits.Clear();
+        _privateSkills.Clear();
     }
 
-    public void RemoveUnit(string unitNetworkId)
+    public void ApplyPublicState(UnitPublicData data)
     {
-        if (_units.Remove(unitNetworkId))
-            UnitRemoved?.Invoke(unitNetworkId);
+        _publicUnits[data.UnitId] = data;
+        UnitPublicStateChanged?.Invoke(data);
+    }
+
+    public void ApplyPrivateState(UnitPrivateData data)
+    {
+        _privateSkills[data.UnitId] = data.Skills ?? new List<SkillSlot>();
+        UnitPrivateStateChanged?.Invoke(data);
+    }
+
+    public void RemoveUnit(NetworkId unitId)
+    {
+        bool existed = _publicUnits.Remove(unitId);
+        _privateSkills.Remove(unitId);
+        if (existed)
+            UnitRemoved?.Invoke(unitId);
     }
 }
