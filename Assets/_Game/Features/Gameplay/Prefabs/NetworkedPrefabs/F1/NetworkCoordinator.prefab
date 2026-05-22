@@ -9,15 +9,15 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 544417254600220594}
-  - component: {fileID: 1751726261663690127}
   - component: {fileID: 4117140762922180325}
   - component: {fileID: 2567984651941167486}
+  - component: {fileID: 4551778163107886710}
   m_Layer: 0
-  m_Name: NetworkSpawner - WorldAnchor
+  m_Name: NetworkCoordinator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &544417254600220594
 Transform:
@@ -34,36 +34,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 0}
---- !u!114 &1751726261663690127
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8805050866114620390}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52576c343cf848b4e95870e581b566d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: GameplayFeatures::NetworkSpawner
-  playerPiecePrefab:
-    RawGuidValue: af1b560bf42f956419fd189c8f9a4838
-  player1PiecePrefab:
-    RawGuidValue: af1b560bf42f956419fd189c8f9a4838
-  player2PiecePrefab:
-    RawGuidValue: 6bc1dcb6afc09604699c10538af00b85
-  player3PiecePrefab:
-    RawGuidValue: dd39fd4e53129e143b4fcbb2835199fb
-  playerStatePrefab:
-    RawGuidValue: a1e2f3c4d5b6078901234567890abcde
-  deckChooseViewPrefab:
-    RawGuidValue: b2d9cbf8e1c078a489b9bfe69c7c0da7
-  hexTilePrefab:
-    RawGuidValue: 61045e254b3b62c47a23f0ad302e3dd5
-  boardPrefab:
-    RawGuidValue: 42403e2d77136984aa23330dfa7f4b85
-  horizontalSpacing: 1.732
-  verticalSpacing: 1.5
 --- !u!114 &4117140762922180325
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -81,8 +51,8 @@ MonoBehaviour:
   Flags: 131073
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 1751726261663690127}
   - {fileID: 2567984651941167486}
+  - {fileID: 4551778163107886710}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &2567984651941167486
 MonoBehaviour:
@@ -101,3 +71,36 @@ MonoBehaviour:
   SyncParent: 1
   _autoAOIOverride: 1
   DisableSharedModeInterpolation: 0
+--- !u!114 &4551778163107886710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805050866114620390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22906fef3cd23e647aa0636351b64665, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::GameplayNetworkCoordinator
+  _gameStateManagerPrefab:
+    RawGuidValue: 8c74f9b0d0737b04e99bb4cf89692fd9
+  _boardManagerPrefab:
+    RawGuidValue: 57c77e7bf58e76647a9b0e9cace5eb32
+  _playerStatePrefab:
+    RawGuidValue: 00000000000000000000000000000000
+  _deckChooseViewPrefab:
+    RawGuidValue: b2d9cbf8e1c078a489b9bfe69c7c0da7
+  _playerCardZoneViewPrefab:
+    RawGuidValue: 00000000000000000000000000000000
+  _playerRosterPublicViewPrefab:
+    RawGuidValue: 553b700cb40119747bac685bdca2f8b5
+  _matchRewardsPrivateViewPrefab:
+    RawGuidValue: 9c99322cbacd8e144a661352968de8e2
+  _player1PiecePrefab:
+    RawGuidValue: 00000000000000000000000000000000
+  _player2PiecePrefab:
+    RawGuidValue: 00000000000000000000000000000000
+  _PlayerStates: []
+  _PlayerCardZoneIds: []
+  _PlayerCount: 0

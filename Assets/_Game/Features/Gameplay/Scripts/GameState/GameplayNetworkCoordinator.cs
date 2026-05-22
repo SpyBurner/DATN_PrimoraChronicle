@@ -14,6 +14,8 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     [SerializeField] private NetworkPrefabRef _playerStatePrefab;
     [SerializeField] private NetworkPrefabRef _deckChooseViewPrefab;
     [SerializeField] private NetworkPrefabRef _playerCardZoneViewPrefab;
+    [SerializeField] private NetworkPrefabRef _playerRosterPublicViewPrefab;
+    [SerializeField] private NetworkPrefabRef _matchRewardsPrivateViewPrefab;
 
     [Header("Player Piece Prefabs")]
     [SerializeField] private NetworkPrefabRef _player1PiecePrefab;
@@ -27,6 +29,8 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     private BoardNetworkView _boardView;
     private readonly Dictionary<PlayerRef, PlayerCardZoneNetworkView> _playerCardZones = new();
     private readonly Dictionary<PlayerRef, GameplayDeckChooseNetworkView> _deckChooseViews = new();
+    private readonly Dictionary<PlayerRef, PlayerRosterPublicNetworkView> _rosterViews = new();
+    private readonly Dictionary<PlayerRef, MatchRewardsPrivateNetworkView> _rewardsViews = new();
     private readonly Dictionary<PlayerRef, NetworkObject> _playerPieces = new();
 
     public static GameplayNetworkCoordinator Instance { get; private set; }
@@ -53,6 +57,8 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
         _playerPieces.Clear();
         _playerCardZones.Clear();
         _deckChooseViews.Clear();
+        _rosterViews.Clear();
+        _rewardsViews.Clear();
     }
 
     private void Start()
@@ -78,7 +84,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             return;
         }
 
-        var obj = Runner.Spawn(_gameStateManagerPrefab, Vector3.zero, Quaternion.identity);
+        var obj = Runner.Spawn(_gameStateManagerPrefab, transform.position, transform.rotation);
         _gameStateView = obj.GetComponent<GameStateNetworkView>();
         _logger?.Log("[GameplayNetworkCoordinator] Spawned GameStateManager.");
     }
@@ -91,7 +97,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             return;
         }
 
-        var obj = Runner.Spawn(_boardManagerPrefab, Vector3.zero, Quaternion.identity);
+        var obj = Runner.Spawn(_boardManagerPrefab, transform.position, transform.rotation);
         _boardView = obj.GetComponent<BoardNetworkView>();
         _logger?.Log("[GameplayNetworkCoordinator] Spawned BoardManager.");
     }
@@ -115,14 +121,14 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     {
         if (_playerStatePrefab.IsValid)
         {
-            var stateObj = Runner.Spawn(_playerStatePrefab, Vector3.zero, Quaternion.identity, player);
+            var stateObj = Runner.Spawn(_playerStatePrefab, transform.position, transform.rotation, player);
             RegisterPlayerState(stateObj.Id);
             _logger?.Log($"[GameplayNetworkCoordinator] Spawned PlayerState for {player}.");
         }
 
         if (_playerCardZoneViewPrefab.IsValid)
         {
-            var pczObj = Runner.Spawn(_playerCardZoneViewPrefab, Vector3.zero, Quaternion.identity, player);
+            var pczObj = Runner.Spawn(_playerCardZoneViewPrefab, transform.position, transform.rotation, player);
             var pczView = pczObj.GetComponent<PlayerCardZoneNetworkView>();
             if (pczView != null)
             {
@@ -134,11 +140,35 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
 
         if (_deckChooseViewPrefab.IsValid)
         {
-            var dcObj = Runner.Spawn(_deckChooseViewPrefab, Vector3.zero, Quaternion.identity, player);
+            var dcObj = Runner.Spawn(_deckChooseViewPrefab, transform.position, transform.rotation, player);
             var dcView = dcObj.GetComponent<GameplayDeckChooseNetworkView>();
             if (dcView != null)
                 _deckChooseViews[player] = dcView;
             _logger?.Log($"[GameplayNetworkCoordinator] Spawned DeckChooseView for {player}.");
+        }
+
+        if (_playerRosterPublicViewPrefab.IsValid)
+        {
+            var rObj = Runner.Spawn(_playerRosterPublicViewPrefab, transform.position, transform.rotation, player);
+            var rView = rObj.GetComponent<PlayerRosterPublicNetworkView>();
+            if (rView != null)
+            {
+                rView.ServerInitialize(player, hp: 0, playerName: string.Empty, userId: string.Empty);
+                _rosterViews[player] = rView;
+            }
+            _logger?.Log($"[GameplayNetworkCoordinator] Spawned PlayerRosterPublicView for {player}.");
+        }
+
+        if (_matchRewardsPrivateViewPrefab.IsValid)
+        {
+            var mObj = Runner.Spawn(_matchRewardsPrivateViewPrefab, transform.position, transform.rotation, player);
+            var mView = mObj.GetComponent<MatchRewardsPrivateNetworkView>();
+            if (mView != null)
+            {
+                mView.ServerInitialize(player);
+                _rewardsViews[player] = mView;
+            }
+            _logger?.Log($"[GameplayNetworkCoordinator] Spawned MatchRewardsPrivateView for {player}.");
         }
 
         int playerIndex = GetPlayerIndex(player);

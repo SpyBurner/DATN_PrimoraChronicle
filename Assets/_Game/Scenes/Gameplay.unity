@@ -6098,76 +6098,27 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1751726261663690127, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
-      propertyPath: gameplayManagerPrefab
-      value: 
-      objectReference: {fileID: 4391699812375644035, guid: 1829ab157ee44b5439404dc7a5fe0699, type: 3}
-    - target: {fileID: 1751726261663690127, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
-      propertyPath: 'deckChooseViewPrefab.RawGuidValue.Array.data[0]'
-      value: -6595309577509807694
-      objectReference: {fileID: 0}
-    - target: {fileID: 1751726261663690127, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
-      propertyPath: 'deckChooseViewPrefab.RawGuidValue.Array.data[1]'
-      value: -6409329681350280823
-      objectReference: {fileID: 0}
     - target: {fileID: 4117140762922180325, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
       propertyPath: SortKey
       value: 1212244267
       objectReference: {fileID: 0}
-    - target: {fileID: 4117140762922180325, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
-      propertyPath: NetworkedBehaviours.Array.size
-      value: 3
+    - target: {fileID: 4551778163107886710, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
+      propertyPath: '_playerCardZoneViewPrefab.RawGuidValue.Array.data[0]'
+      value: -6605561755932754252
       objectReference: {fileID: 0}
-    - target: {fileID: 4117140762922180325, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
-      propertyPath: 'NetworkedBehaviours.Array.data[2]'
-      value: 
-      objectReference: {fileID: 1788466939444361780}
+    - target: {fileID: 4551778163107886710, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
+      propertyPath: '_playerCardZoneViewPrefab.RawGuidValue.Array.data[1]'
+      value: 8938329756355316122
+      objectReference: {fileID: 0}
     - target: {fileID: 8805050866114620390, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
       propertyPath: m_Name
-      value: NetworkSpawner - WorldAnchor
+      value: NetworkCoordinator
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8805050866114620390, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1788466939444361780}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
---- !u!1 &1788466939444361779 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8805050866114620390, guid: 8e26643ecc5466145a4fea6e1583d8d9, type: 3}
-  m_PrefabInstance: {fileID: 1788466939444361778}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1788466939444361780
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1788466939444361779}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22906fef3cd23e647aa0636351b64665, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: GameplayFeatures::GameplayNetworkCoordinator
-  _gameStateManagerPrefab:
-    RawGuidValue: 8c74f9b0d0737b04e99bb4cf89692fd9
-  _boardManagerPrefab:
-    RawGuidValue: 57c77e7bf58e76647a9b0e9cace5eb32
-  _playerStatePrefab:
-    RawGuidValue: 00000000000000000000000000000000
-  _deckChooseViewPrefab:
-    RawGuidValue: 00000000000000000000000000000000
-  _playerCardZoneViewPrefab:
-    RawGuidValue: 00000000000000000000000000000000
-  _player1PiecePrefab:
-    RawGuidValue: 00000000000000000000000000000000
-  _player2PiecePrefab:
-    RawGuidValue: 00000000000000000000000000000000
-  _PlayerStates: []
-  _PlayerCardZoneIds: []
-  _PlayerCount: 0
 --- !u!1001 &1818210238837035785
 PrefabInstance:
   m_ObjectHideFlags: 0

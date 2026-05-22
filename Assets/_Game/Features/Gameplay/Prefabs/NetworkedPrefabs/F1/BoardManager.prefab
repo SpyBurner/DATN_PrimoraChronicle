@@ -13,8 +13,9 @@ GameObject:
   - component: {fileID: 8131556744267139733}
   - component: {fileID: 8552218102536055943}
   - component: {fileID: 4867514940698752202}
+  - component: {fileID: 8038604343939382428}
   m_Layer: 0
-  m_Name: BoardManager 1
+  m_Name: BoardManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -53,6 +54,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 8552218102536055943}
+  - {fileID: 8038604343939382428}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &8131556744267139733
 MonoBehaviour:
@@ -85,7 +87,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GameplayFeatures::BoardNetworkView
   _hexTilePrefab:
-    RawGuidValue: 00000000000000000000000000000000
+    RawGuidValue: 61045e254b3b62c47a23f0ad302e3dd5
   _horizontalSpacing: 1.732
   _verticalSpacing: 1.5
   _autoMeasureSpacing: 1
@@ -103,3 +105,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 865bd076f66ba35479c0f7ceff42456a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GameplayFeatures::BoardNetworkViewInstaller
+--- !u!114 &8038604343939382428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5972849374390048130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0

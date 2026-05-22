@@ -13,6 +13,8 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     [Networked] public float MatchElapsed { get; set; }
     [Networked] public PlayerRef CurrentCombatActor { get; set; }
     [Networked] public NetworkBool IsMatchOver { get; set; }
+    // Capacity 4: index 0 unused; PlayerId is 1-based (slots 1-4)
+    [Networked, Capacity(4)] public NetworkArray<NetworkBool> PlayerReady => default;
 
     [Header("Phase Durations")]
     [SerializeField] private float _startPhaseDuration = 30f;
@@ -52,6 +54,8 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             RoundNumber = 1;
             MatchElapsed = 0f;
             IsMatchOver = false;
+            // Reset all ready flags
+            for (int i = 0; i < PlayerReady.Length; i++) PlayerReady.Set(i, false);
             _logger?.Log("[GameStateNetworkView] Spawned as StateAuthority. Phase=StartPhase.");
         }
 
@@ -126,6 +130,10 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     {
         CurrentPhase = newPhase;
 
+        // Reset all player ready flags on every phase transition
+        if (Object.HasStateAuthority)
+            for (int i = 0; i < PlayerReady.Length; i++) PlayerReady.Set(i, false);
+
         switch (newPhase)
         {
             case GameplayPhase.StartPhase:
@@ -151,17 +159,19 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
 
     private bool AreAllPlayersReady()
     {
-        var coordinator = GameplayNetworkCoordinator.Instance;
-        if (coordinator == null) return false;
+        // Use the authoritative PlayerReady NetworkArray.
+        // At least 2 active players must exist and all must be ready.
+        int activeCount = 0;
+        foreach (var _ in Runner.ActivePlayers) activeCount++;
+        if (activeCount < 2) return false;
 
-        int count = 0;
-        foreach (var player in coordinator.GetAllPlayers())
+        foreach (var player in Runner.ActivePlayers)
         {
-            var dcView = coordinator.GetDeckChooseView(player);
-            if (dcView == null || !dcView.IsReady) return false;
-            count++;
+            int slot = player.PlayerId;
+            if (slot < 1 || slot >= PlayerReady.Length) return false;
+            if (!PlayerReady.Get(slot)) return false;
         }
-        return count > 0;
+        return true;
     }
 
     // ── IGameStateNetworkBridge ──────────────────────────────────────────
@@ -173,11 +183,31 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         => Rpc_SetReady(ready);
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_SetReady(bool ready)
+    private void Rpc_SetReady(bool ready, RpcInfo info = default)
     {
-        // Server validates AcceptsReadyInput; once true, reject false until phase advances
-        // Phase advancement logic is in GameStateSubsystem; NetworkView just records the flag
-        _logger?.Log($"[GameStateNetworkView] Rpc_SetReady({ready}) from {Runner.LocalPlayer}");
+        if (_gameState == null) return;
+
+        // Only accept ready=true when AcceptsReadyInput; always accept ready=false (unless locked)
+        if (ready && !_gameState.AcceptsReadyInput)
+        {
+            _logger?.Log($"[GameStateNetworkView] Rpc_SetReady(true) rejected — AcceptsReadyInput=false for phase {CurrentPhase}.");
+            return;
+        }
+
+        var sender = info.Source;
+        int slotIndex = sender.PlayerId; // PlayerId is 1-based; NetworkArray indices match
+        if (slotIndex < 1 || slotIndex >= PlayerReady.Length) return;
+
+        // Lock: once ready=true, server ignores ready=false until phase advances
+        if (!ready && PlayerReady.Get(slotIndex))
+        {
+            _logger?.Log($"[GameStateNetworkView] Rpc_SetReady(false) rejected — {sender} already locked ready.");
+            return;
+        }
+
+        PlayerReady.Set(slotIndex, ready);
+        _gameState.OnPlayerReadyChanged(sender, ready);
+        _logger?.Log($"[GameStateNetworkView] Rpc_SetReady({ready}) from {sender} — slot {slotIndex} written.");
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
@@ -229,13 +259,19 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             timeRemaining = remaining.HasValue ? remaining.Value : 0f;
         }
 
+        // Copy NetworkArray<NetworkBool> into plain bool[] for the data struct
+        var readyArr = new bool[PlayerReady.Length];
+        for (int i = 0; i < PlayerReady.Length; i++)
+            readyArr[i] = PlayerReady.Get(i);
+
         _gameState.OnAuthoritativeStateReceived(new GameStateData
         {
             Phase = CurrentPhase,
             PhaseTimeRemaining = timeRemaining,
             MatchElapsed = MatchElapsed,
             RoundNumber = RoundNumber,
-            CurrentCombatActor = CurrentCombatActor
+            CurrentCombatActor = CurrentCombatActor,
+            PlayerReady = readyArr,
         });
     }
 }

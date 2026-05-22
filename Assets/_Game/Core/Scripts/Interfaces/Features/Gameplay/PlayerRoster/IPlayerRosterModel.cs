@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 
-internal interface IPlayerRosterModel : IModel
+public interface IPlayerRosterModel : IModel
 {
     event Action<PlayerRef, int> HPChanged;
     event Action<PlayerRef, string> NameChanged;

@@ -1,6 +1,6 @@
 using System;
 
-internal interface IMatchRewardsModel : IModel
+public interface IMatchRewardsModel : IModel
 {
     event Action<int, int> OwnRewardsReceived; // (gold, xp)
     int OwnGold { get; }

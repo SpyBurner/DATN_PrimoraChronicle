@@ -25,6 +25,16 @@ public class GameplayInstaller : MonoInstaller
         Container.BindInterfacesAndSelfTo<UnitController>().AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<UnitSubsystem>().AsSingle().NonLazy();
 
+        // PlayerRoster
+        Container.BindInterfacesAndSelfTo<PlayerRosterModel>().AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<PlayerRosterController>().AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<PlayerRosterSubsystem>().AsSingle().NonLazy();
+
+        // MatchRewards
+        Container.BindInterfacesAndSelfTo<MatchRewardsModel>().AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<MatchRewardsController>().AsSingle().NonLazy();
+        Container.BindInterfacesAndSelfTo<MatchRewardsSubsystem>().AsSingle().NonLazy();
+
         // Combat
         Container.BindInterfacesAndSelfTo<CombatModel>().AsSingle().NonLazy();
         Container.BindInterfacesAndSelfTo<CombatController>().AsSingle().NonLazy();
