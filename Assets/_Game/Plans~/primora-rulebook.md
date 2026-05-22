@@ -122,7 +122,7 @@ The Combat Phase runs in this order:
 - Elimination is checked continuously across all phases.
 
 **Step 4 — Board Clear**
-- Board clear triggers when **≤ 1 player still has player-deployed units remaining** on the board, or at the start of Combat Phase, right before the new units deployment. Persistent Units do not count toward this check.
+- Board clear triggers when **≤ 1 player still has player-deployed units remaining** on the board. Persistent Units do not count toward this check.
 - All player-deployed units on the board (surviving or destroyed) go to the Discard Pile.
 - Persistent Units (non-player-deployed units) remain on the board and carry into the next Main Phase.
 - All tile effects remain on the board but do not tick duration and have no active effect during the inter-phase gap.

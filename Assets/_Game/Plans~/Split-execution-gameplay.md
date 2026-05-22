@@ -178,7 +178,7 @@ public interface IBoardSubsystem : ISubsystem {
 public struct UnitPublicData : INetworkStruct {
     public NetworkId UnitId; public PlayerRef Owner;
     public HexCoord Position; public int CurrentHP; public int MaxHP;
-    public float Speed; public int DeathAnchor; public int MoveRange;
+    public float Speed; public int DeathAnchor;
     public bool IsPersistent;
     public int GrowthStacks;
     [Networked, Capacity(8)] public NetworkArray<StatusSlot> StatusEffects => default;
@@ -436,11 +436,11 @@ Each row is **independently implementable and incrementally testable**. The "Com
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
 | F3.1 | **Hand panel** | §13 | `HandPanel` MonoBehaviour on `PhaseInteractionPanel_Hand.prefab`. Subscribes `IPlayerCardZoneSubsystem.OwnHandChanged` (local player only). Renders into `CardSlot [×N]`. Drawer wrapped by `HandPanelAnchor.prefab` via `PanelDrawer`. |
-| F3.2 | **Fusion staging UI** | §4 | `FusionPanel` on `PhaseInteractionPanel_Fusion.prefab`. Wires `UnitSlot`, `MovementSlot` (always shown; populates Skills[0] with `base_move` behavior, BaseCD=1, TargetMask=EmptyTile, Range=card.MoveRange, AOE=center tile only), `NormalAttackSlot` (always shown; populates Skills[1] with `base_normal_attack` behavior, BaseCD=1, TargetMask/Range/DisplayPattern from card data), `FuseSlot1..4` (populates Skills[2-5]; one auto-occupied if base has `grants_skill`). `Button_Confirm` → `IFusionSubsystem.ConfirmFusion()`. |
-| F3.3 | **Fusion authority** | §4 | `FusionModel`, `FusionController`, `FusionSubsystem`, `FusionNetworkView`. Validates: ≤1 unit/turn, exactly 1 base, ≤4 slots, base's `grants_skill` occupies 1 slot if present. On confirm: spawns `NetworkUnit` at deploy area, sends Troop + all EquipSpells to discard at end of Combat phase. |
-| F3.4 | **MainPhaseSpell play** | §3, §5 Main | `IPlayerCardZoneSubsystem.RequestPlayMainPhaseSpell(cardId, target)`. Routes to `BehaviorRegistrySubsystem.ResolveMainPhaseSpell(behaviorId).Execute(target)`. Card moves to discard immediately. |
+| F3.2 | **Fusion staging UI** | §4 | `FusionPanel` on `PhaseInteractionPanel_Fusion.prefab`. Wires `UnitSlot`, `MovementSlot` (always shown; populates Skills[0] with `base_move` behavior, BaseCD=1, TargetMask=EmptyTile, Range=1 (adjacent hex, fixed for all units), AOE=center tile only), `NormalAttackSlot` (always shown; populates Skills[1] with `base_normal_attack` behavior, BaseCD=1, TargetMask/Range/DisplayPattern from card data), `FuseSlot1..4` (populates Skills[2-5]; one auto-occupied if base has `grants_skill`). `Button_Confirm` → `IFusionSubsystem.ConfirmFusion()`. |
+| F3.3 | **Fusion authority** | §4, §1 | `FusionModel`, `FusionController`, `FusionSubsystem`, `FusionNetworkView`. Validates: ≤1 unit/turn, exactly 1 base, ≤4 slots, base's `grants_skill` occupies 1 slot if present. On confirm (drop-pod mechanic): server clears Deploy Area first — any unit on it is immediately destroyed (`death_anchor` applied to owner's HP), all tile effects on it removed — then spawns the fused `NetworkUnit` on the now-empty Deploy Area tile. Sends Troop + all EquipSpells to discard at end of Combat phase. |
+| F3.4 | **MainPhaseSpell play** | §3, §6 Main | `IPlayerCardZoneSubsystem.RequestPlayMainPhaseSpell(cardId, target)`. Server validates the player has **not yet confirmed** fusion (`PlayerReady[i] == false`); rejects if already confirmed. Routes to `BehaviorRegistrySubsystem.ResolveMainPhaseSpell(behaviorId).Execute(target)`. Card moves to discard immediately. |
 | F3.5 | **Champion always-available in fusion** | §3 | `FusionPanel` shows Champion card pinned to base slot pool; not consumed from hand. |
-| F3.6 | **Main-phase ready/confirm + auto-advance** | §5 Main | `PhaseInteractionPanel_Fusion` and/or `PhaseInteractionPanel_Hand` `Button_Confirm` calls `IGameStateSubsystem.RequestSetLocalReady(true)` after the payload RPC (ConfirmFusion / RequestKeepCards) succeeds. Timer-0 fallback: `GameStateController` flips `PlayerReady[i]=true` for any remaining unready player. |
+| F3.6 | **Main-phase ready/confirm + auto-advance** | §6 Main | `Button_Confirm` calls `IFusionSubsystem.ConfirmFusion()` (payload RPC), then on success calls `IGameStateSubsystem.RequestSetLocalReady(true)`. Once `PlayerReady[i]=true`, the server rejects any further `RequestPlayMainPhaseSpell` RPCs from that player — the player's actions are locked until phase transitions. Timer-0 fallback: `GameStateController` auto-confirms fusion for any unready player (Champion + 0 EquipSpells), then flips `PlayerReady[i]=true`. |
 
 ### Group F4 — Combat Phase
 
@@ -449,7 +449,7 @@ Each row is **independently implementable and incrementally testable**. The "Com
 | F4.1 | **Action queue build** | §5 Combat Step 1 | `CombatController.BuildQueue()` sorts all units by Speed desc → HP asc → coin toss. Mid-combat spawns appended via `CombatController.AppendToQueue(unitId)`. |
 | F4.2 | **TurnOrder panel** | — | `TurnOrderPanel` on `PhaseInteractionPanel_TurnOrder.prefab`. Subscribes `ICombatSubsystem.QueueChanged`. Spawns card items into `Content` RectTransform. Drawer-wrapped by `TurnOrderPanelAnchor`. |
 | F4.3 | **Unit turn cycle** | §5 Combat Step 2 | `CombatController.AdvanceTurn()`. On enter: reset `HasMoved=false`, `HasActed=false` in `CombatStateData`; tick **all 6** skill CDs by 1 (Move[0] and N_Atk[1] tick 1→0; equip skills tick toward 0). After `RequestMove()` resolves: server sets `Skills[0].CurrentCD=1` and `HasMoved=true`. After `RequestNormalAttack()` or `RequestSkill([1-5])` resolves: server sets that slot's `CurrentCD=BaseCD` and `HasActed=true`. Both writes replicate via `CombatNetworkView.Render()` → no dedicated change events; SkillPanel re-evaluates button interactability on next `CurrentTurnChanged` or `OwnUnitSkillsChanged`. `EndTurn()` valid at any point (zero slots used = **Skip Turn**; partial = end early). Auto-end on no-input timer calls `EndTurn()`. |
-| F4.4 | **Movement & pathfinding** | §5 Combat | `BoardSubsystem.FindPath(from, to)` walks empty tiles only. `ignore_pathfinding: true` skips intermediate checks (destination must be empty). Max distance = unit's `MoveRange`. Knockback stops at board boundary. |
+| F4.4 | **Movement & pathfinding** | §6 Combat | `BoardSubsystem.FindPath(from, to)` walks empty tiles only. `ignore_pathfinding: true` skips intermediate checks (destination must be empty). Max distance = 1 (all units move to adjacent hex only; no per-unit move range stat). Knockback stops at board boundary. |
 | F4.5 | **Skill panel + active skill use** | §15 | `SkillPanel` on `PhaseInteractionPanel_Skill.prefab` (drawer-wrapped). Shows all 6 skill slots: Move[0], NormalAttack[1], EquipSkills[2-5] as `CardSlot_Empty`. On `CurrentTurnChanged` or `OwnUnitSkillsChanged`: re-evaluate each slot — interactable only if `CurrentActorCanMove/Act == true` AND `Skills[i].CurrentCD == 0`. Click on an interactable slot → `ITargetingSubsystem.BeginTargeting(req, ...)` then on confirm: Move[0] → `RequestMove()`, NormalAttack[1] → `RequestNormalAttack()`, EquipSkills[2-5] → `RequestSkill()`. |
 | F4.6 | **Targeting display** | §9, §15 | `TargetingSubsystem` reads `display_pattern` field of skill data. `LocalInteractionController`-style highlight (yellow range, green valid, red invalid). Bitmask: Enemy=1, Ally=2, EmptyTile=4. `target_condition: 0` ⇒ self-only, no tile selection. |
 | F4.7 | **3-pass damage pipeline** | §8 | `DamagePipelineSubsystem.Resolve(action)`. Aggregate → Intercept (Tile effects first then Unit effects) → Commit. Hooks: `IInterceptor` list rebuilt per action from active statuses + tile effects. |
@@ -457,10 +457,10 @@ Each row is **independently implementable and incrementally testable**. The "Com
 | F4.9 | **Skill cooldowns & one-time** | §12 | `UnitController.OnTurnStart()` decrements **all 6 slots** (Move[0], NormalAttack[1], EquipSkills[2-5]) by 1. Move and N_Atk have `BaseCD=1` — they always tick 1→0 at turn start and are available every turn. `one_time: true` applies only to EquipSkills; `CombatSubsystem.OnCombatPhaseEnd()` resets all `one_time` flags (Move and N_Atk never carry this flag). Persistent Unit CDs (including Move and N_Atk) carry into the next cycle — they are NOT reset on phase end. |
 | F4.10 | **Tile effects (Lingering)** | §10 | `TileEffectSubsystem`. Corrupted/Seeded/Melting; one per tile (replaces). Survives board clear (but Deploy Area force-clear wipes). Owning player's units immune to own faction's negative effects. |
 | F4.11 | **Friendly-fire & faction immunity** | §2, §11 | Hardcoded checks in `DamagePipelineSubsystem.Aggregate()`: skip allied tiles unless skill has `ignore_friendly_fire: true`. |
-| F4.12 | **Death & DeathAnchor** | §5 Combat Step 3 | `UnitController.OnHPZero()` immediately destroys unit, subtracts `death_anchor` from owner's HP via `IPlayerRosterController` (player HP lives in `IPlayerRosterSubsystem`, not `PlayerCardZone`). `GameStateSubsystem.CheckElimination()` continuously (after every commit). |
+| F4.12 | **Death & DeathAnchor** | §6 Combat Step 3 | `UnitController.OnHPZero()` immediately destroys unit, subtracts `death_anchor` from owner's HP via `IPlayerRosterController` (player HP lives in `IPlayerRosterSubsystem`, not `PlayerCardZone`). `GameStateSubsystem.CheckElimination()` runs continuously **across all phases** — not only after combat commits. Any HP drop in any phase (e.g., Deploy Area drop-pod destroying a unit during Main Phase) triggers the same elimination check. Eliminated player's deployed + Persistent Units are all destroyed immediately. |
 | F4.13 | **Persistent units** | §6 | `is_summonable: false` units spawned via skill. Marked `IsPersistent=true` on `UnitStateData`. Survive board clear. Cooldowns persist. Deploy Area still wipes. |
-| F4.14 | **Verdant evolution** | §7 | `EvolutionBehaviorSO`. At 4 Growth Stacks → swap unit identity to next form (Seedling→Sapling→Young Treant→Thorn Colossus). Stacks reset to 0. Tracked on `UnitStateData.GrowthStacks`. |
-| F4.15 | **Board clear** | §5 Combat Step 4 | `CombatSubsystem.OnQueueExhausted()` when only one player's units remain (excluding persistent). All non-persistent → discard. Tile effects stay. Deploy Area force-wiped. |
+| F4.14 | **Verdant evolution** | §8 | `EvolutionBehaviorSO`. At 4 Growth Stacks → swap unit identity to next form (Seedling→Sapling→Young Treant→Thorn Colossus). Stacks reset to 0. Tracked on `UnitStateData.GrowthStacks`. Units outside the evolution chain that receive Growth Stacks cap at 4 (`max_stack`); no reset, no evolution fires. Thorn Colossus is final — 4-stack overflow is ignored. |
+| F4.15 | **Board clear** | §6 Combat Step 4 | `CombatSubsystem.OnQueueExhausted()` when ≤1 player still has player-deployed units remaining (Persistent Units excluded from this check). All non-persistent → discard. Tile effects remain on board but freeze (no duration tick, no active effect) — inter-phase gap starts. Unit status effects on Persistent Units also freeze during inter-phase gap (no tick, no active effect); they unfreeze at the start of the next Main Phase. Deploy Area force-wiped by same drop-pod rules (see §1). |
 
 ### Group F5 — Draw Phase
 
@@ -710,13 +710,13 @@ These values are **mined from LEGACY for reuse**, not the LEGACY code itself. Th
 
 ### 7.7 Champion HP default
 
-100 (from existing `GameplayDeckChooseController` fallback).
+100 is a dev fallback in `GameplayDeckChooseController` for the no-selection code path only. Actual champion HP comes from card data (`champion.hp` — all current champions are 20). `PlayerRosterController.SetupForMatch(championId)` must read the real value from `ICardLoadingManagerSubsystem`.
 
 ### 7.8 Move and Normal Attack base skill parameters (use in `GenericSkillBehaviorSO` for `base_move` / `base_normal_attack`)
 
 | Skill | Skills[] index | BaseCD | TargetMask | Range | AOE / DisplayPattern |
 |---|---|---|---|---|---|
-| `base_move` | [0] | 1 | `EmptyTile (4)` | `unit.MoveRange` | Center tile only — single hex, no AOE spread |
+| `base_move` | [0] | 1 | `EmptyTile (4)` | `1` (adjacent hex, fixed — no per-unit stat) | Center tile only — single hex, no AOE spread |
 | `base_normal_attack` | [1] | 1 | From card data | From card data | From card data |
 
 `base_move` ignores `ignore_pathfinding` — pathfinding always applies (use `RequestMove()` routing). `base_normal_attack` routes through `RequestNormalAttack()` and enters the standard 3-pass damage pipeline.
