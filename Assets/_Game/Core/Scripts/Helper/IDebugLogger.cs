@@ -1,7 +1,7 @@
-﻿public interface IDebugLogger
+public interface IDebugLogger
 {
-    void Log(string message);
-    void LogError(string message);
-    void LogWarning(string message);
+    void Log(string logCode, string className, string message, float networkLatencyMs = 0);
+    void LogWarning(string logCode, string className, string message, float networkLatencyMs = 0);
+    void LogError(string logCode, string className, string message, float networkLatencyMs = 0);
     void SetLoggingEnabled(bool isEnabled);
 }
