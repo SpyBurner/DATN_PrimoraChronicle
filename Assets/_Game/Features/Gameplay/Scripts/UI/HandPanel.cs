@@ -10,7 +10,6 @@ public class HandPanel : MonoBehaviour
 {
     [Inject] private readonly IPlayerCardZoneSubsystem _cardZone;
     [Inject] private readonly IGameStateSubsystem _gameState;
-    [Inject] private readonly INetworkManagerSubsystem _network;
     [Inject] private readonly ICardLoadingManagerSubsystem _cardLoading;
 
     [Header("References")]
@@ -19,21 +18,19 @@ public class HandPanel : MonoBehaviour
     [SerializeField] private TMP_Text _handCountText;
 
     private readonly List<GameObject> _spawnedSlots = new();
-    private PlayerRef _localPlayer;
 
     private void OnEnable()
     {
-        _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
-        _cardZone.HandChanged += OnHandChanged;
+        _cardZone.OwnHandChanged += OnOwnHandChanged;
         _gameState.PhaseChanged += OnPhaseChanged;
 
-        var hand = _cardZone.GetHand(_localPlayer);
+        var hand = _cardZone.GetOwnHand();
         if (hand != null) RenderHand(hand);
     }
 
     private void OnDisable()
     {
-        _cardZone.HandChanged -= OnHandChanged;
+        _cardZone.OwnHandChanged -= OnOwnHandChanged;
         _gameState.PhaseChanged -= OnPhaseChanged;
     }
 
@@ -47,11 +44,10 @@ public class HandPanel : MonoBehaviour
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private void OnHandChanged(PlayerRef player, IReadOnlyList<string> hand)
+    private void OnOwnHandChanged(IReadOnlyList<string> hand)
     {
         try
         {
-            if (player != _localPlayer) return;
             RenderHand(hand);
         }
         catch (Exception ex) { Debug.LogException(ex); }
@@ -94,7 +90,7 @@ public class HandPanel : MonoBehaviour
 
     public string GetCardIdAtIndex(int index)
     {
-        var hand = _cardZone.GetHand(_localPlayer);
+        var hand = _cardZone.GetOwnHand();
         if (hand == null || index < 0 || index >= hand.Count) return null;
         return hand[index];
     }

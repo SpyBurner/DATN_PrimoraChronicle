@@ -4,7 +4,7 @@ using Fusion;
 using UnityEngine;
 using Zenject;
 
-public class UnitNetworkView : NetworkBehaviour, IUnitNetworkBridge
+public class UnitNetworkView : NetworkBehaviour
 {
     [Inject(Optional = true)] private IUnitSubsystem _unitSubsystem;
     [Inject(Optional = true)] private ICardLoadingManagerSubsystem _cardLoading;
@@ -56,7 +56,7 @@ public class UnitNetworkView : NetworkBehaviour, IUnitNetworkBridge
 
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        _unitSubsystem?.OnUnitDestroyed(Object.Id.ToString());
+        _unitSubsystem?.OnUnitDestroyed(Object.Id);
     }
 
     public void ServerInitializeFromCard(PlayerRef owner, string baseCardId, string[] equipSpellIds, HexCoord deployPosition)
@@ -234,32 +234,18 @@ public class UnitNetworkView : NetworkBehaviour, IUnitNetworkBridge
             });
         }
 
-        var skills = new List<SkillSlot>();
-        for (int i = 0; i < SkillCount; i++)
+        _unitSubsystem.OnUnitPublicStateReceived(new UnitPublicData
         {
-            skills.Add(new SkillSlot
-            {
-                SkillId = SkillIds.Get(i).ToString(),
-                CurrentCooldown = SkillCooldowns.Get(i),
-                IsOneTimeDisabled = SkillOneTimeDisabled.Get(i)
-            });
-        }
-
-        _unitSubsystem.OnUnitStateReceived(new UnitStateData
-        {
-            UnitNetworkId = Object.Id.ToString(),
+            UnitId = Object.Id,
             Owner = Owner,
             Position = new HexCoord(PositionP, PositionQ),
             CurrentHP = CurrentHP,
             MaxHP = MaxHP,
             Speed = Speed,
             DeathAnchor = DeathAnchor,
-            MoveRange = MoveRange,
-            Faction = Faction.ToString(),
             IsPersistent = IsPersistent,
             GrowthStacks = GrowthStacks,
-            StatusEffects = statusEffects,
-            Skills = skills
+            StatusEffects = statusEffects
         });
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Core.GDS;
 using Fusion;
 using UnityEngine;
@@ -55,12 +55,12 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
             _fusionSubsystem?.RegisterNetworkBridge(null);
     }
 
-    // ── IFusionNetworkBridge ─────────────────────────────────────────────
+    // â”€â”€ IFusionNetworkBridge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public void SendConfirmFusionRpc(string baseCardId, string equipSpellsJoined)
         => Rpc_RequestConfirmFusion(baseCardId, equipSpellsJoined);
 
-    // ── RPC (client → server) ────────────────────────────────────────────
+    // â”€â”€ RPC (client â†’ server) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_RequestConfirmFusion(string baseCardId, string equipSpellsJoined)
@@ -116,7 +116,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         _logger?.Log($"[FusionNetworkView] Fusion confirmed for {Object.InputAuthority}: base={baseCardId}, equips={equipIds.Length}");
     }
 
-    // ── Server-side API ──────────────────────────────────────────────────
+    // â”€â”€ Server-side API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public void ServerResetForNewTurn()
     {
@@ -147,7 +147,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         return cards.ToArray();
     }
 
-    // ── Validation ───────────────────────────────────────────────────────
+    // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private bool ValidateBaseCard(string cardId)
     {
@@ -179,7 +179,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         return valid.ToArray();
     }
 
-    // ── Unit spawning ────────────────────────────────────────────────────
+    // â”€â”€ Unit spawning â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private void SpawnUnit(PlayerRef owner, string baseCardId, string[] equipSpellIds)
     {
@@ -213,7 +213,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         DeployedUnitId = unitObj.Id.ToString();
     }
 
-    // ── State push ───────────────────────────────────────────────────────
+    // â”€â”€ State push â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public override void Render()
     {
