@@ -187,7 +187,8 @@ public struct UnitPublicData : INetworkStruct {
 // Unit/UnitPrivateData.cs  — replicated ONLY to Owner via AoI
 public struct UnitPrivateData : INetworkStruct {
     public NetworkId UnitId; public PlayerRef Owner;
-    [Networked, Capacity(4)] public NetworkArray<SkillSlot> Skills => default;  // IDs, cooldowns, one-time flags
+    // [0]=Move (BaseCD=1), [1]=NormalAttack (BaseCD=1), [2-5]=EquipSkills
+    [Networked, Capacity(6)] public NetworkArray<SkillSlot> Skills => default;
 }
 
 public interface IUnitSubsystem : ISubsystem {
@@ -211,6 +212,14 @@ public interface IUnitSubsystem : ISubsystem {
 ### 3.4 Combat (queue + turn)
 
 ```csharp
+// Combat/CombatStateData.cs  — ALL_CLIENTS via CombatNetworkView
+public struct CombatStateData : INetworkStruct {
+    public NetworkId CurrentActor;
+    public NetworkBool HasMoved;   // true once RequestMove() resolves this turn
+    public NetworkBool HasActed;   // true once any RequestNormalAttack() or RequestSkill() resolves this turn
+    // ActionQueue lives as a separate [Networked, Capacity(N)] NetworkArray on CombatNetworkView
+}
+
 // Combat/ICombatSubsystem.cs
 public interface ICombatSubsystem : ISubsystem {
     event UnityAction<IReadOnlyList<NetworkId>> QueueChanged;
@@ -219,12 +228,21 @@ public interface ICombatSubsystem : ISubsystem {
 
     IReadOnlyList<NetworkId> ActionQueue { get; }
     NetworkId CurrentActor { get; }
+    bool CurrentActorCanMove { get; }   // !HasMoved — read on CurrentTurnChanged or OwnUnitSkillsChanged
+    bool CurrentActorCanAct { get; }    // !HasActed — same
 
     void RequestMove(NetworkId unit, HexCoord destination);
     void RequestNormalAttack(NetworkId unit, HexCoord target);
     void RequestSkill(NetworkId unit, string skillId, HexCoord target);
-    void EndTurn();
+    void EndTurn();   // ends the current actor's turn; call before using any slot = Skip Turn
 }
+```
+
+> **Two-layer constraint.** Two independent mechanisms enforce the action rules:
+> - **Per-slot CD (cross-turn):** prevents reusing the *same* skill slot before its cooldown expires. Move[0] and NormalAttack[1] have BaseCD=1 so their CD ticks 1→0 at the next turn start — always available again next turn.
+> - **HasMoved / HasActed (within-turn, data only):** prevents using *multiple slots from the same category* in one turn. `HasActed=true` blocks all Act slots [1-5] for the rest of the turn even if their individual CDs are 0. These are plain data fields in `CombatStateData` — no dedicated change events are fired. The SkillPanel reads `CurrentActorCanMove` / `CurrentActorCanAct` synchronously on `CurrentTurnChanged` and `OwnUnitSkillsChanged` to recalculate button interactability. There is no UI element that displays "moved" or "acted" state — slot graying is the only effect.
+>
+> A slot is interactable only when both pass: `CurrentActorCanAct == true` (HasActed=false) **AND** `Skills[i].CurrentCD == 0`. `HasMoved` is technically redundant with `Skills[0].CD > 0` but is kept in `CombatStateData` for symmetry and to avoid deriving UI state from the AoI-restricted `UnitPrivateNetworkView`.
 ```
 
 ### 3.5 PlayerRoster (public profile) + PlayerCardZone (private hand)
@@ -418,7 +436,7 @@ Each row is **independently implementable and incrementally testable**. The "Com
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
 | F3.1 | **Hand panel** | §13 | `HandPanel` MonoBehaviour on `PhaseInteractionPanel_Hand.prefab`. Subscribes `IPlayerCardZoneSubsystem.OwnHandChanged` (local player only). Renders into `CardSlot [×N]`. Drawer wrapped by `HandPanelAnchor.prefab` via `PanelDrawer`. |
-| F3.2 | **Fusion staging UI** | §4 | `FusionPanel` on `PhaseInteractionPanel_Fusion.prefab`. Wires `UnitSlot`, `NormalAttackSlot` (always shown from Champion/Troop card data), `MovementSlot` (always shown), `FuseSlot1..4` (drop targets, one auto-occupied if base has `grants_skill`). `Button_Confirm` → `IFusionSubsystem.ConfirmFusion()`. |
+| F3.2 | **Fusion staging UI** | §4 | `FusionPanel` on `PhaseInteractionPanel_Fusion.prefab`. Wires `UnitSlot`, `MovementSlot` (always shown; populates Skills[0] with `base_move` behavior, BaseCD=1, TargetMask=EmptyTile, Range=card.MoveRange, AOE=center tile only), `NormalAttackSlot` (always shown; populates Skills[1] with `base_normal_attack` behavior, BaseCD=1, TargetMask/Range/DisplayPattern from card data), `FuseSlot1..4` (populates Skills[2-5]; one auto-occupied if base has `grants_skill`). `Button_Confirm` → `IFusionSubsystem.ConfirmFusion()`. |
 | F3.3 | **Fusion authority** | §4 | `FusionModel`, `FusionController`, `FusionSubsystem`, `FusionNetworkView`. Validates: ≤1 unit/turn, exactly 1 base, ≤4 slots, base's `grants_skill` occupies 1 slot if present. On confirm: spawns `NetworkUnit` at deploy area, sends Troop + all EquipSpells to discard at end of Combat phase. |
 | F3.4 | **MainPhaseSpell play** | §3, §5 Main | `IPlayerCardZoneSubsystem.RequestPlayMainPhaseSpell(cardId, target)`. Routes to `BehaviorRegistrySubsystem.ResolveMainPhaseSpell(behaviorId).Execute(target)`. Card moves to discard immediately. |
 | F3.5 | **Champion always-available in fusion** | §3 | `FusionPanel` shows Champion card pinned to base slot pool; not consumed from hand. |
@@ -430,13 +448,13 @@ Each row is **independently implementable and incrementally testable**. The "Com
 |---|---|---|---|
 | F4.1 | **Action queue build** | §5 Combat Step 1 | `CombatController.BuildQueue()` sorts all units by Speed desc → HP asc → coin toss. Mid-combat spawns appended via `CombatController.AppendToQueue(unitId)`. |
 | F4.2 | **TurnOrder panel** | — | `TurnOrderPanel` on `PhaseInteractionPanel_TurnOrder.prefab`. Subscribes `ICombatSubsystem.QueueChanged`. Spawns card items into `Content` RectTransform. Drawer-wrapped by `TurnOrderPanelAnchor`. |
-| F4.3 | **Unit turn cycle** | §5 Combat Step 2 | `CombatController.AdvanceTurn()`. On enter: tick all the actor's cooldowns by 1. Allow move + 1 action in any order. Allow skip-all. Auto-end on no-input timer. |
+| F4.3 | **Unit turn cycle** | §5 Combat Step 2 | `CombatController.AdvanceTurn()`. On enter: reset `HasMoved=false`, `HasActed=false` in `CombatStateData`; tick **all 6** skill CDs by 1 (Move[0] and N_Atk[1] tick 1→0; equip skills tick toward 0). After `RequestMove()` resolves: server sets `Skills[0].CurrentCD=1` and `HasMoved=true`. After `RequestNormalAttack()` or `RequestSkill([1-5])` resolves: server sets that slot's `CurrentCD=BaseCD` and `HasActed=true`. Both writes replicate via `CombatNetworkView.Render()` → no dedicated change events; SkillPanel re-evaluates button interactability on next `CurrentTurnChanged` or `OwnUnitSkillsChanged`. `EndTurn()` valid at any point (zero slots used = **Skip Turn**; partial = end early). Auto-end on no-input timer calls `EndTurn()`. |
 | F4.4 | **Movement & pathfinding** | §5 Combat | `BoardSubsystem.FindPath(from, to)` walks empty tiles only. `ignore_pathfinding: true` skips intermediate checks (destination must be empty). Max distance = unit's `MoveRange`. Knockback stops at board boundary. |
-| F4.5 | **Skill panel + active skill use** | §15 | `SkillPanel` on `PhaseInteractionPanel_Skill.prefab` (drawer-wrapped). Shows current actor's 4 fusion slots as `CardSlot_Empty`. Click → calls `ITargetingSubsystem.BeginTargeting(req, onConfirm => CombatSubsystem.RequestSkill(...))`. |
+| F4.5 | **Skill panel + active skill use** | §15 | `SkillPanel` on `PhaseInteractionPanel_Skill.prefab` (drawer-wrapped). Shows all 6 skill slots: Move[0], NormalAttack[1], EquipSkills[2-5] as `CardSlot_Empty`. On `CurrentTurnChanged` or `OwnUnitSkillsChanged`: re-evaluate each slot — interactable only if `CurrentActorCanMove/Act == true` AND `Skills[i].CurrentCD == 0`. Click on an interactable slot → `ITargetingSubsystem.BeginTargeting(req, ...)` then on confirm: Move[0] → `RequestMove()`, NormalAttack[1] → `RequestNormalAttack()`, EquipSkills[2-5] → `RequestSkill()`. |
 | F4.6 | **Targeting display** | §9, §15 | `TargetingSubsystem` reads `display_pattern` field of skill data. `LocalInteractionController`-style highlight (yellow range, green valid, red invalid). Bitmask: Enemy=1, Ally=2, EmptyTile=4. `target_condition: 0` ⇒ self-only, no tile selection. |
 | F4.7 | **3-pass damage pipeline** | §8 | `DamagePipelineSubsystem.Resolve(action)`. Aggregate → Intercept (Tile effects first then Unit effects) → Commit. Hooks: `IInterceptor` list rebuilt per action from active statuses + tile effects. |
 | F4.8 | **Status effects (ScriptableObject behaviors)** | §14 | `StatusEffectBehaviorSO` base. `barkskin_ward` (intercept −15), `burning` (10/turn), `decay` (blocks heal), `rooted`, `burning_trail`, growth-related. Resolved via `status_effect_behavior_id`. |
-| F4.9 | **Skill cooldowns & one-time** | §12 | `UnitController.OnTurnStart()` decrements every skill cooldown by 1. `one_time: true` skills are disabled for the remainder of the current combat phase; `CombatSubsystem.OnCombatPhaseEnd()` resets all `one_time` flags on every unit (including Persistent). Persistent Unit cooldowns are not reset on phase end — they carry into the next cycle. |
+| F4.9 | **Skill cooldowns & one-time** | §12 | `UnitController.OnTurnStart()` decrements **all 6 slots** (Move[0], NormalAttack[1], EquipSkills[2-5]) by 1. Move and N_Atk have `BaseCD=1` — they always tick 1→0 at turn start and are available every turn. `one_time: true` applies only to EquipSkills; `CombatSubsystem.OnCombatPhaseEnd()` resets all `one_time` flags (Move and N_Atk never carry this flag). Persistent Unit CDs (including Move and N_Atk) carry into the next cycle — they are NOT reset on phase end. |
 | F4.10 | **Tile effects (Lingering)** | §10 | `TileEffectSubsystem`. Corrupted/Seeded/Melting; one per tile (replaces). Survives board clear (but Deploy Area force-clear wipes). Owning player's units immune to own faction's negative effects. |
 | F4.11 | **Friendly-fire & faction immunity** | §2, §11 | Hardcoded checks in `DamagePipelineSubsystem.Aggregate()`: skip allied tiles unless skill has `ignore_friendly_fire: true`. |
 | F4.12 | **Death & DeathAnchor** | §5 Combat Step 3 | `UnitController.OnHPZero()` immediately destroys unit, subtracts `death_anchor` from owner's HP via `IPlayerRosterController` (player HP lives in `IPlayerRosterSubsystem`, not `PlayerCardZone`). `GameStateSubsystem.CheckElimination()` continuously (after every commit). |
@@ -597,10 +615,10 @@ All under `Features/Gameplay/Scripts/UI/`. Interfaces under `Core/Scripts/Interf
 | `GameplayPlayerProfileUI.cs` | `Profile_Gameplay.prefab` | `IProfileSubsystem` (own PFP) + `IPlayerRosterSubsystem` (HP / Name / UserId for all players) + `IGameStateSubsystem` (PlayerReady display) |
 | `GameplayDeckChoosePanel.cs` (finish) | `PhaseInteractionPanel_DeckChoose.prefab` | `IGameplayDeckChooseSubsystem`, `IGameplayDeckSubsystem` |
 | `GameplayDeckSelectOverlay.cs` | `Overlay_Gameplay_Decks.prefab` | `IGameplayDeckSubsystem.DecksChanged` |
-| `DrawPhasePanel.cs` | `PhaseInteractionPanel_DrawCard.prefab` | `IPlayerCardZoneSubsystem.HandChanged` |
-| `FusionPanel.cs` | `PhaseInteractionPanel_Fusion.prefab` | `IFusionSubsystem.StagingChanged`, `IPlayerCardZoneSubsystem.HandChanged` |
-| `HandPanel.cs` | `PhaseInteractionPanel_Hand.prefab` | `IPlayerCardZoneSubsystem.HandChanged` |
-| `SkillPanel.cs` | `PhaseInteractionPanel_Skill.prefab` | `ICombatSubsystem.CurrentTurnChanged`, `IUnitSubsystem` |
+| `DrawPhasePanel.cs` | `PhaseInteractionPanel_DrawCard.prefab` | `IPlayerCardZoneSubsystem.OwnHandChanged` |
+| `FusionPanel.cs` | `PhaseInteractionPanel_Fusion.prefab` | `IFusionSubsystem.StagingChanged`, `IPlayerCardZoneSubsystem.OwnHandChanged` |
+| `HandPanel.cs` | `PhaseInteractionPanel_Hand.prefab` | `IPlayerCardZoneSubsystem.OwnHandChanged` |
+| `SkillPanel.cs` | `PhaseInteractionPanel_Skill.prefab` | `ICombatSubsystem.CurrentTurnChanged`, `ICombatSubsystem.TurnEnded`, `IUnitSubsystem.OwnUnitSkillsChanged`. On each trigger: reads `CurrentActorCanMove`, `CurrentActorCanAct`, and each `Skills[i].CurrentCD` to set slot interactability. No dedicated HasMoved/HasActed events. `Button_SkipTurn` → `ICombatSubsystem.EndTurn()` (always enabled while it is the local player's unit's turn). |
 | `TurnOrderPanel.cs` | `PhaseInteractionPanel_TurnOrder.prefab` | `ICombatSubsystem.QueueChanged` |
 | `MatchResultPanel.cs` | `PhaseInteractionPanel_MatchResult.prefab` | `IMatchResultSubsystem.MatchEnded`, `IMatchRewardsSubsystem.OwnRewardsReceived`, `IPlayerRosterSubsystem` (names / UserIds for PFP fetch) |
 | `TargetingOverlay.cs` | Spawned at runtime as overlay UI / world-space tile decorator | `ITargetingSubsystem.TargetingStarted`, `HighlightedTilesChanged` |
@@ -693,6 +711,15 @@ These values are **mined from LEGACY for reuse**, not the LEGACY code itself. Th
 ### 7.7 Champion HP default
 
 100 (from existing `GameplayDeckChooseController` fallback).
+
+### 7.8 Move and Normal Attack base skill parameters (use in `GenericSkillBehaviorSO` for `base_move` / `base_normal_attack`)
+
+| Skill | Skills[] index | BaseCD | TargetMask | Range | AOE / DisplayPattern |
+|---|---|---|---|---|---|
+| `base_move` | [0] | 1 | `EmptyTile (4)` | `unit.MoveRange` | Center tile only — single hex, no AOE spread |
+| `base_normal_attack` | [1] | 1 | From card data | From card data | From card data |
+
+`base_move` ignores `ignore_pathfinding` — pathfinding always applies (use `RequestMove()` routing). `base_normal_attack` routes through `RequestNormalAttack()` and enters the standard 3-pass damage pipeline.
 
 ---
 

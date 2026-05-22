@@ -7,11 +7,13 @@ This document is the authoritative source for implementing Primora Chronicle. Ev
 ## 1. Board
 
 - The board is a finite hexagonal grid using an axial `(n, p, q)` offset coordinate system.
+- Hex distance formula: `(|Δp| + |Δq| + |Δr|) / 2`, where `r = −p − q`.
 - The targeted tile is the `(0, 0)` pivot for all AOE and range calculations.
 - Each hex tile holds a maximum of 1 unit at a time.
 - Movement or knockback that reaches the board boundary stops the unit at the outermost hex.
-- Each player owns one designated corner tile called the Deploy Area.
-- The Deploy Area tile is cleared of all units and tile effects at the end of each turn.
+- Each player owns one designated corner tile called the **Deploy Area**.
+- The Deploy Area is cleared at the moment of deployment confirmation (drop-pod mechanic): when a player confirms fusion, the Deploy Area tile is cleared first — any unit on it is immediately destroyed (`death_anchor` applied to owning player's HP), all tile effects on it are removed — then the fused unit is placed on the now-empty tile.
+- The Deploy Area is also forcibly cleared at Board Clear by the same rules.
 
 ---
 
@@ -30,14 +32,14 @@ This document is the authoritative source for implementing Primora Chronicle. Ev
 - A valid deck contains exactly 1 Champion card and exactly 20 support cards.
 
 ### Card Types
-- **Champion:** Unit subtype. The player's avatar. One per deck. Always available to fuse during the Main Phase.
+- **Champion:** Unit subtype. The player's avatar. One per deck. Always available for fusion and deployment during the Main Phase, regardless of hand or deck state.
 - **Troop:** Unit subtype. A deployable unit. Serves as the base of a fusion.
 - **EquipSpell:** Spell subtype. Fused onto a unit during the Main Phase to grant skills or status effects permanently.
-- **MainPhaseSpell:** Spell subtype. Played from hand during the Main Phase in real-time.
+- **MainPhaseSpell:** Spell subtype. Played from hand during the Main Phase in real-time. Each resolves immediately when played.
 
 ### Rarity
 - **Common:** Freely collectable. No copy limit per deck.
-- **Champion rarity** Grantable by a Champion's `grants_cards` list.
+- **Champion rarity:** Grantable by a Champion's `grants_cards` list.
 - **`is_summonable: false`:** An engine-only stat reference. Loaded by the engine as unit data only. Never enters a player's hand, deck, or fusion UI. Exists on the board only when spawned by a skill.
 
 ### Granted Cards
@@ -46,34 +48,51 @@ This document is the authoritative source for implementing Primora Chronicle. Ev
 
 ---
 
-## 4. Fusion
+## 4. Unit Stats
 
-- A player assembles exactly 1 unit per turn during the Main Phase.
-- A player may skip this phase. Results in a Combat phase loss immediately.
+All deployable units (Champion and Troop cards) carry the following stats:
+
+| Stat | Field | Description |
+|---|---|---|
+| **HP** | `hp` | Starting and maximum hit points. Any effect that modifies Max HP also modifies current HP by the same delta. |
+| **Death Anchor** | `death_anchor` | On destruction, immediately subtract this value from the **owning player's** HP. Does not affect the unit itself. |
+| **Speed** | `speed` | Determines turn order in the Action Queue. Higher Speed acts earlier. Ties: lowest HP first; remaining ties: coin toss. |
+| **Normal Attack Damage** | `n_atk_dmg` | Damage dealt by a standard Normal Attack action. |
+| **Normal Attack Pattern** | `n_atk_pattern` | A `HexPattern` defining the range and shape of the Normal Attack. Targeting is tile-based; only enemy tiles are valid targets by default. |
+| **Innate Skill** | `grants_skill` | Optional. References a `Skill.string_id`. Occupies 1 of the unit's 4 fusion slots automatically at fusion time. |
+
+---
+
+## 5. Fusion
+
+- During the Main Phase, each player **must** assemble and deploy exactly 1 unit. Deployment is not optional.
+- The Champion card is always accessible for fusion regardless of whether it is in the player's hand, deck, or Discard Pile.
+- If a player has no Troop card available, they must deploy the Champion as the base unit.
+- If the player does not confirm fusion before the Main Phase timer expires, the Champion is automatically deployed with 0 EquipSpells fused.
 - A unit has exactly 4 fusion slots.
-- If the base Troop has an innate skill (`grants_skill`), that skill occupies 1 of the 4 slots automatically.
+- If the base unit has an innate skill (`grants_skill`), that skill occupies 1 of the 4 slots automatically.
 - Each EquipSpell card fused onto the unit occupies exactly 1 slot.
 - Duplicate EquipSpell cards are allowed in the same fusion.
 - A unit may be deployed with fewer than 4 EquipSpells fused (including zero).
 - The fully assembled unit is placed on the player's Deploy Area tile.
-- All cards used in a fusion (the Troop card and all fused EquipSpells) go to the Discard Pile at the end of the Combat Phase, regardless of whether the unit survived or died.
+- All cards used in a fusion (the base unit card and all fused EquipSpells) go to the Discard Pile at the end of the Combat Phase, regardless of whether the unit survived or died.
 
 ---
 
-## 5. Match Flow
+## 6. Match Flow
 
 ### Start Phase
 - The player selects a pre-built deck.
-- If the player does not confirm in time, their most recently played deck is auto-selected. 
+- If the player does not confirm in time, their most recently played deck is auto-selected.
 - The Champion's granted cards are shuffled into the deck.
 - The player's HP is set to their Champion's `hp` value.
 - The player is dealt an opening hand of 6 cards using Draw Phase logic.
 
 ### Main Phase
-- The player assembles and deploys up to 1 unit (optional).
-- The player may play any number of MainPhaseSpell cards from hand. Each is used in real-time and resolved immediately.
 - The board state from the previous Combat Phase is active during the Main Phase. Persistent Units and lingering tile effects are present.
-- The player can skip this phase (automatically a loss in combat phase). If the player does not confirm the fusion in time, they are automatically skipped.
+- During the fusion window, the player assembles exactly 1 unit (mandatory — see §5) and may play any number of MainPhaseSpell cards from hand. Each MainPhaseSpell resolves immediately in real-time when played.
+- MainPhaseSpell cards may only be played before deployment confirmation. Once the player confirms, all actions are locked until the phase transitions.
+- At the moment of deployment confirmation, the Deploy Area is cleared (see §1), then the fused unit is placed on it.
 
 ### Combat Phase
 The Combat Phase runs in this order:
@@ -86,27 +105,28 @@ The Combat Phase runs in this order:
 **Step 2 — Unit Turns**
 - Each unit in queue order takes its turn.
 - At the start of a unit's turn, all its skill cooldowns tick down by 1.
-- On its turn, a unit may move up to its hex movement range AND perform one action (Normal Attack or one Active Skill).
-- Movement and action may occur in any order within the unit's turn.
-- A unit may choose not to move, not to act, or both.
+- On its turn, a unit has exactly two action slots: **Move** (to any adjacent hex) and **Act** (Normal Attack or one Active Skill).
+- Move and Act may be performed in any order within the unit's turn.
+- Each slot may be used or skipped independently.
+- **Skip Turn**: the player may immediately end the unit's turn without using either slot.
 - Movement paths only through empty tiles.
-- Normal attacks and AOE skills affect only enemy tiles. Allied tiles are ignored automatically.
+- **Normal Attack**: deals `n_atk_dmg` damage to all tiles within `n_atk_pattern`. Only enemy tiles are affected; allied tiles are ignored automatically.
 - Skills with `ignore_friendly_fire: true` affect both allied and enemy tiles.
-- Skills with `ignore_pathfinding: true` move the unit directly to the destination tile without checking intermediate tiles. Only the destination tile must be valid (Empty - no unit).
+- Skills with `ignore_pathfinding: true` move the unit directly to the destination tile without checking intermediate tiles. Only the destination tile must be valid (empty — no unit).
 
 **Step 3 — Death & Death Anchor**
 - When a unit's HP reaches 0, it is destroyed immediately.
 - The destroyed unit's `death_anchor` value is immediately subtracted from the owning player's HP.
-- If a player's HP reaches 0 at any point during combat, they are immediately eliminated.
-- All units belonging to an eliminated player are destroyed at the moment of elimination.
-- Elimination is checked continuously, not at end of phase.
+- If a player's HP reaches 0 at any point — in any phase — they are immediately eliminated.
+- All units belonging to an eliminated player — including their Persistent Units — are destroyed at the moment of elimination.
+- Elimination is checked continuously across all phases.
 
 **Step 4 — Board Clear**
-- Board clear triggers when only one player's **player-deployed** units remain on the board. Persistent Units (spawned by skills) do not count toward this check.
+- Board clear triggers when **≤ 1 player still has player-deployed units remaining** on the board, or at the start of Combat Phase, right before the new units deployment. Persistent Units do not count toward this check.
 - All player-deployed units on the board (surviving or destroyed) go to the Discard Pile.
 - Persistent Units (non-player-deployed units) remain on the board and carry into the next Main Phase.
-- All types of effects (Unit, Tile) remain on the board, but do not have any effect nor duration ticking.
-- The Deploy Area tile is forcibly cleared of any unit or effect.
+- All tile effects remain on the board but do not tick duration and have no active effect during the inter-phase gap.
+- The Deploy Area is forcibly cleared of any unit or effect (see §1).
 
 ### Draw Phase
 - The player is shown 2 newly drawn cards from their deck.
@@ -119,30 +139,36 @@ The Combat Phase runs in this order:
 - The last player with HP above 0 is the winner.
 - If the match time limit of 1 hour expires, the player with the highest remaining HP wins.
 - If any ties happen (either by HP or time expiry), all tied players receive a Loss, an XP penalty, and reduced Gold.
+- **Forfeit:** A player who voluntarily leaves the match is recorded as an automatic Loss, identical to elimination. Their deployed and Persistent Units are immediately destroyed (all `death_anchor` values applied to that player's HP) and their tile effects are removed.
 
 ---
 
-## 6. Persistent Units
+## 7. Persistent Units
 
 - Persistent Units are units with `is_summonable: false`. They are spawned exclusively by skills.
 - Persistent Units remain on the board across combat cycles.
 - Persistent Unit skill cooldowns carry over between combat cycles.
 - Persistent Units have fixed stats and skills set at spawn. They receive no fusions.
-- Persistent Units obey the Deploy Area clearing rule. If occupying the Deploy Area at board clear, they are destroyed and go to the Discard Pile.
+- Persistent Units belong to the player whose skill spawned them. If that player is eliminated, all their Persistent Units are destroyed immediately.
+- Persistent Units obey the Deploy Area clearing rule. If occupying the Deploy Area at the moment of deployment confirmation, or at Board Clear, they are immediately destroyed (HP = 0) and go to the Discard Pile, no further logic applied.
 
 ---
 
-## 7. The Verdant Evolution Chain
+## 8. The Verdant Evolution Chain
 
 - The evolution chain is: Seedling → Sapling → Young Treant → Thorn Colossus.
 - All four forms are Persistent Units (`is_summonable: false`).
 - A Seedling is spawned by `skill_summon_seedling` on a random empty tile adjacent to the activating unit.
-- When a unit in the chain accumulates 4 Growth Stacks, it immediately evolves to the next form.
-- Upon evolution, all Growth Stacks are cleared.
+- **Growth Stacks** (`status_effect_growth_stack`) are a Unit-type status effect (max 4 stacks). A unit gains Growth Stacks when:
+  - It has `skill_sprout` and occupies a **SEEDED** tile at the start of its turn (gains 1 stack).
+  - A skill or effect explicitly grants Growth Stacks (e.g., `skill_natures_gift`, `skill_wild_growth`, `skill_grovehearts_ascendance`, `status_effect_seeded`).
+- When a unit accumulates 4 Growth Stacks, it immediately evolves to the next form. All Growth Stacks are cleared upon evolution.
+- Thorn Colossus is the final form and cannot evolve further.
+- Units outside the evolution chain that receive Growth Stacks cap at 4 stacks. No reset occurs; no evolution fires.
 
 ---
 
-## 8. Damage & The Modifier Pipeline
+## 9. Damage & The Modifier Pipeline
 
 - All damage is applied directly to HP.
 - Before any action resolves, the system runs three passes in strict order:
@@ -153,7 +179,7 @@ The Combat Phase runs in this order:
 
 ---
 
-## 9. Targeting
+## 10. Targeting
 
 - All targeting is tile-based. Targeting a unit means targeting the tile that unit occupies.
 - `target_condition` is a bitmask: `Enemy = 1`, `Ally = 2`, `EmptyTile = 4`.
@@ -162,18 +188,22 @@ The Combat Phase runs in this order:
 
 ---
 
-## 10. Tile Effects
+## 11. Tile Effects
 
 ### Lingering Effects (Corrupted, Seeded, Melting)
 - Lingering effects persist through board clear into the next cycle.
 - Only one Lingering effect occupies a tile at a time.
-- Applying a new Lingering effect to a tile that holds a different Lingering effect replaces the old one entirely.
-- Applying the same Lingering effect to a tile that already holds it refreshes or stacks according to its own behavior.
+- Applying a **different** Lingering effect to a tile that already holds one replaces the old one entirely.
+- Applying the **same** Lingering effect to a tile that already holds it: the duration resets and 1 stack is added. If already at `max_stack`, the stack count stays at max but duration still resets.
 - The owning player's units are immune to the negative effects of their own faction's Lingering effects.
+
+### All Other Tile Effects
+- Non-lingering tile effects (Entangled, Ash Cloud, Scorching Ground, Burning Trail, Severed Tail, Banner of Cinders, etc.) follow the same re-apply rule: duration resets, stack increments up to `max_stack`.
+- All tile effects are inactive outside of Combat Phase.
 
 ---
 
-## 11. Stat Modification Rules
+## 12. Stat Modification Rules
 
 - Any effect that modifies Max HP also modifies current HP by the same delta.
 - The `ignore_friendly_fire: true` flag on a skill is the only mechanism that permits a skill to affect allied units.
@@ -181,25 +211,34 @@ The Combat Phase runs in this order:
 
 ---
 
-## 12. Skill Cooldowns
+## 13. Skill Cooldowns
 
 - A skill's cooldown ticks down by 1 at the start of the owning unit's turn.
 - A skill is usable when its cooldown value reaches 0.
-- Skills with `one_time: true` are disabled after their first use for the remainder of that combat phase. The flag resets at the end of the combat phase, so the skill is available again in the next cycle if the unit is re-fused (or if the unit is Persistent and survives board clear).
+- Skills with `one_time: true` are disabled after their first use for the remainder of that combat phase. The flag resets at the end of the combat phase — the skill is available again in the next cycle when the unit is re-fused, or for Persistent Units that survive board clear.
 - Persistent Unit cooldowns carry across board clear cycles.
 
 ---
 
-## 13. Hand & Deck Management
+## 14. Hand & Deck Management
 
 - Maximum hand size is 6 cards at any time.
 - The Discard Pile is the single destination for all discarded, consumed, and spent cards.
-- When a draw is needed and the deck is empty, the Discard Pile is shuffled immediately into a new deck.
+- When a draw is needed and the deck is empty, the Discard Pile is shuffled immediately into a new deck, then the draw proceeds.
 - Cards in the Discard Pile are indistinguishable from one another in terms of draw probability after reshuffling.
+- A deck always contains at least 20 cards (base deck) plus any Champion-granted cards. The deck and Discard Pile cannot both be empty simultaneously during normal play.
 
 ---
 
-## 14. Behavior System
+## 15. Information & Visibility
+
+- A player's **hand**, **deck**, and **Discard Pile** are hidden from all opponents at all times.
+- For units on the board (both deployed and Persistent): only the unit's **HP** is visible to the opponent. Skills, status effects, and fusion composition are hidden.
+- Tile effects on the board are **visible** to all players.
+
+---
+
+## 16. Behavior System
 
 - Each skill references a `skill_behavior_id` that maps to a Scriptable Object defining its full execution logic.
 - Each status effect references a `status_effect_behavior_id` that maps to a Scriptable Object defining its per-turn logic.
@@ -209,7 +248,7 @@ The Combat Phase runs in this order:
 
 ---
 
-## 15. Display Rules
+## 17. Display Rules
 
 - Active skills have a `display_pattern` field used to preview the effect area while the player selects a target tile.
 - Passive skills do not have a `display_pattern`. They are triggered by the engine with no player targeting step.
