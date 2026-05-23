@@ -17,7 +17,7 @@
 
 ## Compile Status
 
-**Clean — 0 errors.** 10 warnings (all `CS0618 FindObjectOfType` obsolete + 3 unused-event `CS0067`). No action required for F2.
+**Clean — 0 errors.** 10 warnings (all `CS0618 FindFirstObjectByType` obsolete + 3 unused-event `CS0067`). No action required for F2.
 
 ---
 

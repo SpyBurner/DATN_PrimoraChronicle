@@ -26,7 +26,7 @@ public class MatchRewardsPrivateNetworkView : NetworkBehaviour, IMatchRewardsPri
     {
         if (_rewards == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             if (ctx != null)
             {
                 _rewards = ctx.Container.Resolve<IMatchRewardsSubsystem>();

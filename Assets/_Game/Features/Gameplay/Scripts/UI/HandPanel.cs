@@ -26,7 +26,7 @@ public class HandPanel : MonoBehaviour
         _cardZone.HandChanged += OnHandChanged;
         _gameState.PhaseChanged += OnPhaseChanged;
 
-        var runner = FindObjectOfType<NetworkRunner>();
+        var runner = FindFirstObjectByType<NetworkRunner>();
         if (runner != null) _localPlayer = runner.LocalPlayer;
 
         var hand = _cardZone.GetHand(_localPlayer);

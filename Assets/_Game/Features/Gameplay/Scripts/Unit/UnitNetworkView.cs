@@ -44,7 +44,7 @@ public class UnitNetworkView : NetworkBehaviour
     {
         if (_unitSubsystem == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _unitSubsystem = ctx?.Container.Resolve<IUnitSubsystem>();
             _cardLoading = ctx?.Container.Resolve<ICardLoadingManagerSubsystem>();
             _logger = ctx?.Container.Resolve<IDebugLogger>();

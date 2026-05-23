@@ -26,7 +26,7 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
     {
         if (_deckChoose == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _deckChoose = ctx?.Container.Resolve<IGameplayDeckChooseSubsystem>();
         }
 

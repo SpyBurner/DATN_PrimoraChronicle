@@ -389,7 +389,7 @@ public class XxxNetworkView : NetworkBehaviour, IXxxNetworkBridge
     {
         if (_subsystem == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             if (ctx != null) _subsystem = ctx.Container.Resolve<IXxxSubsystem>();
             else { Debug.LogError("[XxxNetworkView] SceneContext not found."); return; }
         }

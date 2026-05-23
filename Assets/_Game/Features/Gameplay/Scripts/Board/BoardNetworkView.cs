@@ -30,12 +30,12 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
     {
         if (_board == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _board = ctx?.Container.Resolve<IBoardSubsystem>();
         }
         if (_logger == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _logger = ctx?.Container.Resolve<IDebugLogger>();
         }
 

@@ -31,7 +31,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         // fall back to resolving from the SceneContext directly.
         if (_gameState == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             if (ctx != null)
             {
                 _gameState = ctx.Container.Resolve<IGameStateSubsystem>();

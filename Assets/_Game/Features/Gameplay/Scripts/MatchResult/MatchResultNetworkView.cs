@@ -20,7 +20,7 @@ public class MatchResultNetworkView : NetworkBehaviour, IMatchResultNetworkBridg
     {
         if (_subsystem == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _subsystem = ctx?.Container.Resolve<IMatchResultSubsystem>();
             _logger = ctx?.Container.Resolve<IDebugLogger>();
         }

@@ -32,7 +32,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
     {
         if (_fusionSubsystem == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _fusionSubsystem = ctx?.Container.Resolve<IFusionSubsystem>();
             _unitSubsystem = ctx?.Container.Resolve<IUnitSubsystem>();
             _boardSubsystem = ctx?.Container.Resolve<IBoardSubsystem>();

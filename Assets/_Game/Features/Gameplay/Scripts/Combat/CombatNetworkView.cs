@@ -32,7 +32,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
     {
         if (_combatSubsystem == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _combatSubsystem = ctx?.Container.Resolve<ICombatSubsystem>();
             _unitSubsystem = ctx?.Container.Resolve<IUnitSubsystem>();
             _boardSubsystem = ctx?.Container.Resolve<IBoardSubsystem>();

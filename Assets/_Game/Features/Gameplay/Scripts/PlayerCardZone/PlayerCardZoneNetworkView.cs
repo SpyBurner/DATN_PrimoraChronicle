@@ -44,7 +44,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     {
         if (_subsystem == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _subsystem = ctx?.Container.Resolve<IPlayerCardZoneSubsystem>();
             _cardLoading = ctx?.Container.Resolve<ICardLoadingManagerSubsystem>();
             _profileSubsystem = ctx?.Container.TryResolve<IProfileSubsystem>();
