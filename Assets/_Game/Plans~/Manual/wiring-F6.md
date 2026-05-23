@@ -65,14 +65,13 @@ PhaseInteractionPanel_MatchResult  (root + MatchResultPanel)
 
 ---
 
-## Prefab: `MatchRewardsPrivateState.prefab` (create new — also listed in F1)
-
-| Component / Field | Value | Status |
-|---|---|---|
-| `NetworkObject` (`DestroyWhenStateAuthorityLeaves` = true) | — | ⬜ |
-| `MatchRewardsPrivateNetworkView` | — | ⬜ |
-| Register in `NetworkViewRegistry` | — | ⬜ |
-| Assign to `GameplayNetworkCoordinator._matchRewardsPrivateViewPrefab` | — | ⬜ |
+> **`MatchRewardsPrivateState.prefab` is F1's concern.**
+> The prefab lives at `F1/MatchRewardsPrivateState.prefab` and `_matchRewardsPrivateViewPrefab`
+> is wired on the coordinator in `wiring.md`. At match end, `MatchResultController` writes
+> Gold/XP directly to the per-player `MatchRewardsPrivateNetworkView` objects that were
+> already spawned during F1 bootstrap — F6 spawns no new rewards object.
+>
+> **Delete `F6/MatchRewradsPrivateState.prefab`** (stale duplicate with typo — Rewrads).
 
 ---
 
