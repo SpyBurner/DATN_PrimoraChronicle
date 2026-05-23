@@ -276,6 +276,12 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
         return view;
     }
 
+    public PlayerRosterPublicNetworkView GetPlayerRosterView(PlayerRef player)
+    {
+        _rosterViews.TryGetValue(player, out var view);
+        return view;
+    }
+
     public GameplayDeckChooseNetworkView GetDeckChooseView(PlayerRef player)
     {
         _deckChooseViews.TryGetValue(player, out var view);

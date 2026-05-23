@@ -285,6 +285,8 @@ public interface IPlayerRosterSubsystem : ISubsystem {
 > **PlayerRoster** is a thin public facade for per-player profile data. `PlayerRosterPublicNetworkView` is one NetworkObject per player, always-replicated. HP drives `Profile_Gameplay.HPValueText` and `MatchResultPanel`; PlayerName drives `NameValueText` everywhere; UserId drives the local HTTP avatar fetch in both panels.
 >
 > **Topology**: per-player always-replicated. Canonical verified reference — see §5.2.1 for registration rules. **PlayerCardZone** is per-player AoI-restricted — same rules, add `SetPlayerAlwaysInterested`.
+>
+> **Note on HP Sync**: When `PlayerCardZoneNetworkView` mutates HP (e.g., in `ServerSetupDeckForMatch` or `ServerApplyDamage`), it must explicitly route those updates to the public `PlayerRosterPublicNetworkView` via `GameplayNetworkCoordinator.Instance.GetPlayerRosterView(Owner)?.SendHPChangedRpc(...)`.
 
 ```csharp
 // PlayerCardZone/PlayerCardZonePrivateData.cs  — replicated ONLY to Owner via AoI
@@ -446,10 +448,10 @@ Each row is **independently implementable and incrementally testable**. The "Com
 
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
-| F2.1 | **Deck selection per player** | §5 Start | Existing `GameplayDeckChoose*` stack. Finish: move 5 interface files to `Core/Scripts/Interfaces/Features/Gameplay/StartPhase/`. Wire `GameplayDeckChoosePanel` to `PhaseInteractionPanel_DeckChoose.prefab`. Wire `GameplayDeckSelectOverlay` to `Overlay_Gameplay_Decks.prefab` (8 slots, populated from `IGameplayDeckSubsystem.DecksChanged` — **not** `IDeckSubsystem`; `GameplayDeckSubsystem` calls `/api/decks` directly and is bound in `GameplayInstaller`). |
+| F2.1 | **Deck selection per player** | §5 Start | Existing `GameplayDeckChoose*` stack. Finish: move 5 interface files to `Core/Scripts/Interfaces/Features/Gameplay/StartPhase/`. Wire `GameplayDeckChoosePanel` to `PhaseInteractionPanel_DeckChoose.prefab`. Wire `GameplayDeckSelectOverlay` to `Overlay_Gameplay_Decks.prefab` (8 slots, populated from `IGameplayDeckSubsystem.DecksChanged` — **not** `IDeckSubsystem`; `GameplayDeckSubsystem` calls `/api/decks` directly and is bound in `GameplayInstaller`). **Must call `IGameStateSubsystem.RequestSetLocalReady(true)` on confirm to allow early phase advancement.** |
 | F2.2 | **NetworkView spawn trigger** | §5 Start | `GameStateSubsystem.OnPhaseChanged(StartPhase)` → spawns one `GameplayDeckChooseNetworkView.prefab` per player via `Runner.Spawn(prefab, inputAuthority: player)`. |
 | F2.3 | **Granted-cards shuffle + opening hand** | §3 Granted, §5 Start | `PlayerCardZoneController.SetupDeckForMatch(championId, supportCardIds)` — reads `CardLoadingManagerSubsystem.GetCardData(championId).grants_cards`, shuffles into the 20 supports, deals 6 via `RequestDraw(6)`. HP initialization (`champion.hp`) is a separate call to `PlayerRosterController.SetupForMatch(championId)` — player HP belongs to `IPlayerRosterSubsystem`, not `PlayerCardZone`. |
-| F2.4 | **Auto-confirm Start on timer expiry** | §5 Start | `GameStateController` on phase-timer 0 calls `IGameplayDeckChooseSubsystem.AutoConfirmLastDeck()` for any unready player (commits a default deck payload), which routes through the standard `SubmitAsync` → `RequestSetLocalReady(true)` path. `PlayerReady[i]` flips as a result, not directly. |
+| F2.4 | **Auto-confirm Start on timer expiry** | §5 Start | `GameStateController` on phase-timer 0 calls `IGameplayDeckChooseSubsystem.AutoConfirmLastDeck()` for any unready player (commits a default deck payload), which routes through the standard `SubmitAsync` → `RequestSetLocalReady(true)` path. `PlayerReady[i]` flips as a result, not directly. **Client-side fallback**: `GameplayDeckChoosePanel.OnDisable` calls `IGameplayDeckChooseSubsystem.AutoConfirmLastDeck()` to ensure any staged deck is sent to the server even if the player failed to click confirm before the phase transitioned. |
 
 ### Group F3 — Main Phase
 

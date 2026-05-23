@@ -42,6 +42,13 @@ public class GameplayDeckChoosePanel : MonoBehaviour
         _gameState.PhaseTimeRemainingChanged -= OnTimeRemainingChanged;
 
         _confirmButton?.onClick.RemoveListener(OnConfirmClicked);
+
+        // If the phase timed out and panel is disabled, auto-confirm staged deck
+        if (_hasSelection && _deckChoose != null)
+        {
+            _ = _deckChoose.AutoConfirmLastDeck();
+        }
+
         _hasSelection = false;
     }
 
@@ -78,6 +85,7 @@ public class GameplayDeckChoosePanel : MonoBehaviour
         if (!_hasSelection) return;
         if (_confirmButton != null) _confirmButton.interactable = false;
         await _deckChoose.ConfirmSelection();
+        _gameState?.RequestSetLocalReady(true);
     }
 
     private void OnIsReadyChanged(bool isReady)

@@ -126,6 +126,13 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
         ShuffleDeck();
         ServerDraw(OpeningHandSize);
 
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator != null)
+        {
+            var roster = coordinator.GetPlayerRosterView(Owner);
+            roster?.SendHPChangedRpc(Owner, HP);
+        }
+
         _logger?.Log($"[PlayerCardZoneNetworkView] Setup for {Owner}: champion={championId}, deckSize={DeckCount}, HP={HP}");
     }
 
@@ -191,6 +198,13 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     {
         if (!Object.HasStateAuthority) return;
         HP = Mathf.Max(0, HP - amount);
+
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator != null)
+        {
+            var roster = coordinator.GetPlayerRosterView(Owner);
+            roster?.SendHPChangedRpc(Owner, HP);
+        }
     }
 
     public void ServerDiscardFusionCard(string cardId)
