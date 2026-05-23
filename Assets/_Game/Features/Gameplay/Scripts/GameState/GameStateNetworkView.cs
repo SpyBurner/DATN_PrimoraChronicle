@@ -95,6 +95,12 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             return;
         }
 
+        if (CurrentPhase == GameplayPhase.MainPhase && AreAllPlayersReady())
+        {
+            TransitionTo(GameplayPhase.CombatPhase);
+            return;
+        }
+
         if (CurrentPhase != GameplayPhase.Setup && CurrentPhase != GameplayPhase.StartPhase)
         {
             var eliminatedPlayer = CheckElimination();

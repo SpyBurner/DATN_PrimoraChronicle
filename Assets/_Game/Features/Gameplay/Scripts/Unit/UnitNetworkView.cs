@@ -133,6 +133,7 @@ public class UnitNetworkView : NetworkBehaviour
         StatusEffectCount = 0;
 
         _logger?.Log($"[UnitNetworkView] Initialized unit {UnitId} for {owner}: base={baseCardId}, HP={CurrentHP}, Speed={Speed}, Skills={SkillCount}");
+        PushState();
     }
 
     public void ServerMoveTo(HexCoord destination)
