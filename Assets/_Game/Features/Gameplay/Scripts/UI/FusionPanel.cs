@@ -36,6 +36,20 @@ public class FusionPanel : MonoBehaviour
     private PlayerRef _localPlayer;
     private bool _confirmed;
 
+    private void Awake()
+    {
+        if (_unitSlot == null) throw new System.Exception("[FusionPanel._unitSlot] Not assigned in Inspector — see wiring-F3.md F3.2");
+        if (_unitNameText == null) throw new System.Exception("[FusionPanel._unitNameText] Not assigned in Inspector — see wiring-F3.md F3.2");
+        if (_unitStatsText == null) throw new System.Exception("[FusionPanel._unitStatsText] Not assigned in Inspector — see wiring-F3.md F3.2");
+        if (_normalAttackSlot == null) throw new System.Exception("[FusionPanel._normalAttackSlot] Not assigned in Inspector — see wiring-F3.md F3.2");
+        if (_movementSlot == null) throw new System.Exception("[FusionPanel._movementSlot] Not assigned in Inspector — see wiring-F3.md F3.2");
+        if (_confirmButton == null) throw new System.Exception("[FusionPanel._confirmButton] Not assigned in Inspector — see wiring-F3.md F3.2");
+        if (_confirmText == null) throw new System.Exception("[FusionPanel._confirmText] Not assigned in Inspector — see wiring-F3.md F3.2");
+        if (_handPanel == null) throw new System.Exception("[FusionPanel._handPanel] Not assigned in Inspector — see wiring-F3.md F3.2");
+        for (int i = 0; i < _fuseSlots.Length; i++)
+            if (_fuseSlots[i].Root == null) throw new System.Exception($"[FusionPanel._fuseSlots[{i}].Root] Not assigned in Inspector — see wiring-F3.md F3.2");
+    }
+
     [Serializable]
     public struct FuseSlot
     {

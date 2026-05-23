@@ -28,6 +28,13 @@ public class GameplayPlayerProfileUI : MonoBehaviour
     private bool _isLocal;
     private bool _bound;
 
+    private void Awake()
+    {
+        if (_nameText == null) throw new System.Exception("[GameplayPlayerProfileUI._nameText] Not assigned in Inspector — see wiring.md F1.5");
+        if (_hpText == null) throw new System.Exception("[GameplayPlayerProfileUI._hpText] Not assigned in Inspector — see wiring.md F1.5");
+        if (_readyToggle == null) throw new System.Exception("[GameplayPlayerProfileUI._readyToggle] Not assigned in Inspector — see wiring.md F1.5");
+    }
+
     public void Bind(PlayerRef playerRef, bool isLocal)
     {
         _playerRef = playerRef;

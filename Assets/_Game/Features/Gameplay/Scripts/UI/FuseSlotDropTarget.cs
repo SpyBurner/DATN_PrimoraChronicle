@@ -6,6 +6,11 @@ public class FuseSlotDropTarget : MonoBehaviour, IDropHandler
     [SerializeField] private int _slotIndex;
     [SerializeField] private FusionPanel _fusionPanel;
 
+    private void Awake()
+    {
+        if (_fusionPanel == null) throw new System.Exception("[FuseSlotDropTarget._fusionPanel] Not assigned in Inspector — see wiring-F3.md F3 FuseSlotDropTarget");
+    }
+
     public void Initialize(int slotIndex, FusionPanel fusionPanel)
     {
         _slotIndex = slotIndex;

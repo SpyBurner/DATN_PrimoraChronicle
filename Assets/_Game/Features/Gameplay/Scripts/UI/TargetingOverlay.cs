@@ -25,6 +25,11 @@ public class TargetingOverlay : MonoBehaviour
 
     private readonly List<GameObject> _highlights = new();
     private readonly Dictionary<HexCoord, GameObject> _highlightMap = new();
+
+    private void Awake()
+    {
+        if (_tileHighlightPrefab == null) throw new System.Exception("[TargetingOverlay._tileHighlightPrefab] Not assigned in Inspector — see wiring-F4.md F4.6");
+    }
     private TargetingRequest _activeRequest;
     private HexCoord _hoveredCoord;
     private bool _isActive;

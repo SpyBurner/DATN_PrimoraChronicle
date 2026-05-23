@@ -31,6 +31,14 @@ public class SkillPanel : MonoBehaviour
     private PlayerRef _localPlayer;
     private NetworkId _currentActor;
 
+    private void Awake()
+    {
+        if (_skillSlotContainer == null) throw new System.Exception("[SkillPanel._skillSlotContainer] Not assigned in Inspector — see wiring-F4.md F4.5");
+        if (_skillSlotPrefab == null) throw new System.Exception("[SkillPanel._skillSlotPrefab] Not assigned in Inspector — see wiring-F4.md F4.5");
+        if (_endTurnButton == null) throw new System.Exception("[SkillPanel._endTurnButton] Not assigned in Inspector — see wiring-F4.md F4.5");
+        if (_actorNameText == null) throw new System.Exception("[SkillPanel._actorNameText] Not assigned in Inspector — see wiring-F4.md F4.5");
+    }
+
     private struct SkillSlotUI
     {
         public GameObject Root;

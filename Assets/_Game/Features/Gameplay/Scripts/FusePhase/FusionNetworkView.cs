@@ -29,6 +29,11 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
 
     private const int MaxEquipSlots = 4;
 
+    private void Awake()
+    {
+        if (!_unitPrefab.IsValid) throw new System.Exception("[FusionNetworkView._unitPrefab] Not assigned in Inspector — see wiring-F3.md F3.3");
+    }
+
     public override void Spawned()
     {
         if (_fusionSubsystem == null)

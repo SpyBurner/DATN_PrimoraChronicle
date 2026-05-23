@@ -46,6 +46,16 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
+
+        if (!_gameStateManagerPrefab.IsValid) throw new System.Exception("[GameplayNetworkCoordinator._gameStateManagerPrefab] Not assigned — see wiring.md F1.3");
+        if (!_boardManagerPrefab.IsValid) throw new System.Exception("[GameplayNetworkCoordinator._boardManagerPrefab] Not assigned — see wiring.md F1.2");
+        if (!_deckChooseViewPrefab.IsValid) throw new System.Exception("[GameplayNetworkCoordinator._deckChooseViewPrefab] Not assigned — see wiring-F2.md F2.2");
+        if (!_playerCardZoneViewPrefab.IsValid) throw new System.Exception("[GameplayNetworkCoordinator._playerCardZoneViewPrefab] Not assigned — see wiring.md F1.2 PlayerCardZone");
+        if (!_playerRosterPublicViewPrefab.IsValid) throw new System.Exception("[GameplayNetworkCoordinator._playerRosterPublicViewPrefab] Not assigned — see wiring.md F1.2 PlayerRoster");
+        if (!_matchRewardsPrivateViewPrefab.IsValid) throw new System.Exception("[GameplayNetworkCoordinator._matchRewardsPrivateViewPrefab] Not assigned — see wiring.md F1.2 MatchRewards");
+        if (!_fusionViewPrefab.IsValid) throw new System.Exception("[GameplayNetworkCoordinator._fusionViewPrefab] Not assigned — see wiring-F3.md F3.3");
+        if (!_combatCoordinatorPrefab.IsValid) throw new System.Exception("[GameplayNetworkCoordinator._combatCoordinatorPrefab] Not assigned — see wiring-F4.md F4");
+        if (!_matchResultCoordinatorPrefab.IsValid) throw new System.Exception("[GameplayNetworkCoordinator._matchResultCoordinatorPrefab] Not assigned — see wiring-F6.md F6.3");
     }
 
     public override void Spawned()

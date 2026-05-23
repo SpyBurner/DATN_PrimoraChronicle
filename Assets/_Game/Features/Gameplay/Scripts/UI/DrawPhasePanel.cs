@@ -26,6 +26,14 @@ public class DrawPhasePanel : MonoBehaviour
     private const int HandMax = 6;
 
     private readonly List<GameObject> _spawnedSlots = new();
+
+    private void Awake()
+    {
+        if (_cardSlotContainer == null) throw new System.Exception("[DrawPhasePanel._cardSlotContainer] Not assigned in Inspector — see wiring-F5.md F5.1");
+        if (_cardSlotPrefab == null) throw new System.Exception("[DrawPhasePanel._cardSlotPrefab] Not assigned in Inspector — see wiring-F5.md F5.1");
+        if (_confirmButton == null) throw new System.Exception("[DrawPhasePanel._confirmButton] Not assigned in Inspector — see wiring-F5.md F5.1");
+        if (_keepCountText == null) throw new System.Exception("[DrawPhasePanel._keepCountText] Not assigned in Inspector — see wiring-F5.md F5.1");
+    }
     private readonly HashSet<int> _selectedIndices = new();
     private PlayerRef _localPlayer;
     private IReadOnlyList<string> _currentCards;

@@ -20,6 +20,13 @@ public class GameplayDeckSelectOverlay : MonoBehaviour
 
     private readonly List<DeckButton> _spawnedButtons = new();
 
+    private void Awake()
+    {
+        if (_deckButtonPrefab == null) throw new System.Exception("[GameplayDeckSelectOverlay._deckButtonPrefab] Not assigned in Inspector — see wiring-F2.md F2.1 Step 3");
+        for (int i = 0; i < _deckSlot.Length; i++)
+            if (_deckSlot[i] == null) throw new System.Exception($"[GameplayDeckSelectOverlay._deckSlot[{i}]] Not assigned in Inspector — see wiring-F2.md F2.1 Step 3");
+    }
+
     private void OnEnable()
     {
         _deck.DecksChanged += RenderDecks;

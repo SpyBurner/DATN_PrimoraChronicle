@@ -23,6 +23,11 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
     private readonly List<HexTile> _tiles = new();
     private readonly Dictionary<HexCoord, Vector3> _tilePositions = new();
 
+    private void Awake()
+    {
+        if (!_hexTilePrefab.IsValid) throw new System.Exception("[BoardNetworkView._hexTilePrefab] Not assigned in Inspector — see wiring.md F1.2");
+    }
+
     private static readonly HexCoord DeployAreaPlayer1 = new(4, -4);
     private static readonly HexCoord DeployAreaPlayer2 = new(-4, 4);
 

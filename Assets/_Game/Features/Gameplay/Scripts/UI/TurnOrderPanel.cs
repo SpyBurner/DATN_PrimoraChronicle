@@ -24,6 +24,12 @@ public class TurnOrderPanel : MonoBehaviour
     private readonly List<GameObject> _spawnedItems = new();
     private PlayerRef _localPlayer;
 
+    private void Awake()
+    {
+        if (_content == null) throw new System.Exception("[TurnOrderPanel._content] Not assigned in Inspector — see wiring-F4.md F4.2");
+        if (_turnOrderItemPrefab == null) throw new System.Exception("[TurnOrderPanel._turnOrderItemPrefab] Not assigned in Inspector — see wiring-F4.md F4.2");
+    }
+
     private void OnEnable()
     {
         _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;

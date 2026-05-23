@@ -38,6 +38,26 @@ public class MatchResultPanel : MonoBehaviour
 
     private PlayerRef _localPlayer;
 
+    private void Awake()
+    {
+        if (_player0Crown == null) throw new System.Exception("[MatchResultPanel._player0Crown] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player0PFP == null) throw new System.Exception("[MatchResultPanel._player0PFP] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player0Name == null) throw new System.Exception("[MatchResultPanel._player0Name] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player1Crown == null) throw new System.Exception("[MatchResultPanel._player1Crown] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player1PFP == null) throw new System.Exception("[MatchResultPanel._player1PFP] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player1Name == null) throw new System.Exception("[MatchResultPanel._player1Name] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player2Crown == null) throw new System.Exception("[MatchResultPanel._player2Crown] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player2PFP == null) throw new System.Exception("[MatchResultPanel._player2PFP] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player2Name == null) throw new System.Exception("[MatchResultPanel._player2Name] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_goldValueText == null) throw new System.Exception("[MatchResultPanel._goldValueText] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_xpValueText == null) throw new System.Exception("[MatchResultPanel._xpValueText] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_timeValueText == null) throw new System.Exception("[MatchResultPanel._timeValueText] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_confirmButton == null) throw new System.Exception("[MatchResultPanel._confirmButton] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player0Slot == null) throw new System.Exception("[MatchResultPanel._player0Slot] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player1Slot == null) throw new System.Exception("[MatchResultPanel._player1Slot] Not assigned in Inspector — see wiring-F6.md F6.2");
+        if (_player2Slot == null) throw new System.Exception("[MatchResultPanel._player2Slot] Not assigned in Inspector — see wiring-F6.md F6.2");
+    }
+
     private void OnEnable()
     {
         _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;

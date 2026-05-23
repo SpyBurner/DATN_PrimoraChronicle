@@ -21,6 +21,13 @@ public class HandPanel : MonoBehaviour
 
     private PlayerRef _localPlayer;
 
+    private void Awake()
+    {
+        if (_cardSlotContainer == null) throw new System.Exception("[HandPanel._cardSlotContainer] Not assigned in Inspector — see wiring-F3.md F3.1");
+        if (_cardSlotPrefab == null) throw new System.Exception("[HandPanel._cardSlotPrefab] Not assigned in Inspector — see wiring-F3.md F3.1");
+        if (_handCountText == null) throw new System.Exception("[HandPanel._handCountText] Not assigned in Inspector — see wiring-F3.md F3.1");
+    }
+
     private void OnEnable()
     {
         _cardZone.HandChanged += OnHandChanged;
