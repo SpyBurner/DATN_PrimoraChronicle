@@ -9,7 +9,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
     [SerializeField] private NetworkPrefabRef _seedlingPrefab;
     [SerializeField] private NetworkPrefabRef _ashSoldierPrefab;
 
-    public override void Execute(SkillExecutionContext ctx)
+    public override void Execute(CombatSkillExecutionContext ctx)
     {
         switch (behaviorId)
         {
@@ -91,7 +91,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteCorruptedCrest(SkillExecutionContext ctx)
+    private void ExecuteCorruptedCrest(CombatSkillExecutionContext ctx)
     {
         if (ctx.TileEffectSubsystem.TryGet(ctx.Target, out TileEffectInstance existing)
             && existing.EffectId == "Corrupted")
@@ -105,7 +105,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteGraveclawFrenzy(SkillExecutionContext ctx)
+    private void ExecuteGraveclawFrenzy(CombatSkillExecutionContext ctx)
     {
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
@@ -117,7 +117,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         DealDamage(ctx, targetId, 15);
     }
 
-    private void ExecuteDeathsToll(SkillExecutionContext ctx)
+    private void ExecuteDeathsToll(CombatSkillExecutionContext ctx)
     {
         var tilesInRange = ctx.BoardSubsystem.GetTilesInRange(ctx.CasterData.Position, 2);
         foreach (var tile in tilesInRange)
@@ -133,7 +133,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteArise(SkillExecutionContext ctx)
+    private void ExecuteArise(CombatSkillExecutionContext ctx)
     {
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
@@ -145,7 +145,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         SpawnTileEffect(ctx, ctx.Target, "Corrupted", 3);
     }
 
-    private void ExecuteGroveheartsAscendance(SkillExecutionContext ctx)
+    private void ExecuteGroveheartsAscendance(CombatSkillExecutionContext ctx)
     {
         if (ctx.TileEffectSubsystem.TryGet(ctx.Target, out TileEffectInstance existing)
             && existing.EffectId == "Seeded")
@@ -183,13 +183,13 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteSprout(SkillExecutionContext ctx)
+    private void ExecuteSprout(CombatSkillExecutionContext ctx)
     {
         var casterView = FindUnitView(ctx, ctx.CasterId);
         casterView?.ServerAddGrowthStack(1);
     }
 
-    private void ExecuteBloom(SkillExecutionContext ctx)
+    private void ExecuteBloom(CombatSkillExecutionContext ctx)
     {
         HealUnit(ctx, ctx.CasterId, 10);
         foreach (var neighbor in ctx.BoardSubsystem.GetNeighbors(ctx.CasterData.Position))
@@ -203,7 +203,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteRootOvergrow(SkillExecutionContext ctx)
+    private void ExecuteRootOvergrow(CombatSkillExecutionContext ctx)
     {
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
@@ -212,13 +212,13 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
             ApplyStatus(ctx, targetId, "rooted", 3);
     }
 
-    private void ExecuteDeepWoodsEntangle(SkillExecutionContext ctx)
+    private void ExecuteDeepWoodsEntangle(CombatSkillExecutionContext ctx)
     {
         foreach (var neighbor in ctx.BoardSubsystem.GetNeighbors(ctx.CasterData.Position))
             SpawnTileEffect(ctx, neighbor, "Entangled", 1);
     }
 
-    private void ExecuteNaturesGift(SkillExecutionContext ctx)
+    private void ExecuteNaturesGift(CombatSkillExecutionContext ctx)
     {
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
@@ -230,7 +230,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteLifeSappingThorn(SkillExecutionContext ctx)
+    private void ExecuteLifeSappingThorn(CombatSkillExecutionContext ctx)
     {
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
@@ -245,7 +245,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteWildGrowth(SkillExecutionContext ctx)
+    private void ExecuteWildGrowth(CombatSkillExecutionContext ctx)
     {
         if (ctx.TileEffectSubsystem.TryGet(ctx.Target, out var existing) && existing.EffectId == "Seeded")
         {
@@ -263,7 +263,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteSporeBurst(SkillExecutionContext ctx)
+    private void ExecuteSporeBurst(CombatSkillExecutionContext ctx)
     {
         var allUnits = ctx.UnitSubsystem.AllUnits;
         foreach (var netId in allUnits)
@@ -278,7 +278,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteBarkskinWard(SkillExecutionContext ctx)
+    private void ExecuteBarkskinWard(CombatSkillExecutionContext ctx)
     {
         string targetId = FindUnitAtPosition(ctx, ctx.Target);
         if (string.IsNullOrEmpty(targetId)) return;
@@ -287,7 +287,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
             ApplyStatus(ctx, targetId, "barkskin_ward", 3);
     }
 
-    private void ExecuteSummonSeedling(SkillExecutionContext ctx)
+    private void ExecuteSummonSeedling(CombatSkillExecutionContext ctx)
     {
         if (!_seedlingPrefab.IsValid) return;
 
@@ -316,7 +316,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteMasteryOfFlame(SkillExecutionContext ctx)
+    private void ExecuteMasteryOfFlame(CombatSkillExecutionContext ctx)
     {
         var allUnits = ctx.UnitSubsystem.AllUnits;
         foreach (var netId in allUnits)
@@ -336,7 +336,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteSeveredTail(SkillExecutionContext ctx)
+    private void ExecuteSeveredTail(CombatSkillExecutionContext ctx)
     {
         SpawnTileEffect(ctx, ctx.Target, "SeveredTail", 9999);
 
@@ -350,7 +350,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteMoltenDive(SkillExecutionContext ctx)
+    private void ExecuteMoltenDive(CombatSkillExecutionContext ctx)
     {
         // Move caster to target (ignores pathfinding)
         var casterView = FindUnitView(ctx, ctx.CasterId);
@@ -372,14 +372,14 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteCurseOfAsh(SkillExecutionContext ctx)
+    private void ExecuteCurseOfAsh(CombatSkillExecutionContext ctx)
     {
         SpawnTileEffect(ctx, ctx.Target, "AshCloud", 7);
         foreach (var neighbor in ctx.BoardSubsystem.GetNeighbors(ctx.Target))
             SpawnTileEffect(ctx, neighbor, "AshCloud", 7);
     }
 
-    private void ExecuteLegionsLastStand(SkillExecutionContext ctx)
+    private void ExecuteLegionsLastStand(CombatSkillExecutionContext ctx)
     {
         int removedCount = 0;
         var allUnits = ctx.UnitSubsystem.AllUnits;
@@ -413,7 +413,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
         }
     }
 
-    private void ExecuteMarchOfEmbers(SkillExecutionContext ctx)
+    private void ExecuteMarchOfEmbers(CombatSkillExecutionContext ctx)
     {
         if (!_ashSoldierPrefab.IsValid) return;
 

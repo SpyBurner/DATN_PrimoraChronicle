@@ -421,7 +421,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             return;
         }
 
-        var context = new SkillExecutionContext
+        var context = new CombatSkillExecutionContext
         {
             CasterId = casterId,
             CasterData = casterData,

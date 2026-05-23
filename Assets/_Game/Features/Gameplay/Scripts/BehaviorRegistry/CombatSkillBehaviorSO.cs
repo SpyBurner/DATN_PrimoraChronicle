@@ -2,22 +2,14 @@ using Fusion;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CombatSkillBehavior", menuName = "Primora/Skills/CombatSkillBehavior")]
-public class CombatSkillBehaviorSO : ScriptableObject
+public class CombatSkillBehaviorSO : SkillBehaviorBaseSO
 {
-    [Header("Behavior Settings")]
-    public string behaviorId;
-    public int range = 1;
-    public int aoe = 0;
-    public int targetCondition = 1;
-    public bool ignorePathfinding = false;
-    public bool ignoreFriendlyFire = false;
-
-    public virtual void Execute(SkillExecutionContext ctx)
+    public virtual void Execute(CombatSkillExecutionContext ctx)
     {
         Debug.LogWarning($"[CombatSkillBehaviorSO] Base Execute called for '{behaviorId}'. Override in subclass.");
     }
 
-    protected void DealDamage(SkillExecutionContext ctx, string targetUnitId, int rawAmount)
+    protected void DealDamage(CombatSkillExecutionContext ctx, string targetUnitId, int rawAmount)
     {
         var damageCtx = new DamageContext
         {
@@ -37,7 +29,7 @@ public class CombatSkillBehaviorSO : ScriptableObject
         }
     }
 
-    protected void DealDamageIgnoreFriendly(SkillExecutionContext ctx, string targetUnitId, int rawAmount)
+    protected void DealDamageIgnoreFriendly(CombatSkillExecutionContext ctx, string targetUnitId, int rawAmount)
     {
         var damageCtx = new DamageContext
         {
@@ -57,7 +49,7 @@ public class CombatSkillBehaviorSO : ScriptableObject
         }
     }
 
-    protected void HealUnit(SkillExecutionContext ctx, string unitId, int amount)
+    protected void HealUnit(CombatSkillExecutionContext ctx, string unitId, int amount)
     {
         if (HasStatus(ctx, unitId, "decay")) return; // Decay blocks healing
 
@@ -65,13 +57,13 @@ public class CombatSkillBehaviorSO : ScriptableObject
         view?.ServerHeal(amount);
     }
 
-    protected void ApplyStatus(SkillExecutionContext ctx, string targetUnitId, string statusId, int duration)
+    protected void ApplyStatus(CombatSkillExecutionContext ctx, string targetUnitId, string statusId, int duration)
     {
         var view = FindUnitView(ctx, targetUnitId);
         view?.ServerAddStatus(statusId, duration, ctx.CasterData.Owner);
     }
 
-    protected void SpawnTileEffect(SkillExecutionContext ctx, HexCoord coord, string effectId, int duration)
+    protected void SpawnTileEffect(CombatSkillExecutionContext ctx, HexCoord coord, string effectId, int duration)
     {
         ctx.TileEffectSubsystem?.OnEffectReceived(new TileEffectInstance
         {
@@ -82,7 +74,7 @@ public class CombatSkillBehaviorSO : ScriptableObject
         });
     }
 
-    protected string FindUnitAtPosition(SkillExecutionContext ctx, HexCoord position)
+    protected string FindUnitAtPosition(CombatSkillExecutionContext ctx, HexCoord position)
     {
         var allUnits = ctx.UnitSubsystem?.AllUnits;
         if (allUnits == null) return null;
@@ -96,7 +88,7 @@ public class CombatSkillBehaviorSO : ScriptableObject
         return null;
     }
 
-    protected bool HasStatus(SkillExecutionContext ctx, string unitId, string statusId)
+    protected bool HasStatus(CombatSkillExecutionContext ctx, string unitId, string statusId)
     {
         if (!TryGetPublic(ctx, unitId, out UnitPublicData data)) return false;
         if (data.StatusEffects == null) return false;
@@ -105,7 +97,7 @@ public class CombatSkillBehaviorSO : ScriptableObject
         return false;
     }
 
-    protected UnitNetworkView FindUnitView(SkillExecutionContext ctx, string unitId)
+    protected UnitNetworkView FindUnitView(CombatSkillExecutionContext ctx, string unitId)
     {
         if (string.IsNullOrEmpty(unitId) || !ctx.Runner.IsRunning) return null;
         if (uint.TryParse(unitId, out uint raw))
@@ -117,14 +109,14 @@ public class CombatSkillBehaviorSO : ScriptableObject
         return null;
     }
 
-    private HexCoord GetUnitPosition(SkillExecutionContext ctx, string unitId)
+    private HexCoord GetUnitPosition(CombatSkillExecutionContext ctx, string unitId)
     {
         if (TryGetPublic(ctx, unitId, out UnitPublicData data))
             return data.Position;
         return HexCoord.Invalid;
     }
 
-    protected bool TryGetPublic(SkillExecutionContext ctx, string unitId, out UnitPublicData data)
+    protected bool TryGetPublic(CombatSkillExecutionContext ctx, string unitId, out UnitPublicData data)
     {
         data = default;
         if (string.IsNullOrEmpty(unitId)) return false;

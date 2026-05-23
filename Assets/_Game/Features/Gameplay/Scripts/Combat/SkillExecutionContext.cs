@@ -1,7 +1,7 @@
 using Fusion;
 using Core.GDS;
 
-public struct SkillExecutionContext
+public struct CombatSkillExecutionContext
 {
     public string CasterId;
     public UnitPublicData CasterData;

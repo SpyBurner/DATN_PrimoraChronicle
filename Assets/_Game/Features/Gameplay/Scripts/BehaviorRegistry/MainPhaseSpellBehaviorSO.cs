@@ -1,11 +1,8 @@
 using Fusion;
 using UnityEngine;
 
-public abstract class MainPhaseSpellBehaviorSO : ScriptableObject
+public abstract class MainPhaseSpellBehaviorSO : MainPhaseSpellBehaviorBaseSO
 {
-    [Header("Behavior Settings")]
-    public string behaviorId;
-
     public abstract void Execute(
         PlayerRef caster,
         HexCoord target,
