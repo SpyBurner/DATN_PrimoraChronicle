@@ -70,6 +70,8 @@ public class SkillPanel : MonoBehaviour
         _gameState.PhaseChanged -= OnPhaseChanged;
         _targeting.TargetingCancelled -= OnTargetingCancelled;
         _endTurnButton?.onClick.RemoveListener(OnEndTurnClicked);
+        ClearSlots();
+        _currentActor = default;
     }
 
     private void OnPhaseChanged(GameplayPhase phase)

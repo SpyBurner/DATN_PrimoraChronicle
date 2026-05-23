@@ -15,7 +15,8 @@ public class CardDragHandle : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 
     public string CardId => _cardId;
     public int HandIndex => _handIndex;
-    public bool IsUnitCard { get; private set; }
+    [SerializeField] private bool _isUnitCard;
+    public bool IsUnitCard => _isUnitCard;
 
     private void Awake()
     {
@@ -29,7 +30,7 @@ public class CardDragHandle : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
     {
         _cardId = cardId;
         _handIndex = handIndex;
-        IsUnitCard = isUnitCard;
+        _isUnitCard = isUnitCard;
     }
 
     public void OnBeginDrag(PointerEventData eventData)

@@ -48,6 +48,7 @@ public class TurnOrderPanel : MonoBehaviour
         _combat.QueueChanged -= OnQueueChanged;
         _combat.CurrentTurnChanged -= OnCurrentTurnChanged;
         _gameState.PhaseChanged -= OnPhaseChanged;
+        ClearItems();
     }
 
     private void OnPhaseChanged(GameplayPhase phase)

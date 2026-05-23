@@ -1310,6 +1310,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5284332011662213164, guid: f8dbf14e72f8efd4b9c7b0de5d1eb811, type: 3}
+      propertyPath: _fusionPanel
+      value: 
+      objectReference: {fileID: 682746671750326090}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -107,6 +107,7 @@ public class FusionPanel : MonoBehaviour
             if (phase == GameplayPhase.MainPhase)
             {
                 _confirmed = false;
+                _fusion.ClearStaging();
                 SetConfirmInteractable(true);
             }
         }
