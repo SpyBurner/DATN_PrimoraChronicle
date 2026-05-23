@@ -394,7 +394,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     public void SendSetReadyRpc(bool ready)
         => Rpc_SetReady(ready);
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_SetReady(bool ready, RpcInfo info = default)
     {
         if (_gameState == null) return;
@@ -422,7 +422,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         _logger?.Log($"[GameStateNetworkView] Rpc_SetReady({ready}) from {sender} — slot {slotIndex} written.");
     }
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_RequestPhaseTransition(GameplayPhase phase)
     {
         TransitionTo(phase);

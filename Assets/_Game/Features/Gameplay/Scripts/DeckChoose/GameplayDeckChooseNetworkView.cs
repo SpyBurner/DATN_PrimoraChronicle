@@ -101,6 +101,7 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
 
     private void PushState()
     {
+        if (!HasInputAuthority) return;
         if (_deckChoose == null) return;
         _deckChoose.OnAuthoritativeStateReceived(new GameplayDeckChooseStateData
         {

@@ -76,7 +76,7 @@ public class MatchResultNetworkView : NetworkBehaviour, IMatchResultNetworkBridg
         }
     }
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_RequestEndMatch(PlayerRef winner, NetworkBool isTie, int gold, int xp, float duration)
     {
         ServerCommitResult(new GameMatchResult

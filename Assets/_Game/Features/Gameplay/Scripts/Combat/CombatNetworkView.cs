@@ -755,25 +755,25 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     // ── RPCs (client → server) ───────────────────────────────────────────
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_RequestMove(string unitId, int p, int q)
     {
         ServerMove(unitId, new HexCoord(p, q));
     }
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_RequestNormalAttack(string unitId, int p, int q)
     {
         ServerNormalAttack(unitId, new HexCoord(p, q));
     }
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_RequestSkill(string unitId, string skillId, int p, int q)
     {
         ServerSkill(unitId, skillId, new HexCoord(p, q));
     }
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_RequestEndTurn()
     {
         ServerEndTurn();
