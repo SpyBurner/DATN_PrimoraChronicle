@@ -667,6 +667,7 @@ All under `Features/Gameplay/Scripts/UI/`. Interfaces under `Core/Scripts/Interf
 | `TurnOrderPanel.cs` | `PhaseInteractionPanel_TurnOrder.prefab` | `ICombatSubsystem.QueueChanged` — each `CombatQueueEntry.CardId` used to fetch card image via `ICardLoadingManagerSubsystem` |
 | `MatchResultPanel.cs` | `PhaseInteractionPanel_MatchResult.prefab` | `IMatchResultSubsystem.MatchEnded`, `IMatchRewardsSubsystem.OwnRewardsReceived`, `IPlayerRosterSubsystem` (names / UserIds for PFP fetch) |
 | `TargetingOverlay.cs` | Spawned at runtime as overlay UI / world-space tile decorator | `ITargetingSubsystem.TargetingStarted`, `HighlightedTilesChanged` |
+| `TileHighlight.cs` | MonoBehaviour on `TileHighlight.prefab` — owns `[SerializeField] Renderer _renderer`, exposes `SetColor(Color)`. Instantiated per-tile by `TargetingOverlay`; root is the position pivot, child `Mesh` holds the hex mesh + transparent material | local only |
 | `CardDragHandle.cs` | Helper component on `CardSlot` prefabs for drag-and-drop into Fusion slots | local |
 | `PanelVisibilityRouter.cs` | Empty GameObject in scene | `IGameStateSubsystem.PhaseChanged` → toggle which phase panel is active |
 

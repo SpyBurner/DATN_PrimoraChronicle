@@ -92,15 +92,32 @@ MonoBehaviour:
   _deckChooseViewPrefab:
     RawGuidValue: b2d9cbf8e1c078a489b9bfe69c7c0da7
   _playerCardZoneViewPrefab:
-    RawGuidValue: 00000000000000000000000000000000
+    RawGuidValue: b4feb8ab945454a49ac9dc5c8e530b7c
   _playerRosterPublicViewPrefab:
     RawGuidValue: 553b700cb40119747bac685bdca2f8b5
   _matchRewardsPrivateViewPrefab:
     RawGuidValue: 9c99322cbacd8e144a661352968de8e2
-  _player1PiecePrefab:
+  _fusionViewPrefab:
+    RawGuidValue: 25dfe4b9fd625ba4d99579845f1a8ca3
+  _unitPrefab:
+    RawGuidValue: b854eefbc7e688a41a155e78fe91e990
+  _combatCoordinatorPrefab:
+    RawGuidValue: d577c0c9a75a13345a7ae9acd1f68f99
+  _matchResultCoordinatorPrefab:
     RawGuidValue: 00000000000000000000000000000000
-  _player2PiecePrefab:
-    RawGuidValue: 00000000000000000000000000000000
+  _playerPieceConfigs:
+  - Mesh: {fileID: 6944211603708085423, guid: 9c2f43550e86ad846a5632c26906d5c8, type: 3}
+    Materials:
+    - {fileID: 2100000, guid: 9f4e8739a25a373499db187fccdfe74e, type: 2}
+    - {fileID: 2100000, guid: 3c582199456695a4896309defcc301bd, type: 2}
+  - Mesh: {fileID: 6944211603708085423, guid: 9c2f43550e86ad846a5632c26906d5c8, type: 3}
+    Materials:
+    - {fileID: 2100000, guid: 9f4e8739a25a373499db187fccdfe74e, type: 2}
+    - {fileID: 2100000, guid: 37a2701cc021796468f1f933af19b943, type: 2}
+  - Mesh: {fileID: 6944211603708085423, guid: 9c2f43550e86ad846a5632c26906d5c8, type: 3}
+    Materials:
+    - {fileID: 2100000, guid: 9f4e8739a25a373499db187fccdfe74e, type: 2}
+    - {fileID: 2100000, guid: 9a48af454b90403419189bbe29b70c91, type: 2}
   _PlayerStates: []
   _PlayerCardZoneIds: []
   _PlayerCount: 0

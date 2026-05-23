@@ -65,12 +65,23 @@ Wire `TurnOrderPanelAnchor.prefab` → `PanelDrawer`:
 
 ---
 
+## Prefab: `TileHighlight.prefab` (create new)
+
+Save to `Assets/_Game/Features/Gameplay/UI/Component/TileHighlight.prefab`.
+
+| Step | Detail | Status |
+|---|---|---|
+| Root GameObject `TileHighlight` | Add `TileHighlight` MonoBehaviour (script exists) | ⬜ |
+| Child GameObject `Mesh` | Add `MeshFilter` (hex mesh from `DATN_Environment.fbx`, same mesh used by `IM_Tile`) + `MeshRenderer` (URP/Unlit, Surface Type = Transparent) | ⬜ |
+| Adjust child rotation | Tune in Editor to align with board tiles — reference `IM_Tile` which is spawned at `Euler(270, 330, 0)`. Root stays at identity; child absorbs the rotation offset | ⬜ |
+| Wire `TileHighlight._renderer` | Drag child `MeshRenderer` into `_renderer` field on the root `TileHighlight` component | ⬜ |
+
 ## Scene: `TargetingOverlay`
 
 | Task | Status |
 |---|---|
 | Add `TargetingOverlay` MonoBehaviour to a persistent GameObject in the Gameplay scene (e.g., `UI_Root`) | ⬜ |
-| Wire `_tileHighlightPrefab` → `TileHighlight.prefab` | ⬜ |
+| Wire `_tileHighlightPrefab` → `TileHighlight.prefab` (field type is `TileHighlight` component, not `GameObject`) | ⬜ |
 
 ---
 

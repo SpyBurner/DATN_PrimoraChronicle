@@ -12,7 +12,7 @@ public class TargetingOverlay : MonoBehaviour
     [Inject] private readonly INetworkManagerSubsystem _network;
 
     [Header("Tile Highlight Prefab")]
-    [SerializeField] private GameObject _tileHighlightPrefab;
+    [SerializeField] private TileHighlight _tileHighlightPrefab;
 
     [Header("Colors")]
     [SerializeField] private Color _rangeColor = new Color(1f, 0.92f, 0.016f, 0.6f);
@@ -23,8 +23,8 @@ public class TargetingOverlay : MonoBehaviour
     [SerializeField] private float _highlightYOffset = 0.05f;
     [SerializeField] private LayerMask _tileLayerMask = ~0;
 
-    private readonly List<GameObject> _highlights = new();
-    private readonly Dictionary<HexCoord, GameObject> _highlightMap = new();
+    private readonly List<TileHighlight> _highlights = new();
+    private readonly Dictionary<HexCoord, TileHighlight> _highlightMap = new();
 
     private void Awake()
     {
@@ -161,10 +161,7 @@ public class TargetingOverlay : MonoBehaviour
 
         foreach (var coord in highlightedTiles)
         {
-            if (!_highlightMap.TryGetValue(coord, out var go)) continue;
-
-            var renderer = go.GetComponent<Renderer>();
-            if (renderer == null) continue;
+            if (!_highlightMap.TryGetValue(coord, out var highlight)) continue;
 
             Color color;
             if (coord == _hoveredCoord)
@@ -172,7 +169,7 @@ public class TargetingOverlay : MonoBehaviour
             else
                 color = _rangeColor;
 
-            renderer.material.color = color;
+            highlight.SetColor(color);
         }
     }
 
@@ -217,21 +214,17 @@ public class TargetingOverlay : MonoBehaviour
         Vector3 worldPos = _board.GetWorldPosition(coord);
         worldPos.y += _highlightYOffset;
 
-        var go = Instantiate(_tileHighlightPrefab, worldPos, Quaternion.identity, transform);
-        go.SetActive(true);
+        var highlight = Instantiate(_tileHighlightPrefab, worldPos, Quaternion.identity, transform);
+        highlight.SetColor(color);
 
-        var renderer = go.GetComponent<Renderer>();
-        if (renderer != null)
-            renderer.material.color = color;
-
-        _highlights.Add(go);
-        _highlightMap[coord] = go;
+        _highlights.Add(highlight);
+        _highlightMap[coord] = highlight;
     }
 
     private void ClearHighlights()
     {
-        foreach (var go in _highlights)
-            if (go != null) Destroy(go);
+        foreach (var highlight in _highlights)
+            if (highlight != null) Destroy(highlight.gameObject);
         _highlights.Clear();
         _highlightMap.Clear();
         _hoveredCoord = HexCoord.Invalid;
