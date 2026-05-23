@@ -26,6 +26,8 @@ public class HandPanel : MonoBehaviour
         if (_cardSlotContainer == null) throw new System.Exception("[HandPanel._cardSlotContainer] Not assigned in Inspector — see wiring-F3.md F3.1");
         if (_cardSlotPrefab == null) throw new System.Exception("[HandPanel._cardSlotPrefab] Not assigned in Inspector — see wiring-F3.md F3.1");
         if (_handCountText == null) throw new System.Exception("[HandPanel._handCountText] Not assigned in Inspector — see wiring-F3.md F3.1");
+
+        foreach (Transform child in _cardSlotContainer) Destroy(child.gameObject);
     }
 
     private void OnEnable()

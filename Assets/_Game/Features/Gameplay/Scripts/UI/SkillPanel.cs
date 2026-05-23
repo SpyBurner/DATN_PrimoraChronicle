@@ -37,6 +37,8 @@ public class SkillPanel : MonoBehaviour
         if (_skillSlotPrefab == null) throw new System.Exception("[SkillPanel._skillSlotPrefab] Not assigned in Inspector — see wiring-F4.md F4.5");
         if (_endTurnButton == null) throw new System.Exception("[SkillPanel._endTurnButton] Not assigned in Inspector — see wiring-F4.md F4.5");
         if (_actorNameText == null) throw new System.Exception("[SkillPanel._actorNameText] Not assigned in Inspector — see wiring-F4.md F4.5");
+
+        foreach (Transform child in _skillSlotContainer) Destroy(child.gameObject);
     }
 
     private struct SkillSlotUI

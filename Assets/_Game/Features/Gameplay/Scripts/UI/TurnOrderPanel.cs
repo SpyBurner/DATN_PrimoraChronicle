@@ -28,6 +28,8 @@ public class TurnOrderPanel : MonoBehaviour
     {
         if (_content == null) throw new System.Exception("[TurnOrderPanel._content] Not assigned in Inspector — see wiring-F4.md F4.2");
         if (_turnOrderItemPrefab == null) throw new System.Exception("[TurnOrderPanel._turnOrderItemPrefab] Not assigned in Inspector — see wiring-F4.md F4.2");
+
+        foreach (Transform child in _content) Destroy(child.gameObject);
     }
 
     private void OnEnable()

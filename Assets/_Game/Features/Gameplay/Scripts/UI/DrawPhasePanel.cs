@@ -33,6 +33,8 @@ public class DrawPhasePanel : MonoBehaviour
         if (_cardSlotPrefab == null) throw new System.Exception("[DrawPhasePanel._cardSlotPrefab] Not assigned in Inspector — see wiring-F5.md F5.1");
         if (_confirmButton == null) throw new System.Exception("[DrawPhasePanel._confirmButton] Not assigned in Inspector — see wiring-F5.md F5.1");
         if (_keepCountText == null) throw new System.Exception("[DrawPhasePanel._keepCountText] Not assigned in Inspector — see wiring-F5.md F5.1");
+
+        foreach (Transform child in _cardSlotContainer) Destroy(child.gameObject);
     }
     private readonly HashSet<int> _selectedIndices = new();
     private PlayerRef _localPlayer;

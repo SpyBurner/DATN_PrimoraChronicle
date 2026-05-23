@@ -2,6 +2,8 @@
 
 Each entry: script → container field → prefab field → components queried on item → data injected.
 
+**Container clear policy:** every panel calls `DestroyAllChildren()` (or equivalent) on its container(s) in `Awake` / `Start` before populating. Mock children placed in the prefab are intentional — they exist for Designer layout reference only and are never seen at runtime.
+
 ---
 
 ## HandPanel
