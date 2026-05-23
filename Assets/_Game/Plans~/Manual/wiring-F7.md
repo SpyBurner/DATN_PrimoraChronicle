@@ -9,16 +9,17 @@ Legend: ⬜ todo · ✅ done
 | Data | Source | Who reads it |
 |---|---|---|
 | `target_condition` (TargetMask) | GDS `SkillData.target_condition` | Client (targeting display) + Server (validation) |
-| `target_pattern` / range | GDS `SkillData.target_pattern[0].n` | Client + Server |
-| `display_pattern` / AOE | GDS `SkillData.display_pattern[0].n` | Client only |
+| `target_pattern` / range | GDS `SkillData.target_pattern` → `HexPatternResolver.GetRange()` | Client + Server |
+| `display_pattern` / AOE | GDS `SkillData.display_pattern` → `HexPatternResolver.ResolveAll()` | Client only |
 | `cooldown`, `one_time` | GDS `SkillData.cooldown / one_time` | Server (slot setup) |
 | `skill_behavior_id` | GDS `SkillData.skill_behavior_id` | Client (RPC) + Server (SO lookup) |
 | **Execution logic** | `GenericSkillBehaviorSO` in `Resources/Behaviors/Skills/` | **Server only** |
 
-**Clients never call `behavior.Execute()`.**  
-`range`, `aoe`, `targetCondition` on `SkillBehaviorBaseSO` come from GDS — do **not** set them on SO assets (they are retained on the class for a future cleanup pass).
+**Clients never call `behavior.Execute()`.**
 
-> Main phase spells are a GDS gap: `CardData` has no targeting fields for `MainPhaseSpell` type cards, so `range`/`aoe`/`targetCondition` **do** stay set on `MPS_*` SOs until GDS is extended.
+`SkillBehaviorBaseSO` holds only `behaviorId`, `summonPrefab`, and `tileEffectPrefab`. All targeting and timing fields (`range`, `aoe`, `targetCondition`, `cooldown`, `oneTime`, `ignorePathfinding`, `ignoreFriendlyFire`) are GDS-only — read at runtime from `ICardLoadingManagerSubsystem.TryGetSkillData(id)`.
+
+> Main phase spells are a GDS gap: `CardData` has no targeting fields for `MainPhaseSpell` type cards, so `range`/`aoe`/`targetCondition` **do** stay on `MainPhaseSpellBehaviorBaseSO` (separate hierarchy) until GDS is extended.
 
 ---
 
@@ -45,51 +46,36 @@ Legend: ⬜ todo · ✅ done
 
 Right-click → **Create → Primora → Behaviors → GenericSkillBehavior**. Place in `Assets/Resources/Behaviors/Skills/`.
 
-`range`, `aoe`, `targetCondition` come from GDS at runtime — leave at defaults on these assets.
+All targeting/timing fields (`range`, `aoe`, `targetCondition`, `cooldown`, `oneTime`) come from GDS at runtime — they no longer exist on the SO class.
 
-| Asset name | `behaviorId` | `oneTime` | `cooldown` | Status |
-|---|---|---|---|---|
-| `SKB_CorruptedCrest` | `skb_corrupted_crest` | false | 2 | ✅ |
-| `SKB_GraveclawFrenzy` | `skb_graveclaw_frenzy` | false | 2 | ✅ |
-| `SKB_DeathsToll` | `skb_deaths_toll` | false | 2 | ✅ |
-| `SKB_Cemetary` | `skb_cemetary` | false | 1 | ✅ |
-| `SKB_Arise` | `skb_arise` | false | 2 | ✅ |
-| `SKB_GroveheartsAscendance` | `skb_grovehearts_ascendance` | false | 2 | ✅ |
-| `SKB_Sprout` | `skb_sprout` | false | 1 (Passive) | ✅ |
-| `SKB_Bloom` | `skb_bloom` | false | 1 (Passive) | ✅ |
-| `SKB_RootOvergrow` | `skb_root_overgrow` | false | 2 | ✅ |
-| `SKB_DeepWoodsEntangle` | `skb_deep_woods_entangle` | false | 1 (Passive) | ✅ |
-| `SKB_NaturesGift` | `skb_natures_gift` | false | 5 | ✅ |
-| `SKB_LifeSappingThorn` | `skb_life_sapping_thorn` | false | 2 | ✅ |
-| `SKB_WildGrowth` | `skb_wild_growth` | false | 2 | ✅ |
-| `SKB_SporeBurst` | `skb_spore_burst` | false | 2 | ✅ |
-| `SKB_BarkskinWard` | `skb_barkskin_ward` | false | 8 | ✅ |
-| `SKB_SummonSeedling` | `skb_summon_seedling` | false | 6 | ✅ |
-| `SKB_MasteryOfFlame` | `skb_mastery_of_flame` | false | 8 | ✅ |
-| `SKB_SeveredTail` | `skb_severed_tail` | **true** | 0 | ✅ |
-| `SKB_BannerOfCinders` | `skb_banner_of_cinders` | false | 15 | ✅ |
-| `SKB_Firetrap` | `skb_firetrap` | false | 7 | ✅ |
-| `SKB_MoltenDive` | `skb_molten_dive` | false | 5 | ✅ |
-| `SKB_CurseOfAsh` | `skb_curse_of_ash` | false | 4 | ✅ |
-| `SKB_LegionsLastStand` | `skb_legions_last_stand` | **true** | 0 | ✅ |
-| `SKB_MarchOfEmbers` | `skb_march_of_embers` | false | 8 | ✅ |
-
-### Skill `appliedStatusEffectId` and duration cross-reference
-
-| Skill SO | `appliedStatusEffectId` | `appliedStatusDuration` |
+| Asset name | `behaviorId` | Status |
 |---|---|---|
-| `SKB_RootOvergrow` | `seb_rooted` | 3 |
-| `SKB_Arise` | `seb_decay` | −1 |
-| `SKB_BannerOfCinders` | `seb_banner_of_cinders` | −1 |
-| `SKB_Firetrap` | `seb_burning_trail` | 5 |
-| `SKB_MoltenDive` | `seb_burning` | 1 |
-| `SKB_BarkskinWard` | `seb_barkskin_ward` | −1 |
-| `SKB_SeveredTail` | `seb_severed_tail` | 6 |
-| `SKB_CurseOfAsh` | `seb_ash_cloud` | 7 |
-| `SKB_MasteryOfFlame` | `seb_burning` (primary) | 3 |
-| All others | _(none)_ | −1 |
+| `SKB_CorruptedCrest` | `skb_corrupted_crest` | ✅ |
+| `SKB_GraveclawFrenzy` | `skb_graveclaw_frenzy` | ✅ |
+| `SKB_DeathsToll` | `skb_deaths_toll` | ✅ |
+| `SKB_Cemetary` | `skb_cemetary` | ✅ |
+| `SKB_Arise` | `skb_arise` | ✅ |
+| `SKB_GroveheartsAscendance` | `skb_grovehearts_ascendance` | ✅ |
+| `SKB_Sprout` | `skb_sprout` | ✅ |
+| `SKB_Bloom` | `skb_bloom` | ✅ |
+| `SKB_RootOvergrow` | `skb_root_overgrow` | ✅ |
+| `SKB_DeepWoodsEntangle` | `skb_deep_woods_entangle` | ✅ |
+| `SKB_NaturesGift` | `skb_natures_gift` | ✅ |
+| `SKB_LifeSappingThorn` | `skb_life_sapping_thorn` | ✅ |
+| `SKB_WildGrowth` | `skb_wild_growth` | ✅ |
+| `SKB_SporeBurst` | `skb_spore_burst` | ✅ |
+| `SKB_BarkskinWard` | `skb_barkskin_ward` | ✅ |
+| `SKB_SummonSeedling` | `skb_summon_seedling` | ✅ |
+| `SKB_MasteryOfFlame` | `skb_mastery_of_flame` | ✅ |
+| `SKB_SeveredTail` | `skb_severed_tail` | ✅ |
+| `SKB_BannerOfCinders` | `skb_banner_of_cinders` | ✅ |
+| `SKB_Firetrap` | `skb_firetrap` | ✅ |
+| `SKB_MoltenDive` | `skb_molten_dive` | ✅ |
+| `SKB_CurseOfAsh` | `skb_curse_of_ash` | ✅ |
+| `SKB_LegionsLastStand` | `skb_legions_last_stand` | ✅ |
+| `SKB_MarchOfEmbers` | `skb_march_of_embers` | ✅ |
 
-> `behaviorId` must exactly match `skill_behavior_id` in GDS card data.
+> `behaviorId` must exactly match `skill_behavior_id` in GDS card data. Status effects applied by each skill are defined in GDS `Skill.status_effects[]` and read at runtime by `Execute()`.
 
 ---
 

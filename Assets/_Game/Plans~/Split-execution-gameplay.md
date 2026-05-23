@@ -167,6 +167,7 @@ public interface IBoardSubsystem : ISubsystem {
     bool TryResolveWorldToHex(Vector3 world, out HexCoord c);
     int Distance(HexCoord a, HexCoord b);
     bool IsEmpty(HexCoord c);
+    bool ContainsTile(HexCoord c);          // needed by HexPatternResolver ray-cast + stepped modes
     HexCoord GetDeployArea(PlayerRef owner);
 }
 ```
@@ -332,14 +333,15 @@ public interface IFusionSubsystem : ISubsystem {
 
 ```csharp
 // Targeting/ITargetingSubsystem.cs
-[Flags] public enum TargetMask { None = 0, Enemy = 1, Ally = 2, EmptyTile = 4 }
+[Flags] public enum TargetMask { None = 0, Enemy = 1, Ally = 2, EmptyTile = 4, Self = 8 }
 // None (0) = self-only; no tile selection. TargetingSubsystem treats Mask == None as "apply to caster's own tile".
 
 public struct TargetingRequest {
     public TargetMask Mask;
-    public int Range;
-    public string DisplayPattern;
-    public NetworkId Caster;
+    public int Range;           // computed by HexPatternResolver.GetRange(skillData.target_pattern) in SkillPanel
+    public string DisplayPattern; // skill string_id — used by TargetingSubsystem to look up display_pattern list
+    public NetworkId Caster;    // TargetingSubsystem resolves position via IUnitSubsystem.TryGetPublic(Caster)
+    public bool IgnorePathfinding; // from skillData.ignore_pathfinding; passed through to RequestMove/RequestSkill
 }
 
 public interface ITargetingSubsystem : ISubsystem {
@@ -351,6 +353,12 @@ public interface ITargetingSubsystem : ISubsystem {
     void Cancel();
 }
 ```
+
+> **`TargetingSubsystem` injections**: injects `IBoardSubsystem`, `IUnitSubsystem`, `ICardLoadingManagerSubsystem`.
+> `RefreshRangeHighlights` (called on `BeginTargeting`): looks up caster position via `IUnitSubsystem.TryGetPublic(req.Caster)`, then calls `IBoardSubsystem.GetTilesInRange(casterPos, req.Range)`.
+> `HoverTile`: looks up skill data via `ICardLoadingManagerSubsystem.TryGetSkillData(req.DisplayPattern)`, resolves AoE via `HexPatternResolver.ResolveAll(hoveredTile, skillData.display_pattern, board)`, fires `HighlightedTilesChanged`.
+>
+> **`HexPatternResolver`** (static utility, `Features/Gameplay/Scripts/Targeting/HexPatternResolver.cs`): converts GDS `List<HexCoordinate>` `{n,p,q}` entries into resolved `List<HexCoord>` board tiles. `GetRange` returns the max `n` from a target_pattern list (used by `SkillPanel` before populating `req.Range`). `ResolveAll` unions all entries; `Resolve` dispatches each entry by the discriminator table in `F4-targeting-hexpattern.md`.
 
 ### 3.8 TileEffect
 
@@ -463,8 +471,8 @@ Each row is **independently implementable and incrementally testable**. The "Com
 | F4.2 | **TurnOrder panel** | — | `TurnOrderPanel` on `PhaseInteractionPanel_TurnOrder.prefab`. Subscribes `ICombatSubsystem.QueueChanged`. Each `CombatQueueEntry` carries `UnitId` (for highlight on turn change) and `CardId` (looked up via `ICardLoadingManagerSubsystem` to render the unit card image). Spawns one card item per entry into `Content` RectTransform. Drawer-wrapped by `TurnOrderPanelAnchor`. |
 | F4.3 | **Unit turn cycle** | §5 Combat Step 2 | `CombatController.AdvanceTurn()`. On enter: reset `HasMoved=false`, `HasActed=false` in `CombatStateData`; tick **all 6** skill CDs by 1 (Move[0] and N_Atk[1] tick 1→0; equip skills tick toward 0). After `RequestMove()` resolves: server sets `Skills[0].CurrentCD=1` and `HasMoved=true`. After `RequestNormalAttack()` or `RequestSkill([1-5])` resolves: server sets that slot's `CurrentCD=BaseCD` and `HasActed=true`. Both writes replicate via `CombatNetworkView.Render()` → no dedicated change events; SkillPanel re-evaluates button interactability on next `CurrentTurnChanged` or `OwnUnitSkillsChanged`. `EndTurn()` valid at any point (zero slots used = **Skip Turn**; partial = end early). Auto-end on no-input timer calls `EndTurn()`. |
 | F4.4 | **Movement & pathfinding** | §6 Combat | `BoardSubsystem.FindPath(from, to)` walks empty tiles only. `ignore_pathfinding: true` skips intermediate checks (destination must be empty). Max distance = 1 (all units move to adjacent hex only; no per-unit move range stat). Knockback stops at board boundary. |
-| F4.5 | **Skill panel + active skill use** | §15 | `SkillPanel` on `PhaseInteractionPanel_Skill.prefab` (drawer-wrapped). Shows all 6 skill slots: Move[0], NormalAttack[1], EquipSkills[2-5] as `CardSlot_Empty`. On `CurrentTurnChanged` or `OwnUnitSkillsChanged`: re-evaluate each slot — interactable only if `CurrentActorCanMove/Act == true` AND `Skills[i].CurrentCD == 0`. Click on an interactable slot → `ITargetingSubsystem.BeginTargeting(req, ...)` then on confirm: Move[0] → `RequestMove()`, NormalAttack[1] → `RequestNormalAttack()`, EquipSkills[2-5] → `RequestSkill()`. |
-| F4.6 | **Targeting display** | §9, §15 | `TargetingSubsystem` reads `display_pattern` field of skill data. `LocalInteractionController`-style highlight (yellow range, green valid, red invalid). Bitmask: Enemy=1, Ally=2, EmptyTile=4. `target_condition: 0` ⇒ self-only, no tile selection. |
+| F4.5 | **Skill panel + active skill use** | §15 | `SkillPanel` on `PhaseInteractionPanel_Skill.prefab` (drawer-wrapped). Shows all 6 skill slots: Move[0], NormalAttack[1], EquipSkills[2-5] as `CardSlot_Empty`. On `CurrentTurnChanged` or `OwnUnitSkillsChanged`: re-evaluate each slot — interactable only if `CurrentActorCanMove/Act == true` AND `Skills[i].CurrentCD == 0`. Click on an interactable slot: build `TargetingRequest` — `Range = HexPatternResolver.GetRange(skillData.target_pattern)`, `Mask = ResolveTargetMask(skillData.target_condition)`, `DisplayPattern = skillId` (if display_pattern present), `Caster = _currentActor` (NetworkId), `IgnorePathfinding = skillData.ignore_pathfinding`. Then `ITargetingSubsystem.BeginTargeting(req, ...)`. On confirm: Move[0] → `RequestMove()`, NormalAttack[1] → `RequestNormalAttack()`, EquipSkills[2-5] → `RequestSkill()`. |
+| F4.6 | **Targeting display** | §9, §15 | `TargetingSubsystem` implements range ring via `GetTilesInRange(casterPos, req.Range)` and AoE hover preview via `HexPatternResolver.ResolveAll(hoveredTile, skillData.display_pattern, board)`. `TargetingOverlay` (Track B) renders: yellow = in-range tiles, green = valid hovered tile, red = invalid hovered tile. Bitmask: Enemy=1, Ally=2, EmptyTile=4, Self=8. `target_condition: 0` ⇒ self-only, `TargetMask.Self`, no tile selection loop. |
 | F4.7 | **3-pass damage pipeline** | §8 | `DamagePipelineSubsystem.Resolve(action)`. Aggregate → Intercept (Tile effects first then Unit effects) → Commit. Hooks: `IInterceptor` list rebuilt per action from active statuses + tile effects. |
 | F4.8 | **Status effects (ScriptableObject behaviors)** | §14 | `StatusEffectBehaviorBaseSO` base, concrete `GenericStatusEffectBehaviorSO`. All effectIds use `seb_` prefix matching GDS `status_effect_behavior_id`. Key behaviors: `seb_barkskin_ward` (full-block next damage instance, consumed on trigger), `seb_burning` (1 dmg/turn), `seb_melting` (2 dmg/turn), `seb_decay` (blocks heal), `seb_rooted` (prevents movement), `seb_burning_trail` (leaves `seb_scorching_ground` tile on move), growth-related (`seb_growth_stack`, `seb_ascendance`). 20 total SOs (7 existing updated + 13 new). |
 | F4.9 | **Skill cooldowns & one-time** | §12 | `UnitController.OnTurnStart()` decrements **all 6 slots** (Move[0], NormalAttack[1], EquipSkills[2-5]) by 1. Move and N_Atk have `BaseCD=1` — they always tick 1→0 at turn start and are available every turn. `one_time: true` applies only to EquipSkills; `CombatNetworkView.ServerEndCombatPhase()` iterates `IUnitSubsystem.AllUnits` and for each `IsPersistent` unit calls `unitView.ServerResetOneTimeFlags()` — resetting all `SkillOneTimeDisabled[i] = false`. Non-persistent units are re-fused each cycle so their flags are always fresh. Persistent Unit CDs (including Move and N_Atk) carry into the next cycle — they are NOT reset on phase end. |
@@ -519,6 +527,7 @@ All implementation files under `Features/Gameplay/Scripts/<Domain>/`. Interfaces
 | `DamagePipeline/` | `DamagePipelineSubsystem.cs`, `IInterceptor.cs`, `IAggregator.cs`, `IInterceptResult.cs` |
 | `BehaviorRegistry/` | `BehaviorRegistrySubsystem.cs`, `BehaviorRegistryController.cs`, `BehaviorRegistryModel.cs` |
 | `MatchResult/` | `MatchResultModel.cs`, `MatchResultController.cs`, `MatchResultSubsystem.cs`, `MatchResultNetworkView.cs` |
+| `Targeting/` | `TargetingSubsystem.cs` (injects `IBoardSubsystem`, `IUnitSubsystem`, `ICardLoadingManagerSubsystem`), `HexPatternResolver.cs` (static utility — GDS `{n,p,q}` → board `HexCoord` list) |
 | `ScriptableObjects/` | (re-author from LEGACY) `GenericSkillBehaviorSO.cs`, `StatusEffectBehaviorSO.cs`, `MainPhaseSpellBehaviorSO.cs`, `EvolutionBehaviorSO.cs` |
 
 ### 5.2 Prefabs to create / reuse
@@ -832,6 +841,12 @@ At end of F1 (foundation), both members run a smoke test: Lobby → Gameplay sce
 - `GameplayInstaller.cs` — add all bindings from §5.3 + Track B panel installer registrations (panels are MonoBehaviour, auto-injected via SceneContext, no installer binding needed unless they hold non-Mono dependencies).
 - `GameplayFeatures.asmdef` — add `LobbyFeatures` GUID, `Fusion.Runtime`, `Zenject`, `DOTween.Runtime`.
 - `Features/Lobby/Scripts/MatchMaking/...` — add Battle button → host/join + `LoadNetworkedScene("Gameplay")`.
+- `Core/Scripts/Interfaces/Features/Gameplay/Board/IBoardSubsystem.cs` — added `ContainsTile(HexCoord)`.
+- `Core/Scripts/Interfaces/Features/Gameplay/Targeting/TargetingRequest.cs` — `CasterUnitId` (string) → `Caster` (NetworkId); added `IgnorePathfinding`.
+- `Core/Scripts/Data/GDSModels.cs` — added `ignore_pathfinding` to `SkillData`.
+- `Features/Gameplay/Scripts/Board/BoardSubsystem.cs` — implemented `ContainsTile`.
+- `Features/Gameplay/Scripts/Targeting/TargetingSubsystem.cs` — implemented `RefreshRangeHighlights` + `HoverTile`; added `IUnitSubsystem` + `ICardLoadingManagerSubsystem` injections.
+- `Features/Gameplay/Scripts/UI/SkillPanel.cs` — range via `HexPatternResolver.GetRange`; `IgnorePathfinding` from `skillData`; `Caster = _currentActor`.
 
 ### Reference-only (don't modify)
 Everything under `Features/Gameplay/Scripts/LEGACY/`. Keep as documentation of hardcoded values only.

@@ -77,6 +77,7 @@ namespace Core.GDS
         public List<HexCoordinate> target_pattern;
         public List<HexCoordinate> display_pattern;
         public string skill_behavior_id;
+        public bool ignore_pathfinding;
     }
 
     [Serializable]

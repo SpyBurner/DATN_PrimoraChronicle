@@ -19,6 +19,7 @@ public interface IBoardSubsystem : ISubsystem
     bool IsEmpty(HexCoord coord);
     HexCoord GetDeployArea(PlayerRef owner);
     IReadOnlyList<HexCoord> GetNeighbors(HexCoord coord);
+    bool ContainsTile(HexCoord coord);
     IReadOnlyList<HexCoord> GetTilesInRange(HexCoord center, int range);
     IReadOnlyList<HexCoord> FindPath(HexCoord from, HexCoord to, int maxDistance);
     void SetOccupant(HexCoord coord, string unitId);

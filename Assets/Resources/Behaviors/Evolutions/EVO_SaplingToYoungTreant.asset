@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: GameplayFeatures::GenericEvolutionBehaviorSO
   behaviorId: evo_sapling_young_treant
   requiredStacks: 4
-  nextFormCardId: troop_young_treant
+  nextFormCardId: card_young_treant
   nextFormHP: 0
   nextFormSpeed: 0
   nextFormMoveRange: 0

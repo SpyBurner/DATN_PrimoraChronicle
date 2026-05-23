@@ -97,6 +97,8 @@ public class BoardSubsystem : IBoardSubsystem
         return result;
     }
 
+    public bool ContainsTile(HexCoord coord) => _tilePositions.ContainsKey(coord);
+
     public IReadOnlyList<HexCoord> GetTilesInRange(HexCoord center, int range)
     {
         var result = new List<HexCoord>();

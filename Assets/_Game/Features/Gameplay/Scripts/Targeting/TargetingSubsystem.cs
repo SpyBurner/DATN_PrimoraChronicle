@@ -6,6 +6,8 @@ using Zenject;
 public class TargetingSubsystem : ITargetingSubsystem
 {
     [Inject] private readonly IBoardSubsystem _board;
+    [Inject] private readonly IUnitSubsystem _unit;
+    [Inject] private readonly ICardLoadingManagerSubsystem _cardLoading;
 
     public event UnityAction<TargetingRequest> TargetingStarted;
     public event UnityAction<IReadOnlyList<HexCoord>> HighlightedTilesChanged;
@@ -38,7 +40,22 @@ public class TargetingSubsystem : ITargetingSubsystem
     public void HoverTile(HexCoord coord)
     {
         if (!IsTargeting) return;
-        // Track B: tint hovered valid tile green, others yellow/red
+
+        _highlighted.Clear();
+
+        if (!string.IsNullOrEmpty(_currentRequest.DisplayPattern)
+            && _cardLoading.TryGetSkillData(_currentRequest.DisplayPattern, out var skillData)
+            && skillData.display_pattern != null && skillData.display_pattern.Count > 0)
+        {
+            _highlighted.AddRange(HexPatternResolver.ResolveAll(coord, skillData.display_pattern, _board));
+        }
+        else
+        {
+            _highlighted.Add(coord);
+        }
+
+        try { HighlightedTilesChanged?.Invoke(_highlighted); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
     }
 
     public void ConfirmTarget(HexCoord coord)
@@ -75,7 +92,16 @@ public class TargetingSubsystem : ITargetingSubsystem
     private void RefreshRangeHighlights()
     {
         _highlighted.Clear();
-        // Track B fills this with IBoardSubsystem.GetTilesInRange filtered by TargetMask
+
+        if (!_unit.TryGetPublic(_currentRequest.Caster, out var casterData))
+        {
+            try { HighlightedTilesChanged?.Invoke(_highlighted); }
+            catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+            return;
+        }
+
+        _highlighted.AddRange(_board.GetTilesInRange(casterData.Position, _currentRequest.Range));
+
         try { HighlightedTilesChanged?.Invoke(_highlighted); }
         catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
     }

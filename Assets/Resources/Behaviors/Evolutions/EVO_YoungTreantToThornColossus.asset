@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: GameplayFeatures::GenericEvolutionBehaviorSO
   behaviorId: evo_young_treant_thorn_colossus
   requiredStacks: 4
-  nextFormCardId: troop_thorn_colossus
+  nextFormCardId: card_thorn_colossus
   nextFormHP: 0
   nextFormSpeed: 0
   nextFormMoveRange: 0

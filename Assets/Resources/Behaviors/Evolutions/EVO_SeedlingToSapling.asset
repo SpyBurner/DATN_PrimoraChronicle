@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: GameplayFeatures::GenericEvolutionBehaviorSO
   behaviorId: evo_seedling_sapling
   requiredStacks: 4
-  nextFormCardId: troop_sapling
+  nextFormCardId: card_sapling
   nextFormHP: 0
   nextFormSpeed: 0
   nextFormMoveRange: 0

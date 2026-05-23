@@ -110,3 +110,9 @@ Save to `Assets/_Game/Features/Gameplay/UI/Component/TileHighlight.prefab`.
 | Persistent units survive board clear | ✅ |
 | Verdant evolution at 4 Growth Stacks | ✅ |
 | One-time flag reset implemented in `CombatNetworkView.ResetOneTimeFlagsOnPersistentUnits()` | ✅ |
+| `IBoardSubsystem.ContainsTile` + `BoardSubsystem` implementation | ✅ |
+| `HexPatternResolver` — static utility for `{n,p,q}` GDS pattern resolution | ✅ |
+| `SkillPanel.OnSkillClicked` range via `HexPatternResolver.GetRange` + `ignore_pathfinding` | ✅ |
+| `TargetingSubsystem.RefreshRangeHighlights` — range tiles from `GetTilesInRange(casterPos, Range)` | ✅ |
+| `TargetingSubsystem.HoverTile` — AoE preview via `HexPatternResolver.ResolveAll(hovered, display_pattern)` | ✅ |
+| `TargetingRequest.Caster` changed to `NetworkId` (was `string CasterUnitId`) — aligns with §3.7 | ✅ |

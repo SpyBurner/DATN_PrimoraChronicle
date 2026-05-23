@@ -26,7 +26,10 @@
       "Bash(Write-Output \"Deleted.\")",
       "PowerShell(Remove-Item -Force \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Features\\\\Gameplay\\\\Prefabs\\\\NetworkedPrefabs\\\\F6\\\\MatchRewradsPrivateState.prefab\" -Confirm:$false)",
       "PowerShell(Remove-Item -Force \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Features\\\\Gameplay\\\\Prefabs\\\\NetworkedPrefabs\\\\F6\\\\MatchRewradsPrivateState.prefab.meta\" -Confirm:$false)",
-      "mcp__mcp-unity__execute_menu_item"
+      "mcp__mcp-unity__execute_menu_item",
+      "Bash(Get-ChildItem -Path \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\" -Recurse -Filter \"*.cs\")",
+      "Bash(Select-String -Pattern \"HexPatternResolver|ContainsTile\" -List)",
+      "Bash(Select-Object Path)"
     ]
   },
   "enableAllProjectMcpServers": true,

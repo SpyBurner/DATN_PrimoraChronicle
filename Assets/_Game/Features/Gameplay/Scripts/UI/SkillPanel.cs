@@ -195,12 +195,9 @@ public class SkillPanel : MonoBehaviour
 
         if (skillData != null)
         {
-            range = skillData.target_pattern != null && skillData.target_pattern.Count > 0
-                ? skillData.target_pattern.Count
-                : 1;
-
+            range = HexPatternResolver.GetRange(skillData.target_pattern);
             mask = ResolveTargetMask(skillData.target_condition);
-            displayPattern = skillData.display_pattern != null ? skillId : null;
+            displayPattern = skillData.display_pattern != null && skillData.display_pattern.Count > 0 ? skillId : null;
         }
 
         var request = new TargetingRequest
@@ -208,8 +205,8 @@ public class SkillPanel : MonoBehaviour
             Mask = mask,
             Range = range,
             DisplayPattern = displayPattern,
-            CasterUnitId = _currentActor.ToString(),
-            IgnorePathfinding = true,
+            Caster = _currentActor,
+            IgnorePathfinding = skillData?.ignore_pathfinding ?? false,
         };
 
         SetInteractable(false);
