@@ -22,17 +22,17 @@ MonoBehaviour:
   ignoreFriendlyFire: 0
   summonPrefab: {fileID: 0}
   tileEffectPrefab: {fileID: 0}
-  summonUnitCardId: 
+  summonUnitCardId:
   summonHP: 0
   summonSpeed: 0
   summonMoveRange: 0
   summonDeathAnchor: 0
   summonIsPersistent: 0
-  tileEffectId: 
+  tileEffectId:
   tileEffectDuration: 3
   directDamage: 0
   directHeal: 0
   maxHPModifier: 0
-  appliedStatusEffectId: 
+  appliedStatusEffectId:
   appliedStatusDuration: 3
   growthStacksGranted: 0

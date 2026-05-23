@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: SKB_SeveredTail
   m_EditorClassIdentifier: GameplayFeatures::GenericSkillBehaviorSO
   behaviorId: skb_severed_tail
-  oneTime: 0
-  cooldown: 3
+  oneTime: 1
+  cooldown: 0
   range: 5
   aoe: 0
   targetCondition: 4
@@ -22,17 +22,17 @@ MonoBehaviour:
   ignoreFriendlyFire: 0
   summonPrefab: {fileID: 0}
   tileEffectPrefab: {fileID: 0}
-  summonUnitCardId: 
+  summonUnitCardId:
   summonHP: 0
   summonSpeed: 0
   summonMoveRange: 0
   summonDeathAnchor: 0
   summonIsPersistent: 0
-  tileEffectId: 
+  tileEffectId:
   tileEffectDuration: 3
   directDamage: 0
   directHeal: 0
   maxHPModifier: 0
-  appliedStatusEffectId: 
-  appliedStatusDuration: 3
+  appliedStatusEffectId: seb_severed_tail
+  appliedStatusDuration: 6
   growthStacksGranted: 0

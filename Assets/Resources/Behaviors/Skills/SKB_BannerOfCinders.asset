@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: GameplayFeatures::GenericSkillBehaviorSO
   behaviorId: skb_banner_of_cinders
   oneTime: 0
-  cooldown: 3
+  cooldown: 15
   range: 0
   aoe: 0
   targetCondition: 0
@@ -22,17 +22,17 @@ MonoBehaviour:
   ignoreFriendlyFire: 0
   summonPrefab: {fileID: 0}
   tileEffectPrefab: {fileID: 0}
-  summonUnitCardId: 
+  summonUnitCardId:
   summonHP: 0
   summonSpeed: 0
   summonMoveRange: 0
   summonDeathAnchor: 0
   summonIsPersistent: 0
-  tileEffectId: 
+  tileEffectId:
   tileEffectDuration: 3
   directDamage: 0
   directHeal: 0
   maxHPModifier: 0
-  appliedStatusEffectId: 
-  appliedStatusDuration: 3
+  appliedStatusEffectId: seb_banner_of_cinders
+  appliedStatusDuration: -1
   growthStacksGranted: 0

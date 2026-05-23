@@ -7,9 +7,6 @@ public abstract class EvolutionBehaviorBaseSO : ScriptableObject
 
     [Header("Evolution Chain")]
     public int requiredStacks = 4;
+    // nextFormHP/Speed/MoveRange/DeathAnchor removed — read from ICardLoadingManagerSubsystem.TryGetCardData(nextFormCardId) at runtime
     public string nextFormCardId;
-    public int nextFormHP;
-    public float nextFormSpeed;
-    public int nextFormMoveRange;
-    public int nextFormDeathAnchor;
 }

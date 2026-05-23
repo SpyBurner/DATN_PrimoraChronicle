@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: SKB_LegionsLastStand
   m_EditorClassIdentifier: GameplayFeatures::GenericSkillBehaviorSO
   behaviorId: skb_legions_last_stand
-  oneTime: 0
-  cooldown: 3
+  oneTime: 1
+  cooldown: 0
   range: 0
   aoe: 0
   targetCondition: 0

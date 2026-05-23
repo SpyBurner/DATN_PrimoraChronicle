@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e825187199c1d7d4d808eb1ded4e6b0c, type: 3}
   m_Name: SE_Burning
   m_EditorClassIdentifier: GameplayFeatures::GenericStatusEffectBehaviorSO
-  effectId: burning
-  damagePerTurn: 10
+  effectId: seb_burning
+  damagePerTurn: 1
   healPerTurn: 0
   interceptAmount: 0
   preventsHealing: 0

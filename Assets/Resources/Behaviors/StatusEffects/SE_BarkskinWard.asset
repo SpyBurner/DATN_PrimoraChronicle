@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e825187199c1d7d4d808eb1ded4e6b0c, type: 3}
   m_Name: SE_BarkskinWard
   m_EditorClassIdentifier: GameplayFeatures::GenericStatusEffectBehaviorSO
-  effectId: barkskin_ward
+  effectId: seb_barkskin_ward
   damagePerTurn: 0
   healPerTurn: 0
-  interceptAmount: 15
+  interceptAmount: 0
   preventsHealing: 0
   preventsMovement: 0
   leavesTrailOnMove: 0

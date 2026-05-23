@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e825187199c1d7d4d808eb1ded4e6b0c, type: 3}
   m_Name: SE_BurningTrail
   m_EditorClassIdentifier: GameplayFeatures::GenericStatusEffectBehaviorSO
-  effectId: burning_trail
+  effectId: seb_burning_trail
   damagePerTurn: 0
   healPerTurn: 0
   interceptAmount: 0
   preventsHealing: 0
   preventsMovement: 0
   leavesTrailOnMove: 1
-  trailTileEffectId: melting
+  trailTileEffectId: seb_scorching_ground

@@ -13,6 +13,6 @@ public class GenericEvolutionBehaviorSO : EvolutionBehaviorBaseSO
 
     public void Execute(string unitId, IUnitSubsystem units)
     {
-        Debug.Log($"[Evolution] {behaviorId} evolving {unitId} → {nextFormCardId} (HP:{nextFormHP} Speed:{nextFormSpeed})");
+        Debug.Log($"[Evolution] {behaviorId} evolving {unitId} → {nextFormCardId}");
     }
 }
