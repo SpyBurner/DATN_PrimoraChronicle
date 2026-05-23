@@ -32,17 +32,6 @@ internal class MatchMakingController : IMatchMakingController
     private void HandleRunnerStateChanged(NetworkRunner.States state)
     {
         _debugLogger.Log($"[MatchMaking] HandleRunnerStateChanged: NetworkRunner State transitioned to {state}");
-        
-        if (state == NetworkRunner.States.Running && _networkManager.PlayerCount >= _battleSetup.PlayerCnt)
-        {
-            _debugLogger.Log("[MatchMaking] HandleRunnerStateChanged: Runner is Running and player count met. Commencing LoadNetworkedScene to GAMEPLAY.");
-            _model.ApplyState(new MatchMakingStateData
-            {
-                Phase  = MatchMakingPhase.Connected,
-                Status = "Connected!"
-            });
-            _sceneLoader.LoadNetworkedScene(_networkManager.Runner, SceneNames.GAMEPLAY);
-        }
 
         if (state == NetworkRunner.States.Shutdown)
         {
@@ -57,7 +46,7 @@ internal class MatchMakingController : IMatchMakingController
 
     private void HandlePlayerCountChanged(int count)
     {
-        _debugLogger.Log($"[MatchMaking] HandlePlayerCountChanged: Session Player Count changed to {count}");
+        _debugLogger.Log($"[MatchMaking] HandlePlayerCountChanged: Session Player Count changed to {count}. RunnerState={_networkManager.RunnerState}, Required={_battleSetup.PlayerCnt}");
         _model.ApplyState(new MatchMakingStateData
         {
             Phase             = _model.Phase.Value,
@@ -65,6 +54,17 @@ internal class MatchMakingController : IMatchMakingController
             Timer             = _model.Timer.Value,
             PlayerJoinedCount = count
         });
+
+        if (_networkManager.RunnerState == NetworkRunner.States.Running && count >= _battleSetup.PlayerCnt)
+        {
+            _debugLogger.Log("[MatchMaking] HandlePlayerCountChanged: Player count met while Runner is Running. Loading GAMEPLAY.");
+            _model.ApplyState(new MatchMakingStateData
+            {
+                Phase  = MatchMakingPhase.Connected,
+                Status = "Connected!"
+            });
+            _sceneLoader.LoadNetworkedScene(_networkManager.Runner, SceneNames.GAMEPLAY);
+        }
     }
 
     public Task AcceptMatch()
