@@ -47,6 +47,8 @@ public class Skill
     public bool OneTime;
     public bool Used;
 
+    [NonSerialized] public SkillBehavior Behavior;
+
     public bool IsReady => CurrentCooldown <= 0 && !(OneTime && Used);
 
     public void TickCooldown()
@@ -157,6 +159,11 @@ public class Unit : MonoBehaviour
             HP = 0;
             Die();
         }
+    }
+
+    public void Heal(int amount)
+    {
+        HP = Mathf.Min(HP + amount, MaxHP);
     }
 
     public void Die()

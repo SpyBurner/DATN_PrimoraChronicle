@@ -17,13 +17,15 @@ public class PlayerUnitController : UnitController
     private ActionMode _currentMode = ActionMode.None;
     private Action<ActionMode, List<Vector3Int>> _onHighlightTiles;
     private Action _onClearHighlight;
+    private EffectController _effectController;
 
     public ActionMode CurrentMode => _currentMode;
 
-    public PlayerUnitController(Unit unit, BoardController board,
+    public PlayerUnitController(Unit unit, BoardController board, EffectController effectController,
         Action<ActionMode, List<Vector3Int>> onHighlightTiles, Action onClearHighlight)
         : base(unit, board)
     {
+        _effectController = effectController;
         _onHighlightTiles = onHighlightTiles;
         _onClearHighlight = onClearHighlight;
     }
@@ -127,8 +129,19 @@ public class PlayerUnitController : UnitController
 
     private void ExecuteSkill(int skillIndex, Tile tile)
     {
-        var applyArea = _unit.GetSkillApplyArea(skillIndex, tile.P, tile.Q);
-        _unit.UseSkill(skillIndex);
-        Debug.Log($"Unit uses Skill {skillIndex + 1} on ({tile.P}, {tile.Q}, {tile.R}), affects {applyArea.Count} tiles");
+        var skill = _unit.Skills[skillIndex];
+        if (skill?.Behavior != null)
+        {
+            Unit target = tile.OccupiedBy;
+            skill.Behavior.Execute(_unit, target, tile, _board, _effectController);
+            skill.Use();
+            Debug.Log($"Player uses {skill.Behavior.Name} on ({tile.P}, {tile.Q}, {tile.R})");
+        }
+        else
+        {
+            var applyArea = _unit.GetSkillApplyArea(skillIndex, tile.P, tile.Q);
+            _unit.UseSkill(skillIndex);
+            Debug.Log($"Player uses Skill {skillIndex + 1} on ({tile.P}, {tile.Q}, {tile.R}), affects {applyArea.Count} tiles");
+        }
     }
 }
