@@ -443,13 +443,8 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     private bool ValidateSkillTarget(UnitPublicData casterData, HexCoord target, SkillData skillData)
     {
-        // Check range from skill behavior definition
-        int range = 1;
-        if (_behaviorRegistry.TryGetSkillBehavior(skillData.skill_behavior_id, out var so))
-        {
-            var combatBehavior = so as CombatSkillBehaviorSO;
-            if (combatBehavior != null) range = combatBehavior.range;
-        }
+        // Check range from skill data target_pattern
+        int range = HexPatternResolver.GetRange(skillData.target_pattern);
 
         if (_boardSubsystem.Distance(casterData.Position, target) > range)
             return false;

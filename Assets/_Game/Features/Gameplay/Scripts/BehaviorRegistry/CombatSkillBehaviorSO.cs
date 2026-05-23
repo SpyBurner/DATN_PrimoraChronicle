@@ -18,7 +18,7 @@ public class CombatSkillBehaviorSO : SkillBehaviorBaseSO
             TargetPosition = GetUnitPosition(ctx, targetUnitId),
             RawAmount = rawAmount,
             SourceSkillId = ctx.SkillData.string_id,
-            IsAOE = aoe > 0
+            IsAOE = IsSkillAOE(ctx)
         };
 
         int final = ctx.DamagePipeline.Resolve(damageCtx);
@@ -114,6 +114,17 @@ public class CombatSkillBehaviorSO : SkillBehaviorBaseSO
         if (TryGetPublic(ctx, unitId, out UnitPublicData data))
             return data.Position;
         return HexCoord.Invalid;
+    }
+
+    protected bool IsSkillAOE(CombatSkillExecutionContext ctx)
+    {
+        if (ctx.SkillData == null || ctx.SkillData.display_pattern == null || ctx.SkillData.display_pattern.Count == 0)
+            return false;
+        
+        if (ctx.SkillData.display_pattern.Count > 1) return true;
+        
+        var first = ctx.SkillData.display_pattern[0];
+        return first.n > 0 || first.p != 0 || first.q != 0;
     }
 
     protected bool TryGetPublic(CombatSkillExecutionContext ctx, string unitId, out UnitPublicData data)

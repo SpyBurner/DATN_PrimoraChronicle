@@ -38,54 +38,54 @@ public static class CreateBehaviorAssetsEditor
 
     static void CreateSkills()
     {
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_CorruptedCrest.asset",
-            s => { s.behaviorId = "skb_corrupted_crest"; s.range = 3; s.aoe = 0; s.targetCondition = 4; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_GraveclawFrenzy.asset",
-            s => { s.behaviorId = "skb_graveclaw_frenzy"; s.range = 1; s.aoe = 0; s.targetCondition = 1; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_DeathsToll.asset",
-            s => { s.behaviorId = "skb_deaths_toll"; s.range = 2; s.aoe = 2; s.targetCondition = 1; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Cemetary.asset",
-            s => { s.behaviorId = "skb_cemetary"; s.range = 2; s.aoe = 0; s.targetCondition = 4; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Arise.asset",
-            s => { s.behaviorId = "skb_arise"; s.range = 3; s.aoe = 0; s.targetCondition = 1; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_GroveheartsAscendance.asset",
-            s => { s.behaviorId = "skb_grovehearts_ascendance"; s.range = 3; s.aoe = 0; s.targetCondition = 4; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Sprout.asset",
-            s => { s.behaviorId = "skb_sprout"; s.range = 0; s.aoe = 0; s.targetCondition = 0; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Bloom.asset",
-            s => { s.behaviorId = "skb_bloom"; s.range = 1; s.aoe = 1; s.targetCondition = 2; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_RootOvergrow.asset",
-            s => { s.behaviorId = "skb_root_overgrow"; s.range = 1; s.aoe = 0; s.targetCondition = 1; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_DeepWoodsEntangle.asset",
-            s => { s.behaviorId = "skb_deep_woods_entangle"; s.range = 1; s.aoe = 1; s.targetCondition = 1; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_NaturesGift.asset",
-            s => { s.behaviorId = "skb_natures_gift"; s.range = 2; s.aoe = 0; s.targetCondition = 2; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_LifeSappingThorn.asset",
-            s => { s.behaviorId = "skb_life_sapping_thorn"; s.range = 1; s.aoe = 0; s.targetCondition = 1; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_WildGrowth.asset",
-            s => { s.behaviorId = "skb_wild_growth"; s.range = 2; s.aoe = 0; s.targetCondition = 4; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_SporeBurst.asset",
-            s => { s.behaviorId = "skb_spore_burst"; s.range = 99; s.aoe = 99; s.targetCondition = 0; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_BarkskinWard.asset",
-            s => { s.behaviorId = "skb_barkskin_ward"; s.range = 2; s.aoe = 0; s.targetCondition = 2; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_SummonSeedling.asset",
-            s => { s.behaviorId = "skb_summon_seedling"; s.range = 1; s.aoe = 0; s.targetCondition = 0; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_MasteryOfFlame.asset",
-            s => { s.behaviorId = "skb_mastery_of_flame"; s.range = 2; s.aoe = 1; s.targetCondition = 1; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_SeveredTail.asset",
-            s => { s.behaviorId = "skb_severed_tail"; s.range = 5; s.aoe = 0; s.targetCondition = 4; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_BannerOfCinders.asset",
-            s => { s.behaviorId = "skb_banner_of_cinders"; s.range = 0; s.aoe = 0; s.targetCondition = 0; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Firetrap.asset",
-            s => { s.behaviorId = "skb_firetrap"; s.range = 0; s.aoe = 0; s.targetCondition = 0; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_MoltenDive.asset",
-            s => { s.behaviorId = "skb_molten_dive"; s.range = 3; s.aoe = 1; s.targetCondition = 4; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_CurseOfAsh.asset",
-            s => { s.behaviorId = "skb_curse_of_ash"; s.range = 3; s.aoe = 1; s.targetCondition = 4; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_LegionsLastStand.asset",
-            s => { s.behaviorId = "skb_legions_last_stand"; s.range = 0; s.aoe = 0; s.targetCondition = 0; });
-        Create<GenericSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_MarchOfEmbers.asset",
-            s => { s.behaviorId = "skb_march_of_embers"; s.range = 0; s.aoe = 0; s.targetCondition = 0; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_CorruptedCrest.asset",
+            s => { s.behaviorId = "skb_corrupted_crest"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_GraveclawFrenzy.asset",
+            s => { s.behaviorId = "skb_graveclaw_frenzy"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_DeathsToll.asset",
+            s => { s.behaviorId = "skb_deaths_toll"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Cemetary.asset",
+            s => { s.behaviorId = "skb_cemetary"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Arise.asset",
+            s => { s.behaviorId = "skb_arise"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_GroveheartsAscendance.asset",
+            s => { s.behaviorId = "skb_grovehearts_ascendance"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Sprout.asset",
+            s => { s.behaviorId = "skb_sprout"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Bloom.asset",
+            s => { s.behaviorId = "skb_bloom"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_RootOvergrow.asset",
+            s => { s.behaviorId = "skb_root_overgrow"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_DeepWoodsEntangle.asset",
+            s => { s.behaviorId = "skb_deep_woods_entangle"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_NaturesGift.asset",
+            s => { s.behaviorId = "skb_natures_gift"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_LifeSappingThorn.asset",
+            s => { s.behaviorId = "skb_life_sapping_thorn"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_WildGrowth.asset",
+            s => { s.behaviorId = "skb_wild_growth"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_SporeBurst.asset",
+            s => { s.behaviorId = "skb_spore_burst"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_BarkskinWard.asset",
+            s => { s.behaviorId = "skb_barkskin_ward"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_SummonSeedling.asset",
+            s => { s.behaviorId = "skb_summon_seedling"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_MasteryOfFlame.asset",
+            s => { s.behaviorId = "skb_mastery_of_flame"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_SeveredTail.asset",
+            s => { s.behaviorId = "skb_severed_tail"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_BannerOfCinders.asset",
+            s => { s.behaviorId = "skb_banner_of_cinders"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_Firetrap.asset",
+            s => { s.behaviorId = "skb_firetrap"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_MoltenDive.asset",
+            s => { s.behaviorId = "skb_molten_dive"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_CurseOfAsh.asset",
+            s => { s.behaviorId = "skb_curse_of_ash"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_LegionsLastStand.asset",
+            s => { s.behaviorId = "skb_legions_last_stand"; });
+        Create<GenericCombatSkillBehaviorSO>("Assets/Resources/Behaviors/Skills/SKB_MarchOfEmbers.asset",
+            s => { s.behaviorId = "skb_march_of_embers"; });
     }
 
     static void CreateStatusEffects()
@@ -110,13 +110,13 @@ public static class CreateBehaviorAssetsEditor
     {
         // mpsb_call_of_death: "Draw 3 cards, take 1 DMG" — self-cast, no tile target
         Create<GenericMainPhaseSpellBehaviorSO>("Assets/Resources/Behaviors/MainPhaseSpells/MPS_CallOfDeath.asset",
-            s => { s.behaviorId = "mpsb_call_of_death"; s.range = 0; s.aoe = 0; s.targetCondition = 0; });
+            s => { s.behaviorId = "mpsb_call_of_death"; });
         // mpsb_back_to_the_grave: "Take 1 DMG, deal 1 DMG to all enemy champions" — global, no tile target
         Create<GenericMainPhaseSpellBehaviorSO>("Assets/Resources/Behaviors/MainPhaseSpells/MPS_BackToTheGrave.asset",
-            s => { s.behaviorId = "mpsb_back_to_the_grave"; s.range = 0; s.aoe = 0; s.targetCondition = 0; });
+            s => { s.behaviorId = "mpsb_back_to_the_grave"; });
         // mpsb_transplant: "Move all tile effects of a selected tile up to 1 hex range" — targets a tile
         Create<GenericMainPhaseSpellBehaviorSO>("Assets/Resources/Behaviors/MainPhaseSpells/MPS_Transplant.asset",
-            s => { s.behaviorId = "mpsb_transplant"; s.range = 99; s.aoe = 0; s.targetCondition = 4; });
+            s => { s.behaviorId = "mpsb_transplant"; });
     }
 
     static void CreateEvolutions()
