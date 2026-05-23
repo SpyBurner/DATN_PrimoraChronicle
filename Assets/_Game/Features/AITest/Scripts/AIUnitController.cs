@@ -191,13 +191,22 @@ public class AIUnitController : UnitController
         float enemyHP = 0f, enemyMaxHP = 0f;
         int myAlive = 0, enemyAlive = 0;
 
-        // Find positions for distance calc
-        int myP = 0, myQ = 0, enP = 0, enQ = 0;
+        int myP = 0, myQ = 0;
+        float closestEnemyDist = 999f;
         foreach (var u in units)
         {
             if (u.IsDead) continue;
-            if (u.OwnerPlayer == rootPlayer) { myP = u.P; myQ = u.Q; myHP += u.HP; myMaxHP += u.MaxHP; myAlive++; }
-            else { enP = u.P; enQ = u.Q; enemyHP += u.HP; enemyMaxHP += u.MaxHP; enemyAlive++; }
+            if (u.OwnerPlayer == rootPlayer)
+            {
+                myP = u.P; myQ = u.Q;
+                myHP += u.HP; myMaxHP += u.MaxHP; myAlive++;
+            }
+            else
+            {
+                enemyHP += u.HP; enemyMaxHP += u.MaxHP; enemyAlive++;
+                float d = HexDistance(myP, myQ, u.P, u.Q);
+                if (d < closestEnemyDist) closestEnemyDist = d;
+            }
         }
 
         if (enemyAlive == 0) return 10000f;
@@ -205,21 +214,25 @@ public class AIUnitController : UnitController
 
         float hpAdvantage = (myHP / myMaxHP) - (enemyHP / enemyMaxHP);
         float absoluteAdvantage = myHP - enemyHP;
-        int dist = HexDistance(myP, myQ, enP, enQ);
-        float distFactor = (10f - dist) / 10f;
+        float distFactor = (10f - closestEnemyDist) / 10f;
 
         return absoluteAdvantage * 2f + hpAdvantage * 50f + distFactor * 5f;
     }
 
     private bool IsTerminal(SimUnit[] units)
     {
-        bool hasPlayer0 = false, hasPlayer1 = false;
+        int alivePlayerMask = 0;
+        int alivePlayers = 0;
         foreach (var u in units)
         {
             if (u.IsDead) continue;
-            if (u.OwnerPlayer == 0) hasPlayer0 = true;
-            else hasPlayer1 = true;
-            if (hasPlayer0 && hasPlayer1) return false;
+            int bit = 1 << u.OwnerPlayer;
+            if ((alivePlayerMask & bit) == 0)
+            {
+                alivePlayerMask |= bit;
+                alivePlayers++;
+            }
+            if (alivePlayers > 1) return false;
         }
         return true;
     }

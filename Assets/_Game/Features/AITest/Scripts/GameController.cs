@@ -199,7 +199,7 @@ public class GameController : MonoBehaviour
             };
             _currentGameSkills[i] = GetSkillNames(unit);
 
-            var controller = new AIUnitController(unit, _boardController, _effectController, i == 0 ? 7 : 5);
+            var controller = new AIUnitController(unit, _boardController, _effectController, i == 0 ? 5 : 5);
             _controllers.Add(controller);
         }
     }
@@ -373,43 +373,56 @@ public class GameController : MonoBehaviour
         sb.AppendLine("# AI Battle Results");
         sb.AppendLine();
         sb.AppendLine($"**Total Games:** {_totalGames}");
-        sb.AppendLine($"**Player 0 (Depth 7) Wins:** {_wins[0]} ({(float)_wins[0] / _totalGames * 100f:F1}%)");
-        sb.AppendLine($"**Player 1 (Depth 5) Wins:** {_wins[1]} ({(float)_wins[1] / _totalGames * 100f:F1}%)");
+        sb.AppendLine($"**Player Count:** {_playerCount}");
+        for (int i = 0; i < _playerCount; i++)
+        {
+            string depth = i == 0 ? "Depth 7" : "Depth 5";
+            sb.AppendLine($"**Player {i} ({depth}) Wins:** {_wins[i]} ({(float)_wins[i] / _totalGames * 100f:F1}%)");
+        }
         sb.AppendLine();
 
-        int totalP1Moves = 0;
-        double totalP1Time = 0;
         int totalMovesAll = 0;
         foreach (var r in _results)
-        {
             totalMovesAll += r.TotalMoves;
-            totalP1Time += r.AvgMoveTimeMs * (r.TotalMoves / 2.0);
-            totalP1Moves += r.TotalMoves / 2;
-        }
-        double p1AvgMove = totalP1Moves > 0 ? totalP1Time / totalP1Moves : 0;
 
         sb.AppendLine($"**Total Moves Across All Games:** {totalMovesAll}");
-        sb.AppendLine($"**P1 (Depth 5) Average Time Per Move:** {p1AvgMove:F4} ms");
         sb.AppendLine();
         sb.AppendLine("## Per-Game Details");
         sb.AppendLine();
-        sb.AppendLine("| Game | P0_HP | P0_ATK | P0_SPD | P0_Skills | P1_HP | P1_ATK | P1_SPD | P1_Skills | Winner | Moves | P1_AvgMoveTime(ms) |");
-        sb.AppendLine("|------|-------|--------|--------|-----------|-------|--------|--------|-----------|--------|-------|---------------------|");
+
+        // Dynamic header
+        var header = new StringBuilder("| Game |");
+        var separator = new StringBuilder("|------|");
+        for (int i = 0; i < _playerCount; i++)
+        {
+            header.Append($" P{i}_HP | P{i}_ATK | P{i}_SPD | P{i}_Skills |");
+            separator.Append("------|--------|--------|-----------|");
+        }
+        header.Append(" Winner | Moves | AvgMoveTime(ms) |");
+        separator.Append("--------|-------|-----------------|");
+        sb.AppendLine(header.ToString());
+        sb.AppendLine(separator.ToString());
 
         foreach (var r in _results)
         {
-            var p0 = r.PlayerStats[0];
-            var p1 = r.PlayerStats[1];
-            string p0Skills = r.PlayerSkills[0] ?? "None";
-            string p1Skills = r.PlayerSkills[1] ?? "None";
-            sb.AppendLine($"| {r.GameNumber} | {p0.HP} | {p0.Attack} | {p0.Speed} | {p0Skills} | {p1.HP} | {p1.Attack} | {p1.Speed} | {p1Skills} | {r.WinnerPlayer} | {r.TotalMoves} | {r.AvgMoveTimeMs:F4} |");
+            var row = new StringBuilder($"| {r.GameNumber} |");
+            for (int i = 0; i < _playerCount && i < r.PlayerStats.Length; i++)
+            {
+                var ps = r.PlayerStats[i];
+                string skills = (i < r.PlayerSkills.Length ? r.PlayerSkills[i] : null) ?? "None";
+                row.Append($" {ps.HP} | {ps.Attack} | {ps.Speed} | {skills} |");
+            }
+            row.Append($" {r.WinnerPlayer} | {r.TotalMoves} | {r.AvgMoveTimeMs:F4} |");
+            sb.AppendLine(row.ToString());
         }
 
         string path = Path.Combine(Application.dataPath, "_Game/Features/AITest/ai_battle_results.md");
         File.WriteAllText(path, sb.ToString());
         Debug.Log($"Results written to: {path}");
-        Debug.Log($"P0 (Depth 7) winrate: {(float)_wins[0] / _totalGames * 100f:F1}% | P1 (Depth 5) winrate: {(float)_wins[1] / _totalGames * 100f:F1}%");
-        Debug.Log($"P1 avg move time: {p1AvgMove:F4} ms");
+        var winLog = new StringBuilder();
+        for (int i = 0; i < _playerCount; i++)
+            winLog.Append($"P{i}: {(float)_wins[i] / _totalGames * 100f:F1}% | ");
+        Debug.Log($"Win rates: {winLog}");
     }
 
     private void Update()
@@ -442,6 +455,15 @@ public class GameController : MonoBehaviour
     private List<(int p, int q)> GetCornerCoords()
     {
         int s = _boardController.Size;
+        if (_playerCount == 3)
+        {
+            return new List<(int, int)>
+            {
+                (0, -s),
+                (-s, s),
+                (s, 0)
+            };
+        }
         return new List<(int, int)>
         {
             (s, -s),
