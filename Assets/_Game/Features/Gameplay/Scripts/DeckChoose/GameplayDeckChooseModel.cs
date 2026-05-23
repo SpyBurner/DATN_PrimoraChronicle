@@ -1,6 +1,6 @@
 using UnityObservables;
 
-public class GameplayDeckChooseModel : IGameplayDeckChooseModel
+internal class GameplayDeckChooseModel : IGameplayDeckChooseModel
 {
     private readonly Observable<bool> _isReady = new(false);
     private readonly Observable<string> _selectedDeckId = new(string.Empty);

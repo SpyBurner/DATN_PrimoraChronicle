@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Fusion;
 using Zenject;
 
-public class GameplayDeckChooseController : IGameplayDeckChooseController
+internal class GameplayDeckChooseController : IGameplayDeckChooseController
 {
     [Inject] private readonly IGameplayDeckChooseModel _model;
     [Inject] private readonly IDebugLogger _logger;
@@ -53,7 +53,6 @@ public class GameplayDeckChooseController : IGameplayDeckChooseController
         }
         else
         {
-            // Offline / editor path — apply directly
             _model.ApplyState(new GameplayDeckChooseStateData
             {
                 IsReady = true,
@@ -68,12 +67,10 @@ public class GameplayDeckChooseController : IGameplayDeckChooseController
 
         if (!string.IsNullOrEmpty(_stagedSummary.id))
         {
-            // A deck was browsed but not confirmed — confirm it now
             await ConfirmSelection();
             return;
         }
 
-        // No deck selected — fall back to defaults
         _logger.Log("[GameplayDeckChoose] Auto-confirming with default deck.");
         string cardIdsJoined = string.Join(",", _defaultCardIds);
 
@@ -112,6 +109,14 @@ public class GameplayDeckChooseController : IGameplayDeckChooseController
     {
         var runner = _networkManager?.Runner;
         if (runner == null) return 0;
-        return runner.LocalPlayer.PlayerId;
+
+        PlayerRef localPlayer = runner.LocalPlayer;
+        int index = 0;
+        foreach (var player in runner.ActivePlayers)
+        {
+            if (player == localPlayer) return index;
+            index++;
+        }
+        return 0;
     }
 }

@@ -10,14 +10,8 @@ public class BehaviorRegistrySubsystem : IBehaviorRegistrySubsystem
 
     public void Initialize()
     {
-        try
-        {
-            _controller.Initialize();
-        }
-        catch (Exception ex)
-        {
-            Debug.LogException(ex);
-        }
+        _controller.Initialize();
+        LoadAll();
     }
 
     public void Dispose()
@@ -26,12 +20,27 @@ public class BehaviorRegistrySubsystem : IBehaviorRegistrySubsystem
         _model.Dispose();
     }
 
-    public bool TryGetSkillBehavior(string behaviorId, out ScriptableObject behavior)
+    public void LoadAll()
+    {
+        try
+        {
+            _controller.LoadAll();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException(ex);
+        }
+    }
+
+    public bool TryGetSkillBehavior(string behaviorId, out SkillBehaviorBaseSO behavior)
         => _controller.TryGetSkillBehavior(behaviorId, out behavior);
 
-    public bool TryGetStatusEffectBehavior(string behaviorId, out ScriptableObject behavior)
+    public bool TryGetStatusEffectBehavior(string behaviorId, out StatusEffectBehaviorBaseSO behavior)
         => _controller.TryGetStatusEffectBehavior(behaviorId, out behavior);
 
-    public bool TryGetMainPhaseSpellBehavior(string behaviorId, out ScriptableObject behavior)
+    public bool TryGetMainPhaseSpellBehavior(string behaviorId, out MainPhaseSpellBehaviorBaseSO behavior)
         => _controller.TryGetMainPhaseSpellBehavior(behaviorId, out behavior);
+
+    public bool TryGetEvolutionBehavior(string behaviorId, out EvolutionBehaviorBaseSO behavior)
+        => _controller.TryGetEvolutionBehavior(behaviorId, out behavior);
 }
