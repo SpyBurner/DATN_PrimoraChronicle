@@ -53,13 +53,19 @@ avg_time = np.array(avg_time)
 # Colors for each player
 player_colors = ['#4CAF50', '#F44336', '#2196F3', '#FF9800', '#9C27B0', '#00BCD4']
 
+def player_label(i):
+    return "AI" if i == 0 else f"Player {i}"
+
+def player_short(i):
+    return "AI" if i == 0 else f"P{i}"
+
 fig, axes = plt.subplots(2, 3, figsize=(18, 10))
-title_parts = [f"P{i}: {player_wins[i]} ({player_wins[i]/total_games*100:.1f}%)" for i in range(player_count)]
+title_parts = [f"{player_short(i)}: {player_wins[i]} ({player_wins[i]/total_games*100:.1f}%)" for i in range(player_count)]
 fig.suptitle(f"AI Battle Results — {total_games} Games | {' | '.join(title_parts)}", fontsize=13, fontweight='bold')
 
 # 1. Win rate pie chart
 ax = axes[0, 0]
-labels = [f"Player {i}" for i in range(player_count)]
+labels = [player_label(i) for i in range(player_count)]
 colors = player_colors[:player_count]
 ax.pie(player_wins, labels=labels, autopct='%1.1f%%', colors=colors, startangle=90)
 ax.set_title("Win Rate")
@@ -68,7 +74,7 @@ ax.set_title("Win Rate")
 ax = axes[0, 1]
 for i in range(player_count):
     cum = np.cumsum(winners == i)
-    ax.plot(games, cum / games * 100, label=f"Player {i}", color=player_colors[i], linewidth=2)
+    ax.plot(games, cum / games * 100, label=player_label(i), color=player_colors[i], linewidth=2)
 ax.axhline(100.0 / player_count, color='gray', linestyle='--', alpha=0.5, label="Equal share")
 ax.set_xlabel("Game #")
 ax.set_ylabel("Cumulative Win Rate (%)")
@@ -111,7 +117,7 @@ if player_count == 2:
     ax.grid(True, alpha=0.3)
 else:
     # Win count by player as bar chart
-    ax.bar([f"P{i}" for i in range(player_count)], player_wins, color=player_colors[:player_count], alpha=0.8)
+    ax.bar([player_short(i) for i in range(player_count)], player_wins, color=player_colors[:player_count], alpha=0.8)
     ax.set_xlabel("Player")
     ax.set_ylabel("Wins")
     ax.set_title("Total Wins Per Player")
@@ -123,7 +129,7 @@ for i in range(player_count):
     mask = winners == i
     if np.any(mask):
         atk_vals = np.array(player_atk[i])[mask]
-        ax.scatter(atk_vals, moves[mask], color=player_colors[i], alpha=0.6, label=f"P{i} wins", edgecolors='black', linewidths=0.5)
+        ax.scatter(atk_vals, moves[mask], color=player_colors[i], alpha=0.6, label=f"{player_short(i)} wins", edgecolors='black', linewidths=0.5)
 ax.set_xlabel("Winner Starting ATK")
 ax.set_ylabel("Game Length (Moves)")
 ax.set_title("Winner ATK vs Game Length")
