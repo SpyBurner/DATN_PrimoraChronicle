@@ -6,13 +6,25 @@ using Fusion.Sockets;
 using UnityEngine;
 using Zenject;
 
-public class NetworkManagerController : INetworkManagerController, INetworkRunnerCallbacks
+public class NetworkManagerController : INetworkManagerController, INetworkRunnerCallbacks, ITickable
 {
     [Inject] private readonly INetworkManagerModel _model;
     [Inject] private readonly IDebugLogger _debugLogger;
     public NetworkRunner Runner { get; private set; }
 
     public void Initialize() { }
+
+    public void Tick()
+    {
+        if (Runner == null) return;
+        if (_model.RunnerState.Value != NetworkRunner.States.Running) return;
+        var count = Runner.SessionInfo.PlayerCount;
+        if (count != _model.PlayerCount.Value)
+        {
+            _debugLogger.Log($"[NetworkController] Tick: PlayerCount delta detected ({_model.PlayerCount.Value} -> {count}). Pushing to model.");
+            _model.SetPlayerCount(count);
+        }
+    }
 
     public void Dispose()
     {
@@ -42,7 +54,7 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
 
             if (result.Ok)
             {
-                _debugLogger.Log($"[NetworkController] Session started: {Runner.SessionInfo.Name}");
+                _debugLogger.Log($"[NetworkController] Session started: {Runner.SessionInfo.Name} | SessionInfo.PlayerCount={Runner.SessionInfo.PlayerCount}");
                 _model.SetSessionName(Runner.SessionInfo.Name);
                 _model.SetRegion(Runner.SessionInfo.Region);
                 _model.SetMaxPlayers(Runner.SessionInfo.MaxPlayers);
@@ -93,12 +105,14 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
+        _debugLogger.Log($"[NetworkController] OnPlayerJoined fired: player={player} IsServer={runner.IsServer} IsClient={runner.IsClient} SessionInfo.PlayerCount={runner.SessionInfo.PlayerCount}");
         _model.SetPlayerCount(runner.SessionInfo.PlayerCount);
         _model.SetLastJoinedPlayer(player);
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
+        _debugLogger.Log($"[NetworkController] OnPlayerLeft fired: player={player}");
         _model.SetPlayerCount(runner.SessionInfo.PlayerCount);
         _model.SetLastLeftPlayer(player);
     }

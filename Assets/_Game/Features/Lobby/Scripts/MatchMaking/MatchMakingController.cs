@@ -41,7 +41,10 @@ internal class MatchMakingController : IMatchMakingController
                 Phase  = MatchMakingPhase.Idle,
                 Status = string.Empty
             });
+            return;
         }
+
+        TryLoadGameplayScene();
     }
 
     private void HandlePlayerCountChanged(int count)
@@ -55,16 +58,22 @@ internal class MatchMakingController : IMatchMakingController
             PlayerJoinedCount = count
         });
 
-        if (_networkManager.RunnerState == NetworkRunner.States.Running && count >= _battleSetup.PlayerCnt)
+        TryLoadGameplayScene();
+    }
+
+    private void TryLoadGameplayScene()
+    {
+        if (_networkManager.RunnerState != NetworkRunner.States.Running) return;
+        if (_model.PlayerJoinedCount.Value < _battleSetup.PlayerCnt) return;
+        if (_model.Phase.Value == MatchMakingPhase.Connected) return;
+
+        _debugLogger.Log("[MatchMaking] TryLoadGameplayScene: Player count met while Runner is Running. Loading GAMEPLAY.");
+        _model.ApplyState(new MatchMakingStateData
         {
-            _debugLogger.Log("[MatchMaking] HandlePlayerCountChanged: Player count met while Runner is Running. Loading GAMEPLAY.");
-            _model.ApplyState(new MatchMakingStateData
-            {
-                Phase  = MatchMakingPhase.Connected,
-                Status = "Connected!"
-            });
-            _sceneLoader.LoadNetworkedScene(_networkManager.Runner, SceneNames.GAMEPLAY);
-        }
+            Phase  = MatchMakingPhase.Connected,
+            Status = "Connected!"
+        });
+        _sceneLoader.LoadNetworkedScene(_networkManager.Runner, SceneNames.GAMEPLAY);
     }
 
     public Task AcceptMatch()
