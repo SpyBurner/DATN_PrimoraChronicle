@@ -588,6 +588,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GameplayFeatures::BaseSlotDropTarget
   _fusionPanel: {fileID: 682746671750326090}
+--- !u!114 &9203409984830210011 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7098232153062225833, guid: a5d5a768cf8b93e41ada9026860d161a, type: 3}
+  m_PrefabInstance: {fileID: 2105688013770180722}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &2671912365804650731
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2424,6 +2435,7 @@ MonoBehaviour:
   _unitSlot: {fileID: 7408147766776551503}
   _unitNameText: {fileID: 8904985929042961539}
   _unitStatsText: {fileID: 4854649822136642481}
+  _clearBaseButton: {fileID: 9203409984830210011}
   _normalAttackSlot: {fileID: 2079888395424711451}
   _movementSlot: {fileID: 6931194174293515574}
   _fuseSlotContainer: {fileID: 2746493653680544396}

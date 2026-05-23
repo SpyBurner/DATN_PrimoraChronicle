@@ -1,5 +1,4 @@
 using System;
-using Fusion;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,19 +7,18 @@ using Zenject;
 public class FusionPanel : MonoBehaviour
 {
     [Inject] private readonly IFusionSubsystem _fusion;
-    [Inject] private readonly IPlayerCardZoneSubsystem _cardZone;
     [Inject] private readonly IGameStateSubsystem _gameState;
-    [Inject] private readonly INetworkManagerSubsystem _network;
     [Inject] private readonly ICardLoadingManagerSubsystem _cardLoading;
 
     [Header("Unit Slot (Base)")]
     [SerializeField] private Transform _unitSlot;
     [SerializeField] private TMP_Text _unitNameText;
     [SerializeField] private TMP_Text _unitStatsText;
+    [SerializeField] private Button _clearBaseButton;
 
     [Header("Innate Slots (always visible)")]
-    [SerializeField] private GameObject _normalAttackSlot;
-    [SerializeField] private GameObject _movementSlot;
+    // [SerializeField] private GameObject _normalAttackSlot;
+    // [SerializeField] private GameObject _movementSlot;
 
     [Header("Fuse Slots")]
     [SerializeField] private Transform _fuseSlotContainer;
@@ -38,14 +36,13 @@ public class FusionPanel : MonoBehaviour
     [Header("Hand Source")]
     [SerializeField] private HandPanel _handPanel;
 
-    private PlayerRef _localPlayer;
     private bool _confirmed;
 
     private void Awake()
     {
         if (_unitSlot == null) throw new System.Exception("[FusionPanel._unitSlot] Not assigned in Inspector");
-        if (_normalAttackSlot == null) throw new System.Exception("[FusionPanel._normalAttackSlot] Not assigned in Inspector");
-        if (_movementSlot == null) throw new System.Exception("[FusionPanel._movementSlot] Not assigned in Inspector");
+        // if (_normalAttackSlot == null) throw new System.Exception("[FusionPanel._normalAttackSlot] Not assigned in Inspector");
+        // if (_movementSlot == null) throw new System.Exception("[FusionPanel._movementSlot] Not assigned in Inspector");
         if (_timerText == null) throw new System.Exception("[FusionPanel._timerText] Not assigned in Inspector");
         if (_confirmButton == null) throw new System.Exception("[FusionPanel._confirmButton] Not assigned in Inspector");
         if (_handPanel == null) throw new System.Exception("[FusionPanel._handPanel] Not assigned in Inspector");
@@ -71,7 +68,6 @@ public class FusionPanel : MonoBehaviour
 
     private void OnEnable()
     {
-        _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
         _confirmed = false;
 
         _fusion.StagingChanged += OnStagingChanged;
@@ -79,6 +75,7 @@ public class FusionPanel : MonoBehaviour
         _gameState.PhaseChanged += OnPhaseChanged;
         _gameState.PhaseTimeRemainingChanged += OnPhaseTimeRemainingChanged;
         _confirmButton?.onClick.AddListener(OnConfirmClicked);
+        _clearBaseButton?.onClick.AddListener(OnClearBaseClicked);
 
         for (int i = 0; i < _fuseSlots.Length; i++)
         {
@@ -96,6 +93,7 @@ public class FusionPanel : MonoBehaviour
         _gameState.PhaseChanged -= OnPhaseChanged;
         _gameState.PhaseTimeRemainingChanged -= OnPhaseTimeRemainingChanged;
         _confirmButton?.onClick.RemoveListener(OnConfirmClicked);
+        _clearBaseButton?.onClick.RemoveListener(OnClearBaseClicked);
 
         for (int i = 0; i < _fuseSlots.Length; i++)
             _fuseSlots[i]?.ClearButton?.onClick.RemoveAllListeners();
@@ -152,9 +150,9 @@ public class FusionPanel : MonoBehaviour
     private void RefreshBaseSlot(string baseCardId)
     {
         bool hasBase = !string.IsNullOrEmpty(baseCardId);
-        if (_unitSlot != null) _unitSlot.gameObject.SetActive(hasBase);
-        if (_normalAttackSlot != null) _normalAttackSlot.SetActive(hasBase);
-        if (_movementSlot != null) _movementSlot.SetActive(hasBase);
+        // if (_normalAttackSlot != null) _normalAttackSlot.SetActive(hasBase);
+        // if (_movementSlot != null) _movementSlot.SetActive(hasBase);
+        if (_clearBaseButton != null) _clearBaseButton.gameObject.SetActive(hasBase);
 
         if (hasBase && _cardLoading.TryGetCardData(baseCardId, out var cardData))
         {
@@ -231,6 +229,12 @@ public class FusionPanel : MonoBehaviour
         SetConfirmInteractable(false);
         await _fusion.ConfirmFusion();
         _gameState.RequestSetLocalReady(true);
+    }
+
+    private void OnClearBaseClicked()
+    {
+        if (_confirmed) return;
+        _fusion.StageBase(null);
     }
 
     public void StageBase(string cardId)
