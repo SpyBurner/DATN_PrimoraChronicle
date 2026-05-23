@@ -15,8 +15,8 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     [Networked] public float MatchElapsed { get; set; }
     [Networked] public PlayerRef CurrentCombatActor { get; set; }
     [Networked] public NetworkBool IsMatchOver { get; set; }
-    // Capacity 4: index 0 unused; PlayerId is 1-based (slots 1-4)
-    [Networked, Capacity(4)] public NetworkArray<NetworkBool> PlayerReady => default;
+    // Capacity 8: allow 0-based PlayerId
+    [Networked, Capacity(8)] public NetworkArray<NetworkBool> PlayerReady => default;
 
     [Header("Phase Durations")]
     [SerializeField] private float _startPhaseDuration = 30f;
@@ -218,7 +218,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         foreach (var player in Runner.ActivePlayers)
         {
             int slot = player.PlayerId;
-            if (slot < 1 || slot >= PlayerReady.Length) return false;
+            if (slot < 0 || slot >= PlayerReady.Length) return false;
             if (!PlayerReady.Get(slot)) return false;
         }
         return true;
@@ -407,8 +407,8 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         }
 
         var sender = info.Source;
-        int slotIndex = sender.PlayerId; // PlayerId is 1-based; NetworkArray indices match
-        if (slotIndex < 1 || slotIndex >= PlayerReady.Length) return;
+        int slotIndex = sender.PlayerId;
+        if (slotIndex < 0 || slotIndex >= PlayerReady.Length) return;
 
         // Lock: once ready=true, server ignores ready=false until phase advances
         if (!ready && PlayerReady.Get(slotIndex))
