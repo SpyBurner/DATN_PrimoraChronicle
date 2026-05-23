@@ -468,8 +468,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameController
   _boardController: {fileID: 1407889280}
   _unitPrefab: {fileID: 2737945867553520798, guid: d600a82e3ab0ecc419a5d17567957dab, type: 3}
-  _playerCount: 2
-  _totalGames: 100
+  _playerCount: 3
+  _totalGames: 170
+  _autoStart: 1
+  _gamesPerFrame: 1
 --- !u!4 &1158549862
 Transform:
   m_ObjectHideFlags: 0
