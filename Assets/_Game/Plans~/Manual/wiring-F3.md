@@ -58,6 +58,21 @@ Attach `BaseSlotDropTarget` to the `UnitSlot` child:
 
 ---
 
+## Prefab: `UnitNetworkView.prefab` (create new)
+
+| Component / Field | Value | Status |
+|---|---|---|
+| `NetworkObject` | — | ⬜ |
+| `UnitNetworkView` | — | ⬜ |
+| `_meshRoot` | Child `Transform` named `MeshRoot` with `MeshFilter` + `MeshRenderer` components (mesh and materials swapped at runtime) | ⬜ |
+| `GameObjectContext` + empty `MonoInstaller` | — | ⬜ |
+| Register in `NetworkViewRegistry` | — | ⬜ |
+| Assign to `FusionNetworkView._unitPrefab` | — | ⬜ |
+
+> No static mesh in the prefab. `UnitNetworkView.Render()` calls `GameplayNetworkCoordinator.Instance.GetPlayerPieceConfig(playerIndex)` once `Owner != PlayerRef.None` and instantiates `MeshPrefab` under `_meshRoot`, applying `Material` to its `Renderer`. The `_meshApplied` guard prevents re-instantiation on subsequent `Render()` calls.
+
+---
+
 ## Prefab: `PhaseInteractionPanel_Hand.prefab` — `HandPanel` (create new)
 
 | Component | Status |

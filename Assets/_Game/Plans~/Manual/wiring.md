@@ -106,8 +106,14 @@ Legend: ⬜ todo · ✅ done
 | `_fusionViewPrefab` | `FusionNetworkView.prefab` *(wire in F3)* | ⬜ |
 | `_combatViewPrefab` | `CombatNetworkView.prefab` *(wire in F4)* | ⬜ |
 | `_matchResultCoordinatorPrefab` | `MatchResultState.prefab` *(wire in F6)* | ⬜ |
+| `_playerPieceConfigs[0].Mesh` | Player 1 chess-piece `Mesh` asset (replaces `MeshFilter.mesh` on `_meshRoot`) | ⬜ |
+| `_playerPieceConfigs[0].Materials` | Player 1 materials array (index matches submesh order in the imported model) | ⬜ |
+| `_playerPieceConfigs[1].Mesh` | Player 2 chess-piece `Mesh` asset | ⬜ |
+| `_playerPieceConfigs[1].Materials` | Player 2 materials array | ⬜ |
+| `_playerPieceConfigs[2].Mesh` | Player 3 `Mesh` asset (reserved — leave empty) | ⬜ |
+| `_playerPieceConfigs[2].Materials` | Player 3 materials array (reserved — leave empty) | ⬜ |
 
-> Leave `_player1PiecePrefab` / `_player2PiecePrefab` empty — legacy fields, not needed.
+> Mesh and materials are applied locally in `UnitNetworkView.Render()` once `Owner` is known — swaps `MeshFilter.mesh` and `MeshRenderer.materials` on `_meshRoot` directly. No prefab instantiation.
 
 ---
 

@@ -530,8 +530,7 @@ All implementation files under `Features/Gameplay/Scripts/<Domain>/`. Interfaces
 | `GameStateManager.prefab` | NetworkObject | `GameStateNetworkView`. Spawned by host on scene start. |
 | `PlayerRosterPublicState.prefab` | NetworkObject | `PlayerRosterPublicNetworkView`. One per player. Always-replicated. |
 | `PlayerCardZonePrivateState.prefab` | NetworkObject | `PlayerCardZonePrivateNetworkView`. One per player. Host calls `SetPlayerAlwaysInterested(owner, this, true)` on spawn; never adds other players' interest. |
-| `NetworkUnitPublic.prefab` | NetworkObject | `UnitPublicNetworkView`. Public unit data (HP / position / owner / status effects). One per spawned unit, visible to all clients. |
-| `NetworkUnitPrivate.prefab` | NetworkObject | `UnitPrivateNetworkView`. Owner-only unit data (skills / cooldowns / one-time flags). One per spawned unit; host calls `SetPlayerAlwaysInterested(unitOwner, this, true)` on spawn. |
+| `UnitNetworkView.prefab` | NetworkObject | `UnitNetworkView`. All unit data (HP / position / owner / status effects / skills). One per spawned unit, visible to all clients. Has a `_meshRoot` child Transform; `Render()` instantiates the per-player mesh prefab and applies the material from `GameplayNetworkCoordinator._playerPieceConfigs[playerIndex]` once `Owner` is known (guarded by `_meshApplied`). AoI split into public/private NetworkViews deferred. |
 | `MatchRewardsPrivateState.prefab` | NetworkObject | `MatchRewardsPrivateNetworkView`. One per player. Host writes Gold/XP at match-end; AoI restricted to the owner. Owning client caches the values locally so they survive runner shutdown. |
 | `TileEffectInstance.prefab` | NetworkObject | One per applied effect. |
 | `CombatCoordinator.prefab` | NetworkObject | Singleton, `CombatNetworkView`. |

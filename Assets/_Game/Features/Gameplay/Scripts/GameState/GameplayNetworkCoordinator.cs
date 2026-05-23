@@ -3,6 +3,13 @@ using Fusion;
 using UnityEngine;
 using Zenject;
 
+[System.Serializable]
+public class PlayerPieceConfig
+{
+    public Mesh Mesh;
+    public Material[] Materials;
+}
+
 public class GameplayNetworkCoordinator : NetworkBehaviour
 {
     [Inject] private INetworkManagerSubsystem _networkManager;
@@ -21,9 +28,8 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     [SerializeField] private NetworkPrefabRef _combatCoordinatorPrefab;
     [SerializeField] private NetworkPrefabRef _matchResultCoordinatorPrefab;
 
-    [Header("Player Piece Prefabs")]
-    [SerializeField] private NetworkPrefabRef _player1PiecePrefab;
-    [SerializeField] private NetworkPrefabRef _player2PiecePrefab;
+    [Header("Player Piece Visuals")]
+    [SerializeField] private PlayerPieceConfig[] _playerPieceConfigs = new PlayerPieceConfig[3];
 
     [Networked, Capacity(4)] public NetworkArray<NetworkId> PlayerStates { get; }
     [Networked, Capacity(4)] public NetworkArray<NetworkId> PlayerCardZoneIds { get; }
@@ -38,7 +44,6 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     private readonly Dictionary<PlayerRef, PlayerRosterPublicNetworkView> _rosterViews = new();
     private readonly Dictionary<PlayerRef, MatchRewardsPrivateNetworkView> _rewardsViews = new();
     private readonly Dictionary<PlayerRef, FusionNetworkView> _fusionViews = new();
-    private readonly Dictionary<PlayerRef, NetworkObject> _playerPieces = new();
     private readonly HashSet<PlayerRef> _spawnedPlayers = new();
 
     public static GameplayNetworkCoordinator Instance { get; private set; }
@@ -75,7 +80,6 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     {
         if (Instance == this) Instance = null;
         _spawnedPlayers.Clear();
-        _playerPieces.Clear();
         _playerCardZones.Clear();
         _deckChooseViews.Clear();
         _rosterViews.Clear();
@@ -234,17 +238,6 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             _logger?.Log($"[GameplayNetworkCoordinator] Spawned FusionView for {player}.");
         }
 
-        int playerIndex = GetPlayerIndex(player);
-        var piecePrefab = playerIndex == 0 ? _player1PiecePrefab : _player2PiecePrefab;
-
-        if (piecePrefab.IsValid && _boardView != null)
-        {
-            var spawnPos = _boardView.GetDeployWorldPosition(playerIndex);
-            var spawnRot = _boardView.GetDeployRotation(playerIndex);
-            var pieceObj = Runner.Spawn(piecePrefab, spawnPos, spawnRot, player);
-            _playerPieces[player] = pieceObj;
-            _logger?.Log($"[GameplayNetworkCoordinator] Spawned player piece for {player} at index {playerIndex}.");
-        }
     }
 
     private void RegisterPlayerCardZone(NetworkId zoneId)
@@ -259,7 +252,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
         }
     }
 
-    private int GetPlayerIndex(PlayerRef player)
+    public int GetPlayerIndex(PlayerRef player)
     {
         int index = 0;
         foreach (var p in Runner.ActivePlayers)
@@ -296,6 +289,13 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     }
 
     public IEnumerable<PlayerRef> GetAllPlayers() => _playerCardZones.Keys;
+
+    public PlayerPieceConfig GetPlayerPieceConfig(int playerIndex)
+    {
+        if (_playerPieceConfigs == null || playerIndex < 0 || playerIndex >= _playerPieceConfigs.Length)
+            return null;
+        return _playerPieceConfigs[playerIndex];
+    }
 
     public void ResetFusionViewsForNewTurn()
     {

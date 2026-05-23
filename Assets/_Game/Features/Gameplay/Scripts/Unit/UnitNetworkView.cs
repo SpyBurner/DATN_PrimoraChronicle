@@ -38,6 +38,9 @@ public class UnitNetworkView : NetworkBehaviour
     [Networked] public NetworkBool HasActedThisTurn { get; set; }
     [Networked] public NetworkBool HasMovedThisTurn { get; set; }
 
+    [SerializeField] private Transform _meshRoot;
+    private bool _meshApplied;
+
     private ChangeDetector _changeDetector;
 
     public override void Spawned()
@@ -218,6 +221,25 @@ public class UnitNetworkView : NetworkBehaviour
 
     public override void Render()
     {
+        if (!_meshApplied && Owner != PlayerRef.None && _meshRoot != null)
+        {
+            var coordinator = GameplayNetworkCoordinator.Instance;
+            if (coordinator != null)
+            {
+                int playerIndex = coordinator.GetPlayerIndex(Owner);
+                var config = coordinator.GetPlayerPieceConfig(playerIndex);
+                if (config?.Mesh != null)
+                {
+                    var meshFilter = _meshRoot.GetComponent<MeshFilter>();
+                    if (meshFilter != null) meshFilter.mesh = config.Mesh;
+                    var meshRenderer = _meshRoot.GetComponent<MeshRenderer>();
+                    if (meshRenderer != null && config.Materials != null && config.Materials.Length > 0)
+                        meshRenderer.materials = config.Materials;
+                    _meshApplied = true;
+                }
+            }
+        }
+
         if (_changeDetector == null) return;
         foreach (var _ in _changeDetector.DetectChanges(this))
         {
