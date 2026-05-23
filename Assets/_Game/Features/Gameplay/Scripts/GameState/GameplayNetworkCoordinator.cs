@@ -314,4 +314,6 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             return view.GetUsedCardIds();
         return System.Array.Empty<string>();
     }
+
+    public NetworkPrefabRef GetUnitPrefab() => _unitPrefab;
 }

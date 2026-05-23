@@ -14,9 +14,6 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
     [Inject(Optional = true)] private ITileEffectSubsystem _tileEffectSubsystem;
     [Inject(Optional = true)] private IDebugLogger _logger;
 
-    [Header("Unit Prefab")]
-    [SerializeField] private NetworkPrefabRef _unitPrefab;
-
     [Networked] public NetworkBool IsConfirmed { get; set; }
     [Networked] public NetworkString<_32> DeployedUnitId { get; set; }
     [Networked] public NetworkBool HasFusedThisTurn { get; set; }
@@ -31,7 +28,6 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
 
     private void Awake()
     {
-        if (!_unitPrefab.IsValid) throw new System.Exception("[FusionNetworkView._unitPrefab] Not assigned in Inspector — see wiring-F3.md F3.3");
     }
 
     public override void Spawned()
@@ -62,12 +58,8 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
             _fusionSubsystem?.RegisterNetworkBridge(null);
     }
 
-    // â”€â”€ IFusionNetworkBridge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     public void SendConfirmFusionRpc(string baseCardId, string equipSpellsJoined)
         => Rpc_RequestConfirmFusion(baseCardId, equipSpellsJoined);
-
-    // â”€â”€ RPC (client â†’ server) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_RequestConfirmFusion(string baseCardId, string equipSpellsJoined)
@@ -132,8 +124,6 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         _logger?.Log($"[FusionNetworkView] Fusion confirmed for {Object.InputAuthority}: base={baseCardId}, equips={equipIds.Length}");
     }
 
-    // â”€â”€ Server-side API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     public void ServerAutoConfirmFusion(string championId)
     {
         if (!Object.HasStateAuthority) return;
@@ -176,8 +166,6 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         return cards.ToArray();
     }
 
-    // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     private bool ValidateBaseCard(string cardId)
     {
         if (_cardLoading == null) return true;
@@ -208,13 +196,19 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         return valid.ToArray();
     }
 
-    // â”€â”€ Unit spawning â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     private void SpawnUnit(PlayerRef owner, string baseCardId, string[] equipSpellIds)
     {
-        if (!_unitPrefab.IsValid)
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null)
         {
-            _logger?.LogWarning("[FusionNetworkView] Unit prefab not assigned, cannot spawn unit.");
+            _logger?.LogWarning("[FusionNetworkView] GameplayNetworkCoordinator not available.");
+            return;
+        }
+
+        var unitPrefab = coordinator.GetUnitPrefab();
+        if (!unitPrefab.IsValid)
+        {
+            _logger?.LogWarning("[FusionNetworkView] Unit prefab not assigned in coordinator, cannot spawn unit.");
             return;
         }
 
@@ -228,7 +222,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
             ? _boardSubsystem.GetWorldPosition(deployCoord)
             : Vector3.zero;
 
-        var unitObj = Runner.Spawn(_unitPrefab, spawnPos, Quaternion.identity, owner);
+        var unitObj = Runner.Spawn(unitPrefab, spawnPos, Quaternion.identity, owner);
         if (unitObj == null)
         {
             _logger?.LogWarning("[FusionNetworkView] Failed to spawn unit NetworkObject.");
@@ -243,8 +237,6 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
 
         DeployedUnitId = unitObj.Id.ToString();
     }
-
-    // â”€â”€ State push â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public override void Render()
     {
