@@ -18,7 +18,6 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     [Header("Manager Prefabs")]
     [SerializeField] private NetworkPrefabRef _gameStateManagerPrefab;
     [SerializeField] private NetworkPrefabRef _boardManagerPrefab;
-    [SerializeField] private NetworkPrefabRef _playerStatePrefab;
     [SerializeField] private NetworkPrefabRef _deckChooseViewPrefab;
     [SerializeField] private NetworkPrefabRef _playerCardZoneViewPrefab;
     [SerializeField] private NetworkPrefabRef _playerRosterPublicViewPrefab;
