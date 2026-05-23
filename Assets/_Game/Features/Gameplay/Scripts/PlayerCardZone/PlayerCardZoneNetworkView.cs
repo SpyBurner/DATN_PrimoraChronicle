@@ -22,19 +22,21 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     [Networked] public int DeckCount { get; set; }
     [Networked] public int DiscardCount { get; set; }
     [Networked] public NetworkBool IsSetup { get; set; }
-    [Networked] public NetworkString<_16> ChampionId { get; set; }
+    [Networked] public NetworkString<_32> ChampionId { get; set; }
     [Networked] public NetworkString<_32> PlayerName { get; set; }
     [Networked] public int DrawPhaseNewCards { get; set; }
     [Networked] public NetworkBool DrawPhaseConfirmed { get; set; }
 
-    [Networked, Capacity(8)] public NetworkArray<NetworkString<_32>> Hand { get; }
+    [Networked, Capacity(9)] public NetworkArray<NetworkString<_32>> Hand { get; }
     [Networked, Capacity(40)] public NetworkArray<NetworkString<_32>> Deck { get; }
     [Networked, Capacity(60)] public NetworkArray<NetworkString<_32>> Discard { get; }
 
     private ChangeDetector _changeDetector;
 
-    private const int HandMax = 6;
-    private const int HandArrayCapacity = 8;
+    private const int ChampionSlot = 0;
+    private const int SupportCardCount = 6;
+    private const int HandMax = 7;
+    private const int HandArrayCapacity = 9;
     private const int DeckCapacity = 40;
     private const int DiscardCapacity = 60;
     private const int DefaultHP = 100;
@@ -97,6 +99,10 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
         HP = championHP;
         MaxHP = championHP;
 
+        // Champion card always at hand[0]
+        Hand.Set(ChampionSlot, championId);
+        HandCount = 1;
+
         int deckIndex = 0;
         foreach (var cardId in supportCardIds)
         {
@@ -119,7 +125,6 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
         }
 
         DeckCount = deckIndex;
-        HandCount = 0;
         DiscardCount = 0;
         IsSetup = true;
 
@@ -180,10 +185,10 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     {
         if (!Object.HasStateAuthority) return;
 
-        if (keep.Count > HandMax)
-            keep = keep.GetRange(0, HandMax);
+        if (keep.Count > SupportCardCount)
+            keep = keep.GetRange(0, SupportCardCount);
 
-        for (int i = HandCount - 1; i >= 0; i--)
+        for (int i = HandCount - 1; i > ChampionSlot; i--)
         {
             string card = Hand.Get(i).ToString();
             if (!keep.Contains(card))
