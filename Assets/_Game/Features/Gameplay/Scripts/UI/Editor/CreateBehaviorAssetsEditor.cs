@@ -10,6 +10,7 @@ public static class CreateBehaviorAssetsEditor
         EnsureFolders();
         CreateSkills();
         CreateStatusEffects();
+        CreateMainPhaseSpells();
         CreateEvolutions();
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -105,6 +106,19 @@ public static class CreateBehaviorAssetsEditor
             s => { s.effectId = "legions_buff"; s.damagePerTurn = 0; s.interceptAmount = 0; });
     }
 
+    static void CreateMainPhaseSpells()
+    {
+        // mpsb_call_of_death: "Draw 3 cards, take 1 DMG" — self-cast, no tile target
+        Create<GenericMainPhaseSpellBehaviorSO>("Assets/Resources/Behaviors/MainPhaseSpells/MPS_CallOfDeath.asset",
+            s => { s.behaviorId = "mpsb_call_of_death"; s.range = 0; s.aoe = 0; s.targetCondition = 0; });
+        // mpsb_back_to_the_grave: "Take 1 DMG, deal 1 DMG to all enemy champions" — global, no tile target
+        Create<GenericMainPhaseSpellBehaviorSO>("Assets/Resources/Behaviors/MainPhaseSpells/MPS_BackToTheGrave.asset",
+            s => { s.behaviorId = "mpsb_back_to_the_grave"; s.range = 0; s.aoe = 0; s.targetCondition = 0; });
+        // mpsb_transplant: "Move all tile effects of a selected tile up to 1 hex range" — targets a tile
+        Create<GenericMainPhaseSpellBehaviorSO>("Assets/Resources/Behaviors/MainPhaseSpells/MPS_Transplant.asset",
+            s => { s.behaviorId = "mpsb_transplant"; s.range = 99; s.aoe = 0; s.targetCondition = 4; });
+    }
+
     static void CreateEvolutions()
     {
         Create<GenericEvolutionBehaviorSO>("Assets/Resources/Behaviors/Evolutions/EVO_SeedlingToSapling.asset",
@@ -119,9 +133,17 @@ public static class CreateBehaviorAssetsEditor
     {
         if (AssetDatabase.LoadAssetAtPath<T>(path) != null)
             return;
-        var asset = ScriptableObject.CreateInstance<T>();
-        configure(asset);
-        AssetDatabase.CreateAsset(asset, path);
+        try
+        {
+            var asset = ScriptableObject.CreateInstance<T>();
+            configure(asset);
+            AssetDatabase.CreateAsset(asset, path);
+            Debug.Log($"[F7] Created {path}");
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[F7] Failed to create {path}: {ex}");
+        }
     }
 }
 #endif
