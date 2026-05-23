@@ -59,16 +59,16 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
     }
 
     public void SendConfirmFusionRpc(string baseCardId, string equipSpellsJoined)
-        => Rpc_RequestConfirmFusion(baseCardId, equipSpellsJoined);
+        => Rpc_RequestConfirmFusion(Runner.LocalPlayer, baseCardId, equipSpellsJoined);
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_RequestConfirmFusion(string baseCardId, string equipSpellsJoined)
+    private void Rpc_RequestConfirmFusion(PlayerRef sender, string baseCardId, string equipSpellsJoined, RpcInfo info = default)
     {
         if (!Object.HasStateAuthority) return;
 
         if (HasFusedThisTurn)
         {
-            _logger?.LogWarning($"[FusionNetworkView] Player {Object.InputAuthority} already fused this turn.");
+            _logger?.LogWarning($"[FusionNetworkView] Player {sender} already fused this turn.");
             return;
         }
 
@@ -107,21 +107,21 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         for (int i = 0; i < equipIds.Length; i++)
             EquipSpells.Set(i, equipIds[i]);
 
-        SpawnUnit(Object.InputAuthority, baseCardId, equipIds);
+        SpawnUnit(sender, baseCardId, equipIds);
 
         // Discard base card if it is a troop — champion is never discarded
         if (_cardLoading != null && _cardLoading.TryGetCardData(baseCardId, out CardData baseData)
             && baseData.type == "troop")
-            DiscardFusionCardForPlayer(Object.InputAuthority, baseCardId);
+            DiscardFusionCardForPlayer(sender, baseCardId);
 
         // Discard all equip spells immediately
         foreach (var equipId in equipIds)
-            DiscardFusionCardForPlayer(Object.InputAuthority, equipId);
+            DiscardFusionCardForPlayer(sender, equipId);
 
         HasFusedThisTurn = true;
         IsConfirmed = true;
 
-        _logger?.Log($"[FusionNetworkView] Fusion confirmed for {Object.InputAuthority}: base={baseCardId}, equips={equipIds.Length}");
+        _logger?.Log($"[FusionNetworkView] Fusion confirmed for {sender}: base={baseCardId}, equips={equipIds.Length}");
     }
 
     public void ServerAutoConfirmFusion(string championId)

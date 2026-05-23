@@ -44,7 +44,6 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         _roster.RegisterNetworkBridge(_cachedInputAuthority, this);
 
-        // Strictly Host/Server mode logic
         bool isLocal = Object.HasInputAuthority;
 
         if (isLocal)
@@ -53,17 +52,7 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
             string pId = _authSession?.UserId ?? string.Empty;
 
             _logger?.Log($"[PlayerRoster] LOCAL INIT! My PlayerRef={Owner}, ProfileUsername='{pName}'");
-
-            if (Object.HasStateAuthority)
-            {
-                _logger?.Log($"[PlayerRoster] ALSO HAVE STATE AUTHORITY, pushing initial data for {Owner}...");
-                PlayerName = pName;
-                UserId = pId;
-            }
-            else
-            {
-                Rpc_SetProfileData(pName, pId);
-            }
+            Rpc_SetProfileData(Runner.LocalPlayer, pName, pId);
         }
 
         PushState();
@@ -133,10 +122,10 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
         _logger?.Log($"[PlayerRosterPublicNetworkView] Initialized for {owner}: HP={hp}");
     }
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_SetProfileData(string name, string id)
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_SetProfileData(PlayerRef sender, string name, string id, RpcInfo info = default)
     {
-        _logger?.Log($"[PlayerRosterPublicNetworkView] Rpc_SetProfileData received from: name='{name}', id='{id}'");
+        _logger?.Log($"[PlayerRosterPublicNetworkView] Rpc_SetProfileData from {sender}: name='{name}', id='{id}'");
         PlayerName = name;
         UserId = id;
     }

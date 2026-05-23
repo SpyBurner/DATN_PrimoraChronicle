@@ -47,24 +47,24 @@ public class GameplayDeckChooseNetworkView : NetworkBehaviour, IGameplayDeckChoo
     // ── IGameplayDeckChooseNetworkBridge ──────────────────────────────────
 
     public void SendConfirmRpc(string championId, string cardIdsJoined, int playerIndex, string playerName)
-        => Rpc_ConfirmDeckSelection(championId, cardIdsJoined, playerIndex, playerName);
+        => Rpc_ConfirmDeckSelection(Runner.LocalPlayer, championId, cardIdsJoined, playerIndex, playerName);
 
     public void SendAutoConfirmRpc(int playerIndex)
-        => Rpc_AutoConfirmDeckSelection(playerIndex);
+        => Rpc_AutoConfirmDeckSelection(Runner.LocalPlayer, playerIndex);
 
     // ── RPCs (client → server) ────────────────────────────────────────────
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_ConfirmDeckSelection(string championId, string cardIdsJoined, int playerIndex, string playerName)
+    private void Rpc_ConfirmDeckSelection(PlayerRef sender, string championId, string cardIdsJoined, int playerIndex, string playerName, RpcInfo info = default)
     {
         string[] cardIds = cardIdsJoined.Split(',');
-        SetupPlayerDeck(Object.InputAuthority, championId, cardIds, playerIndex, playerName);
+        SetupPlayerDeck(sender, championId, cardIds, playerIndex, playerName);
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_AutoConfirmDeckSelection(int playerIndex)
+    private void Rpc_AutoConfirmDeckSelection(PlayerRef sender, int playerIndex, RpcInfo info = default)
     {
-        SetupPlayerDeck(Object.InputAuthority, DefaultChampionId, _defaultCardIds, playerIndex, "Player " + (playerIndex + 1));
+        SetupPlayerDeck(sender, DefaultChampionId, _defaultCardIds, playerIndex, "Player " + (playerIndex + 1));
     }
 
     private void SetupPlayerDeck(PlayerRef playerRef, string championId, string[] cardIds, int playerIndex, string playerName)

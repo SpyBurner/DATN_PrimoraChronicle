@@ -66,7 +66,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
             if (Object.HasStateAuthority && _profileSubsystem != null)
                 PlayerName = _profileSubsystem.Username ?? string.Empty;
             else if (HasInputAuthority && _profileSubsystem != null)
-                Rpc_SetPlayerName(_profileSubsystem.Username ?? string.Empty);
+                Rpc_SetPlayerName(Runner.LocalPlayer, _profileSubsystem.Username ?? string.Empty);
         }
 
         PushState();
@@ -281,41 +281,41 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     // ── IPlayerCardZoneNetworkBridge ─────────────────────────────────────
 
     public void SendDrawRpc(PlayerRef player, int count)
-        => Rpc_RequestDraw(count);
+        => Rpc_RequestDraw(Runner.LocalPlayer, count);
 
     public void SendKeepCardsRpc(PlayerRef player, string cardIdsJoined)
-        => Rpc_RequestKeepCards(cardIdsJoined);
+        => Rpc_RequestKeepCards(Runner.LocalPlayer, cardIdsJoined);
 
     public void SendPlayMainPhaseSpellRpc(string cardId, HexCoord target)
-        => Rpc_RequestPlayMainPhaseSpell(cardId, target);
+        => Rpc_RequestPlayMainPhaseSpell(Runner.LocalPlayer, cardId, target);
 
     // ── RPCs (client → server) ───────────────────────────────────────────
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_SetPlayerName(string name)
+    private void Rpc_SetPlayerName(PlayerRef sender, string name, RpcInfo info = default)
     {
         PlayerName = name;
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_RequestDraw(int count)
+    private void Rpc_RequestDraw(PlayerRef sender, int count, RpcInfo info = default)
     {
         ServerDraw(count);
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_RequestKeepCards(string cardIdsJoined)
+    private void Rpc_RequestKeepCards(PlayerRef sender, string cardIdsJoined, RpcInfo info = default)
     {
         var keep = new List<string>(cardIdsJoined.Split(','));
         ServerKeepCards(keep);
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_RequestPlayMainPhaseSpell(string cardId, HexCoord target)
+    private void Rpc_RequestPlayMainPhaseSpell(PlayerRef sender, string cardId, HexCoord target, RpcInfo info = default)
     {
-        if (_gameState != null && _gameState.IsReady(Object.InputAuthority))
+        if (_gameState != null && _gameState.IsReady(sender))
         {
-            _logger?.LogWarning($"[PlayerCardZone] MainPhaseSpell rejected: player {Object.InputAuthority} already confirmed fusion.");
+            _logger?.LogWarning($"[PlayerCardZone] MainPhaseSpell rejected: player {sender} already confirmed fusion.");
             return;
         }
 

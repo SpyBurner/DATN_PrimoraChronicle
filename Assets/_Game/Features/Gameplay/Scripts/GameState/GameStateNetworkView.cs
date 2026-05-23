@@ -389,13 +389,13 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     // ── IGameStateNetworkBridge ──────────────────────────────────────────
 
     public void SendPhaseTransitionRpc(GameplayPhase phase)
-        => Rpc_RequestPhaseTransition(phase);
+        => Rpc_RequestPhaseTransition(Runner.LocalPlayer, phase);
 
     public void SendSetReadyRpc(bool ready)
-        => Rpc_SetReady(ready);
+        => Rpc_SetReady(Runner.LocalPlayer, ready);
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void Rpc_SetReady(bool ready, RpcInfo info = default)
+    private void Rpc_SetReady(PlayerRef sender, bool ready, RpcInfo info = default)
     {
         if (_gameState == null) return;
 
@@ -406,7 +406,6 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             return;
         }
 
-        var sender = info.Source;
         int slotIndex = sender.PlayerId;
         if (slotIndex < 0 || slotIndex >= PlayerReady.Length) return;
 
@@ -423,7 +422,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void Rpc_RequestPhaseTransition(GameplayPhase phase)
+    private void Rpc_RequestPhaseTransition(PlayerRef sender, GameplayPhase phase, RpcInfo info = default)
     {
         TransitionTo(phase);
     }

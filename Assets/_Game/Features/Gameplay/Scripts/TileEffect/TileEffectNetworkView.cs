@@ -63,19 +63,19 @@ public class TileEffectNetworkView : NetworkBehaviour, ITileEffectNetworkBridge
     // ── ITileEffectNetworkBridge ─────────────────────────────────────────
 
     public void SendApplyEffectRpc(HexCoord coord, string effectId, int duration)
-        => Rpc_RequestApplyEffect(coord.P, coord.Q, effectId, duration);
+        => Rpc_RequestApplyEffect(Runner.LocalPlayer, coord.P, coord.Q, effectId, duration);
 
     public void SendRemoveEffectRpc(HexCoord coord)
-        => Rpc_RequestRemoveEffect(coord.P, coord.Q);
+        => Rpc_RequestRemoveEffect(Runner.LocalPlayer, coord.P, coord.Q);
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_RequestApplyEffect(int p, int q, string effectId, int duration)
+    private void Rpc_RequestApplyEffect(PlayerRef sender, int p, int q, string effectId, int duration, RpcInfo info = default)
     {
-        ServerInitialize(new HexCoord(p, q), effectId, duration, Object.InputAuthority);
+        ServerInitialize(new HexCoord(p, q), effectId, duration, sender);
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_RequestRemoveEffect(int p, int q)
+    private void Rpc_RequestRemoveEffect(PlayerRef sender, int p, int q, RpcInfo info = default)
     {
         if (!Object.HasStateAuthority) return;
         if (PositionP == p && PositionQ == q)

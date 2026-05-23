@@ -66,14 +66,7 @@ public class MatchResultNetworkView : NetworkBehaviour, IMatchResultNetworkBridg
 
     public void SendEndMatchRpc(GameMatchResult result)
     {
-        if (Object.HasStateAuthority)
-        {
-            ServerCommitResult(result);
-        }
-        else
-        {
-            Rpc_RequestEndMatch(result.Winner, result.IsTie, result.GoldEarned, result.XPEarned, result.DurationSeconds);
-        }
+        Rpc_RequestEndMatch(result.Winner, result.IsTie, result.GoldEarned, result.XPEarned, result.DurationSeconds);
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]

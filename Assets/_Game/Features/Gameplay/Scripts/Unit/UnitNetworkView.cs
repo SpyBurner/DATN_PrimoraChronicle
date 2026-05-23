@@ -196,6 +196,17 @@ public class UnitNetworkView : NetworkBehaviour
         StatusEffectCount++;
     }
 
+    public void ServerEvolve(string nextForm, CardData evolvedData)
+    {
+        if (!Object.HasStateAuthority) return;
+        BaseCardId = nextForm;
+        MaxHP = evolvedData.hp > 0 ? evolvedData.hp : MaxHP;
+        CurrentHP = MaxHP;
+        Speed = evolvedData.speed > 0 ? evolvedData.speed : Speed;
+        NormalAttackDamage = evolvedData.n_atk_dmg > 0 ? evolvedData.n_atk_dmg : NormalAttackDamage;
+        GrowthStacks = 0;
+    }
+
     public void ServerRemoveStatus(string statusId)
     {
         if (!Object.HasStateAuthority) return;

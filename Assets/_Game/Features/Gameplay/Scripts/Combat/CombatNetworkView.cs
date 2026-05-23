@@ -627,13 +627,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
         if (_cardLoading != null && _cardLoading.TryGetCardData(nextForm, out CardData evolvedData))
         {
-            unitView.BaseCardId = nextForm;
-            unitView.MaxHP = evolvedData.hp > 0 ? evolvedData.hp : unitView.MaxHP;
-            unitView.CurrentHP = unitView.MaxHP;
-            unitView.Speed = evolvedData.speed > 0 ? evolvedData.speed : unitView.Speed;
-            unitView.NormalAttackDamage = evolvedData.n_atk_dmg > 0 ? evolvedData.n_atk_dmg : unitView.NormalAttackDamage;
-            unitView.GrowthStacks = 0;
-
+            unitView.ServerEvolve(nextForm, evolvedData);
             _logger?.Log($"[Combat] Unit {unitId} evolved from '{baseCardId}' to '{nextForm}'.");
         }
     }
@@ -742,39 +736,39 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
     // ── ICombatNetworkBridge ─────────────────────────────────────────────
 
     public void SendMoveRpc(NetworkId unit, HexCoord destination)
-        => Rpc_RequestMove(unit.ToString(), destination.P, destination.Q);
+        => Rpc_RequestMove(Runner.LocalPlayer, unit.ToString(), destination.P, destination.Q);
 
     public void SendNormalAttackRpc(NetworkId unit, HexCoord target)
-        => Rpc_RequestNormalAttack(unit.ToString(), target.P, target.Q);
+        => Rpc_RequestNormalAttack(Runner.LocalPlayer, unit.ToString(), target.P, target.Q);
 
     public void SendSkillRpc(NetworkId unit, string skillId, HexCoord target)
-        => Rpc_RequestSkill(unit.ToString(), skillId, target.P, target.Q);
+        => Rpc_RequestSkill(Runner.LocalPlayer, unit.ToString(), skillId, target.P, target.Q);
 
     public void SendEndTurnRpc()
-        => Rpc_RequestEndTurn();
+        => Rpc_RequestEndTurn(Runner.LocalPlayer);
 
     // ── RPCs (client → server) ───────────────────────────────────────────
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void Rpc_RequestMove(string unitId, int p, int q)
+    private void Rpc_RequestMove(PlayerRef sender, string unitId, int p, int q, RpcInfo info = default)
     {
         ServerMove(unitId, new HexCoord(p, q));
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void Rpc_RequestNormalAttack(string unitId, int p, int q)
+    private void Rpc_RequestNormalAttack(PlayerRef sender, string unitId, int p, int q, RpcInfo info = default)
     {
         ServerNormalAttack(unitId, new HexCoord(p, q));
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void Rpc_RequestSkill(string unitId, string skillId, int p, int q)
+    private void Rpc_RequestSkill(PlayerRef sender, string unitId, string skillId, int p, int q, RpcInfo info = default)
     {
         ServerSkill(unitId, skillId, new HexCoord(p, q));
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void Rpc_RequestEndTurn()
+    private void Rpc_RequestEndTurn(PlayerRef sender, RpcInfo info = default)
     {
         ServerEndTurn();
     }
