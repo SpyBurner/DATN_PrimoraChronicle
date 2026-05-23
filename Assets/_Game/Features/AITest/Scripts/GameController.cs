@@ -28,8 +28,12 @@ public class GameController : MonoBehaviour
 
     // Per-game tracking
     private int _totalMoves;
+    private int _p1Moves;
+    private double _p1TotalTimeMs;
+    private Stopwatch _moveStopwatch = new();
     private Stopwatch _gameStopwatch = new();
     private List<GameResult> _results = new();
+    private int _currentTurnOwner;
 
     private struct UnitStats
     {
@@ -87,6 +91,8 @@ public class GameController : MonoBehaviour
         _controllers.Clear();
 
         _totalMoves = 0;
+        _p1Moves = 0;
+        _p1TotalTimeMs = 0;
         _currentGameStats = new UnitStats[_playerCount];
         _currentGameSkills = new string[_playerCount];
         _gameStopwatch.Restart();
@@ -108,6 +114,12 @@ public class GameController : MonoBehaviour
     private void OnMoveCompleted()
     {
         _totalMoves++;
+        if (_currentTurnOwner == 1)
+        {
+            _moveStopwatch.Stop();
+            _p1Moves++;
+            _p1TotalTimeMs += _moveStopwatch.Elapsed.TotalMilliseconds;
+        }
         if (_totalMoves >= MAX_MOVES_PER_GAME)
         {
             ForceEndGame();
@@ -153,7 +165,7 @@ public class GameController : MonoBehaviour
             WinnerPlayer = winnerPlayer,
             TotalMoves = _totalMoves,
             TotalTimeMs = _gameStopwatch.Elapsed.TotalMilliseconds,
-            AvgMoveTimeMs = _totalMoves > 0 ? _gameStopwatch.Elapsed.TotalMilliseconds / _totalMoves : 0
+            AvgMoveTimeMs = _p1Moves > 0 ? _p1TotalTimeMs / _p1Moves : 0
         });
 
         if (_currentGame < _totalGames)
@@ -187,7 +199,7 @@ public class GameController : MonoBehaviour
             };
             _currentGameSkills[i] = GetSkillNames(unit);
 
-            var controller = new AIUnitController(unit, _boardController, _effectController);
+            var controller = new AIUnitController(unit, _boardController, _effectController, i == 0 ? 7 : 5);
             _controllers.Add(controller);
         }
     }
@@ -303,6 +315,9 @@ public class GameController : MonoBehaviour
     private void OnTurnStarted(UnitController controller)
     {
         _effectController.TickAllEffects();
+        _currentTurnOwner = controller.Unit.OwnerPlayer;
+        if (_currentTurnOwner == 1)
+            _moveStopwatch.Restart();
 
         if (!_autoStart)
         {
@@ -339,7 +354,7 @@ public class GameController : MonoBehaviour
             WinnerPlayer = winnerPlayer,
             TotalMoves = _totalMoves,
             TotalTimeMs = _gameStopwatch.Elapsed.TotalMilliseconds,
-            AvgMoveTimeMs = _totalMoves > 0 ? _gameStopwatch.Elapsed.TotalMilliseconds / _totalMoves : 0
+            AvgMoveTimeMs = _p1Moves > 0 ? _p1TotalTimeMs / _p1Moves : 0
         });
 
         if (_currentGame < _totalGames)
@@ -358,27 +373,28 @@ public class GameController : MonoBehaviour
         sb.AppendLine("# AI Battle Results");
         sb.AppendLine();
         sb.AppendLine($"**Total Games:** {_totalGames}");
-        sb.AppendLine($"**Player 0 Wins:** {_wins[0]} ({(float)_wins[0] / _totalGames * 100f:F1}%)");
-        sb.AppendLine($"**Player 1 Wins:** {_wins[1]} ({(float)_wins[1] / _totalGames * 100f:F1}%)");
+        sb.AppendLine($"**Player 0 (Depth 7) Wins:** {_wins[0]} ({(float)_wins[0] / _totalGames * 100f:F1}%)");
+        sb.AppendLine($"**Player 1 (Depth 5) Wins:** {_wins[1]} ({(float)_wins[1] / _totalGames * 100f:F1}%)");
         sb.AppendLine();
 
-        double totalAvgMove = 0;
+        int totalP1Moves = 0;
+        double totalP1Time = 0;
         int totalMovesAll = 0;
-        double totalTimeAll = 0;
         foreach (var r in _results)
         {
             totalMovesAll += r.TotalMoves;
-            totalTimeAll += r.TotalTimeMs;
+            totalP1Time += r.AvgMoveTimeMs * (r.TotalMoves / 2.0);
+            totalP1Moves += r.TotalMoves / 2;
         }
-        totalAvgMove = totalMovesAll > 0 ? totalTimeAll / totalMovesAll : 0;
+        double p1AvgMove = totalP1Moves > 0 ? totalP1Time / totalP1Moves : 0;
 
         sb.AppendLine($"**Total Moves Across All Games:** {totalMovesAll}");
-        sb.AppendLine($"**Average Time Per Move:** {totalAvgMove:F4} ms");
+        sb.AppendLine($"**P1 (Depth 5) Average Time Per Move:** {p1AvgMove:F4} ms");
         sb.AppendLine();
         sb.AppendLine("## Per-Game Details");
         sb.AppendLine();
-        sb.AppendLine("| Game | P0_HP | P0_ATK | P0_SPD | P0_Skills | P1_HP | P1_ATK | P1_SPD | P1_Skills | Winner | Moves | AvgMoveTime(ms) |");
-        sb.AppendLine("|------|-------|--------|--------|-----------|-------|--------|--------|-----------|--------|-------|-----------------|");
+        sb.AppendLine("| Game | P0_HP | P0_ATK | P0_SPD | P0_Skills | P1_HP | P1_ATK | P1_SPD | P1_Skills | Winner | Moves | P1_AvgMoveTime(ms) |");
+        sb.AppendLine("|------|-------|--------|--------|-----------|-------|--------|--------|-----------|--------|-------|---------------------|");
 
         foreach (var r in _results)
         {
@@ -392,8 +408,8 @@ public class GameController : MonoBehaviour
         string path = Path.Combine(Application.dataPath, "_Game/Features/AITest/ai_battle_results.md");
         File.WriteAllText(path, sb.ToString());
         Debug.Log($"Results written to: {path}");
-        Debug.Log($"Player 0 winrate: {(float)_wins[0] / _totalGames * 100f:F1}% | Player 1 winrate: {(float)_wins[1] / _totalGames * 100f:F1}%");
-        Debug.Log($"Average move time: {totalAvgMove:F4} ms");
+        Debug.Log($"P0 (Depth 7) winrate: {(float)_wins[0] / _totalGames * 100f:F1}% | P1 (Depth 5) winrate: {(float)_wins[1] / _totalGames * 100f:F1}%");
+        Debug.Log($"P1 avg move time: {p1AvgMove:F4} ms");
     }
 
     private void Update()

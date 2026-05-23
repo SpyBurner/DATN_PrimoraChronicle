@@ -70,12 +70,13 @@ public struct SimAction
 
 public class AIUnitController : UnitController
 {
-    private const int MAX_DEPTH = 5;
+    private int _maxDepth;
     private EffectController _effects;
 
-    public AIUnitController(Unit unit, BoardController board, EffectController effects) : base(unit, board)
+    public AIUnitController(Unit unit, BoardController board, EffectController effects, int maxDepth = 5) : base(unit, board)
     {
         _effects = effects;
+        _maxDepth = maxDepth;
     }
 
     public override void TakeTurn()
@@ -128,7 +129,7 @@ public class AIUnitController : UnitController
             int nextIdx = GetNextUnitIdx(nextState, currentIdx);
             bool nextIsMax = nextState[nextIdx].OwnerPlayer == units[currentIdx].OwnerPlayer;
 
-            float val = Minimax(nextState, nextIdx, MAX_DEPTH - 1, alpha, beta, nextIsMax, units[currentIdx].OwnerPlayer);
+            float val = Minimax(nextState, nextIdx, _maxDepth - 1, alpha, beta, nextIsMax, units[currentIdx].OwnerPlayer);
 
             if (val > bestVal)
             {

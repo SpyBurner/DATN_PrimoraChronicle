@@ -11,8 +11,8 @@ with open(results_path, "r", encoding="utf-8") as f:
 
 # Parse summary
 total_games = int(re.search(r"\*\*Total Games:\*\* (\d+)", content).group(1))
-p0_wins = int(re.search(r"\*\*Player 0 Wins:\*\* (\d+)", content).group(1))
-p1_wins = int(re.search(r"\*\*Player 1 Wins:\*\* (\d+)", content).group(1))
+p0_wins = int(re.search(r"\*\*Player 0.*?Wins:\*\* (\d+)", content).group(1))
+p1_wins = int(re.search(r"\*\*Player 1.*?Wins:\*\* (\d+)", content).group(1))
 
 # Parse table rows
 rows = re.findall(
