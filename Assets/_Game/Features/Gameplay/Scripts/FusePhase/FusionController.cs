@@ -38,6 +38,17 @@ internal class FusionController : IFusionController
     public void StageEquipSpell(int slotIndex, string equipSpellId)
     {
         if (slotIndex < 0 || slotIndex >= _equipSlots.Length) return;
+
+        // Evict the same cardId from any other slot so the same card can't occupy two slots.
+        if (!string.IsNullOrEmpty(equipSpellId))
+        {
+            for (int i = 0; i < _equipSlots.Length; i++)
+            {
+                if (i != slotIndex && _equipSlots[i] == equipSpellId)
+                    _equipSlots[i] = null;
+            }
+        }
+
         _equipSlots[slotIndex] = equipSpellId;
         RefreshStaging();
     }

@@ -16,7 +16,7 @@ public class BaseSlotDropTarget : MonoBehaviour, IDropHandler
         if (_fusionPanel == null) return;
 
         var dragHandle = eventData.pointerDrag.GetComponent<CardDragHandle>();
-        if (dragHandle == null) return;
+        if (dragHandle == null || !dragHandle.IsUnitCard) return;
 
         _fusionPanel.StageBase(dragHandle.CardId);
     }

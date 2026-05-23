@@ -18,7 +18,7 @@ public class FuseSlotDropTarget : MonoBehaviour, IDropHandler
         if (_fusionPanel == null) return;
 
         var dragHandle = eventData.pointerDrag.GetComponent<CardDragHandle>();
-        if (dragHandle == null) return;
+        if (dragHandle == null || dragHandle.IsUnitCard) return;
 
         _fusionPanel.StageEquipSpell(_slotIndex, dragHandle.CardId);
     }

@@ -15,6 +15,7 @@ public class CardDragHandle : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 
     public string CardId => _cardId;
     public int HandIndex => _handIndex;
+    public bool IsUnitCard { get; private set; }
 
     private void Awake()
     {
@@ -24,10 +25,11 @@ public class CardDragHandle : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
             _canvasGroup = gameObject.AddComponent<CanvasGroup>();
     }
 
-    public void Initialize(string cardId, int handIndex)
+    public void Initialize(string cardId, int handIndex, bool isUnitCard = false)
     {
         _cardId = cardId;
         _handIndex = handIndex;
+        IsUnitCard = isUnitCard;
     }
 
     public void OnBeginDrag(PointerEventData eventData)

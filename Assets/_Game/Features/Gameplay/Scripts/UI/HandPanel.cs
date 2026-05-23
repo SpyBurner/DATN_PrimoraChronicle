@@ -79,15 +79,21 @@ public class HandPanel : MonoBehaviour
             var slot = Instantiate(_cardSlotPrefab, _cardSlotContainer);
             slot.SetActive(true);
 
+            bool isUnit = false;
             var nameText = slot.GetComponentInChildren<TMP_Text>();
-            if (nameText != null && _cardLoading.TryGetCardData(cardId, out var cardData))
-                nameText.text = cardData.name;
+            if (_cardLoading.TryGetCardData(cardId, out var cardData))
+            {
+                if (nameText != null) nameText.text = cardData.name;
+                isUnit = cardData.type.ToLower() == "troop" || cardData.type.ToLower() == "champion";
+            }
             else if (nameText != null)
+            {
                 nameText.text = cardId;
+            }
 
             var dragHandle = slot.GetComponent<CardDragHandle>();
             if (dragHandle != null)
-                dragHandle.Initialize(cardId, i);
+                dragHandle.Initialize(cardId, i, isUnit);
 
             _spawnedSlots.Add(slot);
         }
