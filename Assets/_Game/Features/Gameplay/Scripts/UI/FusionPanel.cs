@@ -244,10 +244,10 @@ public class FusionPanel : MonoBehaviour
         _fusion.StageBase(cardId);
     }
 
-    public void StageEquipSpell(int slotIndex, string cardId)
+    public void StageEquipSpell(int slotIndex, string cardId, int handIndex)
     {
         if (_confirmed) return;
-        _fusion.StageEquipSpell(slotIndex, cardId);
+        _fusion.StageEquipSpell(slotIndex, cardId, handIndex);
     }
 
     public int GetFirstEmptyFuseSlotIndex()

@@ -11,6 +11,7 @@ internal class FusionController : IFusionController
     private IFusionNetworkBridge _bridge;
     private string _baseCardId;
     private readonly string[] _equipSlots = new string[4];
+    private readonly int[] _equipHandIndices = new int[4] { -1, -1, -1, -1 };
 
     public void Initialize() { }
 
@@ -19,6 +20,7 @@ internal class FusionController : IFusionController
         _bridge = null;
         _baseCardId = null;
         Array.Clear(_equipSlots, 0, _equipSlots.Length);
+        for (int i = 0; i < _equipHandIndices.Length; i++) _equipHandIndices[i] = -1;
     }
 
     public void RegisterBridge(IFusionNetworkBridge bridge)
@@ -35,21 +37,26 @@ internal class FusionController : IFusionController
         RefreshStaging();
     }
 
-    public void StageEquipSpell(int slotIndex, string equipSpellId)
+    public void StageEquipSpell(int slotIndex, string equipSpellId, int handIndex)
     {
         if (slotIndex < 0 || slotIndex >= _equipSlots.Length) return;
 
-        // Evict the same cardId from any other slot so the same card can't occupy two slots.
-        if (!string.IsNullOrEmpty(equipSpellId))
+        // Evict the same hand-slot from any other equip slot so the same card instance
+        // can't occupy two slots. Uses handIndex so two copies of the same cardId are allowed.
+        if (handIndex >= 0)
         {
             for (int i = 0; i < _equipSlots.Length; i++)
             {
-                if (i != slotIndex && _equipSlots[i] == equipSpellId)
+                if (i != slotIndex && _equipHandIndices[i] == handIndex)
+                {
                     _equipSlots[i] = null;
+                    _equipHandIndices[i] = -1;
+                }
             }
         }
 
         _equipSlots[slotIndex] = equipSpellId;
+        _equipHandIndices[slotIndex] = handIndex;
         RefreshStaging();
     }
 
@@ -57,6 +64,7 @@ internal class FusionController : IFusionController
     {
         if (slotIndex < 0 || slotIndex >= _equipSlots.Length) return;
         _equipSlots[slotIndex] = null;
+        _equipHandIndices[slotIndex] = -1;
         RefreshStaging();
     }
 
@@ -64,6 +72,7 @@ internal class FusionController : IFusionController
     {
         _baseCardId = null;
         Array.Clear(_equipSlots, 0, _equipSlots.Length);
+        for (int i = 0; i < _equipHandIndices.Length; i++) _equipHandIndices[i] = -1;
         RefreshStaging();
     }
 

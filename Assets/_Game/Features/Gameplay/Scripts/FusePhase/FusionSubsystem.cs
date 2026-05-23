@@ -30,7 +30,7 @@ public class FusionSubsystem : IFusionSubsystem
     }
 
     public void StageBase(string cardId) => _controller.StageBase(cardId);
-    public void StageEquipSpell(int slotIndex, string equipSpellId) => _controller.StageEquipSpell(slotIndex, equipSpellId);
+    public void StageEquipSpell(int slotIndex, string equipSpellId, int handIndex) => _controller.StageEquipSpell(slotIndex, equipSpellId, handIndex);
     public void ClearSlot(int slotIndex) => _controller.ClearSlot(slotIndex);
     public void ClearStaging() => _controller.ClearStaging();
     public Task ConfirmFusion() => _controller.ConfirmFusion();
