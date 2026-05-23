@@ -48,11 +48,7 @@ internal class GameStateModel : IGameStateModel
         _currentCombatActor.Value = data.CurrentCombatActor;
 
         if (data.PlayerReady == null) return;
-        for (int i = 0; i < data.PlayerReady.Length; i++)
-        {
-            int playerId = i + 1;
-            if (playerId >= _playerReady.Length) break;
-            _playerReady[playerId] = data.PlayerReady[i];
-        }
+        for (int i = 0; i < data.PlayerReady.Length && i < _playerReady.Length; i++)
+            _playerReady[i] = data.PlayerReady[i];
     }
 }

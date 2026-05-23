@@ -486,6 +486,19 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         for (int i = 0; i < PlayerReady.Length; i++)
             readyArr[i] = PlayerReady.Get(i);
 
+        // Detect and fire events for changed ready states
+        foreach (var player in Runner.ActivePlayers)
+        {
+            int playerId = player.PlayerId;
+            if (playerId >= 0 && playerId < readyArr.Length)
+            {
+                bool newReady = readyArr[playerId];
+                bool oldReady = _gameState.IsReady(player);
+                if (newReady != oldReady)
+                    _gameState.OnPlayerReadyChanged(player, newReady);
+            }
+        }
+
         _gameState.OnAuthoritativeStateReceived(new GameStateData
         {
             Phase = CurrentPhase,
