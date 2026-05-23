@@ -73,9 +73,10 @@ Open the `PanelVisibilityRouter` GameObject in the Gameplay scene (added in F1 w
 
 | `_phasePanels[]` entry | Phase enum value | Panel GameObject | Status |
 |---|---|---|---|
-| Entry 3 | `DrawPhase` | `PhaseInteractionPanel_DrawCard` root GameObject | ⬜ |
+| — | `DrawPhase` | `HandPanelAnchor` root | ⬜ |
+| — | `DrawPhase` | `PhaseInteractionPanel_DrawCard` root GameObject | ⬜ |
 
-> Entry 3 was already listed as a placeholder in the F1 wiring doc. Assign the actual `PhaseInteractionPanel_DrawCard` GameObject here.
+> DrawPhase shows **two panels simultaneously**: the Hand panel (so the player can see their current hand while picking cards to keep) and the DrawCard panel (the keep/discard UI). Both must be entries in `_phasePanels[]`. `HandPanelAnchor` entry was listed in wiring.md F1 — verify it is assigned there.
 
 ---
 

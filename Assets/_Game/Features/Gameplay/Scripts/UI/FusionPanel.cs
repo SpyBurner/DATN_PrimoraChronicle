@@ -26,6 +26,9 @@ public class FusionPanel : MonoBehaviour
     [Header("Fuse Slots (drop targets)")]
     [SerializeField] private FuseSlot[] _fuseSlots = new FuseSlot[4];
 
+    [Header("Timer")]
+    [SerializeField] private TMP_Text _timerText;
+
     [Header("Confirm")]
     [SerializeField] private Button _confirmButton;
     [SerializeField] private TMP_Text _confirmText;
@@ -43,6 +46,7 @@ public class FusionPanel : MonoBehaviour
         // if (_unitStatsText == null) throw new System.Exception("[FusionPanel._unitStatsText] Not assigned in Inspector — see wiring-F3.md F3.2");
         if (_normalAttackSlot == null) throw new System.Exception("[FusionPanel._normalAttackSlot] Not assigned in Inspector — see wiring-F3.md F3.2");
         if (_movementSlot == null) throw new System.Exception("[FusionPanel._movementSlot] Not assigned in Inspector — see wiring-F3.md F3.2");
+        if (_timerText == null) throw new System.Exception("[FusionPanel._timerText] Not assigned in Inspector — see wiring-F3.md F3.2");
         if (_confirmButton == null) throw new System.Exception("[FusionPanel._confirmButton] Not assigned in Inspector — see wiring-F3.md F3.2");
         // if (_confirmText == null) throw new System.Exception("[FusionPanel._confirmText] Not assigned in Inspector — see wiring-F3.md F3.2");
         if (_handPanel == null) throw new System.Exception("[FusionPanel._handPanel] Not assigned in Inspector — see wiring-F3.md F3.2");
@@ -67,6 +71,7 @@ public class FusionPanel : MonoBehaviour
         _fusion.StagingChanged += OnStagingChanged;
         _fusion.FusionConfirmed += OnFusionConfirmed;
         _gameState.PhaseChanged += OnPhaseChanged;
+        _gameState.PhaseTimeRemainingChanged += OnPhaseTimeRemainingChanged;
         _confirmButton?.onClick.AddListener(OnConfirmClicked);
 
         for (int i = 0; i < _fuseSlots.Length; i++)
@@ -83,6 +88,7 @@ public class FusionPanel : MonoBehaviour
         _fusion.StagingChanged -= OnStagingChanged;
         _fusion.FusionConfirmed -= OnFusionConfirmed;
         _gameState.PhaseChanged -= OnPhaseChanged;
+        _gameState.PhaseTimeRemainingChanged -= OnPhaseTimeRemainingChanged;
         _confirmButton?.onClick.RemoveListener(OnConfirmClicked);
 
         for (int i = 0; i < _fuseSlots.Length; i++)
@@ -99,6 +105,16 @@ public class FusionPanel : MonoBehaviour
                 _confirmed = false;
                 SetConfirmInteractable(true);
             }
+        }
+        catch (Exception ex) { Debug.LogException(ex); }
+    }
+
+    private void OnPhaseTimeRemainingChanged(float seconds)
+    {
+        try
+        {
+            int s = Mathf.CeilToInt(seconds);
+            _timerText.text = s.ToString();
         }
         catch (Exception ex) { Debug.LogException(ex); }
     }
@@ -210,6 +226,7 @@ public class FusionPanel : MonoBehaviour
         if (_confirmed) return;
         SetConfirmInteractable(false);
         await _fusion.ConfirmFusion();
+        _gameState.RequestSetLocalReady(true);
     }
 
     public void StageBase(string cardId)

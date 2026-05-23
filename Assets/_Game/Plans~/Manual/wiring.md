@@ -202,15 +202,27 @@ Wire `GameplayPlayerProfileUI` on the root of **each** `Profile_Gameplay.prefab`
 
 Wire `PanelVisibilityRouter` on an empty GameObject in the Gameplay scene.
 
-| `_phasePanels[]` entry | Phase enum value | Panel GameObject |
-|---|---|---|
-| Entry 0 | `StartPhase` | `PhaseInteractionPanel_DeckChoose` | ⬜ |
-| Entry 1 | `MainPhase` | `PhaseInteractionPanel_Fusion` | ⬜ |
-| Entry 2 | `CombatPhase` | `PhaseInteractionPanel_TurnOrder` | ⬜ |
-| Entry 3 | `DrawPhase` | `PhaseInteractionPanel_DrawCard` | ⬜ |
-| Entry 4 | `GameOver` | `PhaseInteractionPanel_MatchResult` | ⬜ |
+The router drives `SetActive` on anchor/panel root GameObjects. Multiple entries with the same Phase are all shown simultaneously. Each row is one array element.
 
-> Note: Hand, Skill, and TurnOrder drawer anchors are also controlled by this router. Add them as additional entries for the phases where they should be visible (e.g., Hand and Skill drawers during MainPhase). The `PanelDrawer` component handles the sliding animation inside the anchor, but the router controls the overall anchor visibility.
+| `_phasePanels[]` entry | Phase | GameObject to assign | Status |
+|---|---|---|---|
+| — | `StartPhase` | `PhaseInteractionPanel_DeckChoose` root | ⬜ |
+| — | `MainPhase` | `HandPanelAnchor` root | ⬜ |
+| — | `MainPhase` | `PhaseInteractionPanel_Fusion` root | ⬜ |
+| — | `CombatPhase` | `SkillPanelAnchor` root | ⬜ |
+| — | `CombatPhase` | `TurnOrderPanelAnchor` root | ⬜ |
+| — | `DrawPhase` | `HandPanelAnchor` root | ⬜ |
+| — | `DrawPhase` | `PhaseInteractionPanel_DrawCard` root | ⬜ |
+| — | `GameOver` | `PhaseInteractionPanel_MatchResult` root | ⬜ |
+
+> **Phase layout summary (source of truth: `panel_details.md`):**
+> - StartPhase: `PhaseInteractionPanel_DeckChoose` only
+> - MainPhase: `HandPanelAnchor` (drawer, card drag source) + `PhaseInteractionPanel_Fusion` (direct, drop target)
+> - CombatPhase: `SkillPanelAnchor` (current actor's skills) + `TurnOrderPanelAnchor`
+> - DrawPhase: `HandPanelAnchor` (view/keep hand) + `PhaseInteractionPanel_DrawCard`
+> - GameOver: `PhaseInteractionPanel_MatchResult` only
+>
+> Drawer-wrapped panels (Hand, Skill, TurnOrder) use their anchor root as the router target. Direct panels (DeckChoose, Fusion, DrawCard, MatchResult) are router targets themselves — no anchor wrapper.
 ---
 
 ## F2+ Wiring

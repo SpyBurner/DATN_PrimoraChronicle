@@ -50,7 +50,7 @@ public class HandPanel : MonoBehaviour
     {
         try
         {
-            bool show = phase == GameplayPhase.MainPhase || phase == GameplayPhase.CombatPhase;
+            bool show = phase == GameplayPhase.MainPhase || phase == GameplayPhase.DrawPhase;
             gameObject.SetActive(show);
         }
         catch (Exception ex) { Debug.LogException(ex); }

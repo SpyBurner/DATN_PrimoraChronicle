@@ -7,6 +7,7 @@ using Zenject;
 public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetworkBridge
 {
     [Inject(Optional = true)] private IPlayerCardZoneSubsystem _subsystem;
+    [Inject(Optional = true)] private IGameStateSubsystem _gameState;
     [Inject(Optional = true)] private ICardLoadingManagerSubsystem _cardLoading;
     [Inject(Optional = true)] private IProfileSubsystem _profileSubsystem;
     [Inject(Optional = true)] private IBehaviorRegistrySubsystem _behaviorRegistry;
@@ -46,6 +47,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
         {
             var ctx = FindFirstObjectByType<SceneContext>();
             _subsystem = ctx?.Container.Resolve<IPlayerCardZoneSubsystem>();
+            _gameState = ctx?.Container.Resolve<IGameStateSubsystem>();
             _cardLoading = ctx?.Container.Resolve<ICardLoadingManagerSubsystem>();
             _profileSubsystem = ctx?.Container.TryResolve<IProfileSubsystem>();
             _behaviorRegistry = ctx?.Container.Resolve<IBehaviorRegistrySubsystem>();
@@ -292,6 +294,12 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void Rpc_RequestPlayMainPhaseSpell(string cardId, HexCoord target)
     {
+        if (_gameState != null && _gameState.IsReady(Object.InputAuthority))
+        {
+            _logger?.LogWarning($"[PlayerCardZone] MainPhaseSpell rejected: player {Object.InputAuthority} already confirmed fusion.");
+            return;
+        }
+
         bool found = false;
         for (int i = 0; i < HandCount; i++)
         {

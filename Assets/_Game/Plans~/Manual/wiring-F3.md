@@ -74,10 +74,11 @@ Fusion authority, MainPhase spell play, Champion pinning, ready/confirm + auto-a
 | Property | Value |
 |---|---|
 | Components | `RectTransform` + `FusionPanel` MonoBehaviour |
-| Parent | `SkillPanelAnchor` → `PanelDrawer._panel` reference (or dedicated FusionPanelAnchor) |
+| Note | Direct phase panel — no PanelDrawer anchor. Shown/hidden by `PanelVisibilityRouter`. |
 
 | Field on `FusionPanel` | Assign | Status |
 |---|---|---|
+| `_timerText` | `TimeValueText` TMP_Text (MainPhase countdown) | ⬜ |
 | `_unitSlot` | `UnitSlot` Transform child (base card display area) | ⬜ |
 | `_unitNameText` | `UnitNameText` (TMP_Text child of `_unitSlot`) | ⬜ |
 | `_unitStatsText` | `UnitStatsText` (TMP_Text child of `_unitSlot`) | ⬜ |
@@ -95,12 +96,9 @@ Fusion authority, MainPhase spell play, Champion pinning, ready/confirm + auto-a
 > Injection (`IFusionSubsystem`, `IPlayerCardZoneSubsystem`, `IGameStateSubsystem`,
 > `INetworkManagerSubsystem`, `ICardLoadingManagerSubsystem`) via Zenject — no Inspector assignment.
 
-### Wire `SkillPanelAnchor.prefab` (or FusionPanelAnchor) PanelDrawer
+> `PhaseInteractionPanel_Fusion.prefab` is **not drawer-wrapped**. It is a full-screen or large phase panel shown/hidden directly by `PanelVisibilityRouter` — the same pattern as `PhaseInteractionPanel_DeckChoose` and `PhaseInteractionPanel_DrawCard`. No anchor, no `PanelDrawer`, no Toggle_Sidebar.
 
-| Field on `PanelDrawer` | Assign | Status |
-|---|---|---|
-| `_panel` | `PhaseInteractionPanel_Fusion` RectTransform | ⬜ |
-| `_toggle` | `Toggle_Sidebar` Toggle component on the anchor | ⬜ |
+No `PanelDrawer` wiring needed for this panel.
 
 ---
 
@@ -204,13 +202,12 @@ Add to the `_phasePanels[]` array on `PanelVisibilityRouter` (in addition to F1 
 | Entry | Phase enum value | Panel GameObject | Status |
 |---|---|---|---|
 | Hand anchor | `MainPhase` | `HandPanelAnchor` root | ⬜ |
-| Hand anchor | `CombatPhase` | `HandPanelAnchor` root | ⬜ |
-| Fusion anchor | `MainPhase` | `SkillPanelAnchor` (or `FusionPanelAnchor`) root | ⬜ |
+| Fusion panel | `MainPhase` | `PhaseInteractionPanel_Fusion` root | ⬜ |
 
-> `PanelVisibilityRouter` already supports multi-phase entries (multiple rows with the same panel
-> for different phases). `FusionPanel` already self-hides on `OnPhaseChanged` (sets
-> `gameObject.SetActive(phase == MainPhase)`) so the router entry is belt-and-suspenders but
-> recommended for consistency.
+> `SkillPanelAnchor` is NOT listed here — it is CombatPhase only (see wiring-F4.md).
+> `PhaseInteractionPanel_Fusion` is controlled directly by the router (no drawer/anchor wrapper).
+>
+> **MainPhase panel layout: HandPanelAnchor (left drawer, card drag source) + PhaseInteractionPanel_Fusion (direct, drop target). No other panels.**
 
 ---
 

@@ -294,10 +294,10 @@ public struct PlayerCardZonePrivateData : INetworkStruct {
 }
 
 public interface IPlayerCardZoneSubsystem : ISubsystem {
-    // owner-only events — fire only on the owning client (private NetworkView is not in others' AoI)
-    event UnityAction<IReadOnlyList<string>> OwnHandChanged;
+    // fires on all clients but carries the owning PlayerRef — handlers filter by local player
+    event UnityAction<PlayerRef, IReadOnlyList<string>> HandChanged;
 
-    IReadOnlyList<string> GetOwnHand();   // returns local player's hand; empty for non-owners
+    IReadOnlyList<string> GetHand(PlayerRef player);   // returns the given player's hand; non-owners get an empty list
 
     // Server intents (LOCAL_INPUT_RPC)
     void RequestDraw(PlayerRef p, int count);
@@ -447,8 +447,8 @@ Each row is **independently implementable and incrementally testable**. The "Com
 
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
-| F3.1 | **Hand panel** | §13 | `HandPanel` MonoBehaviour on `PhaseInteractionPanel_Hand.prefab`. Subscribes `IPlayerCardZoneSubsystem.OwnHandChanged` (local player only). Renders into `CardSlot [×N]`. Drawer wrapped by `HandPanelAnchor.prefab` via `PanelDrawer`. |
-| F3.2 | **Fusion staging UI** | §4 | `FusionPanel` on `PhaseInteractionPanel_Fusion.prefab`. Wires `UnitSlot`, `MovementSlot` (always shown; populates Skills[0] with `base_move` behavior, BaseCD=1, TargetMask=EmptyTile, Range=1 (adjacent hex, fixed for all units), AOE=center tile only), `NormalAttackSlot` (always shown; populates Skills[1] with `base_normal_attack` behavior, BaseCD=1, TargetMask/Range/DisplayPattern from card data), `FuseSlot1..4` (populates Skills[2-5]; one auto-occupied if base has `grants_skill`). `Button_Confirm` → `IFusionSubsystem.ConfirmFusion()`. |
+| F3.1 | **Hand panel** | §13 | `HandPanel` MonoBehaviour on `PhaseInteractionPanel_Hand.prefab`. Subscribes `IPlayerCardZoneSubsystem.OwnHandChanged` (local player only). Renders into `CardSlot [×N]`. Drawer wrapped by `HandPanelAnchor.prefab` via `PanelDrawer`. **Visible during MainPhase** (card drag source for Fusion) **and DrawPhase** (card management / keep selection) — `PanelVisibilityRouter` shows `HandPanelAnchor` for both phases. |
+| F3.2 | **Fusion staging UI** | §4 | `FusionPanel` on `PhaseInteractionPanel_Fusion.prefab`. **Direct phase panel — no PanelDrawer anchor; shown/hidden directly by `PanelVisibilityRouter` for `MainPhase`.** Wires `TimeValueText` (TMP_Text timer display — `IGameStateSubsystem.PhaseTimeRemainingChanged`), `UnitSlot`, `MovementSlot` (always shown; populates Skills[0] with `base_move` behavior, BaseCD=1, TargetMask=EmptyTile, Range=1 (adjacent hex, fixed for all units), AOE=center tile only), `NormalAttackSlot` (always shown; populates Skills[1] with `base_normal_attack` behavior, BaseCD=1, TargetMask/Range/DisplayPattern from card data), `FuseSlot1..4` (populates Skills[2-5]; one auto-occupied if base has `grants_skill`). `Button_Confirm` → `IFusionSubsystem.ConfirmFusion()`. |
 | F3.3 | **Fusion authority** | §4, §1 | `FusionModel`, `FusionController`, `FusionSubsystem`, `FusionNetworkView`. Validates: ≤1 unit/turn, exactly 1 base, ≤4 slots, base's `grants_skill` occupies 1 slot if present. On confirm (drop-pod mechanic): `FusionNetworkView.SpawnUnit()` first calls `ServerClearDeployArea(owner)` — finds any unit on the deploy tile, applies its `death_anchor` to the owner's HP via `PlayerCardZoneNetworkView.ServerApplyDamage`, despawns it, removes any tile effect via `TileEffectSubsystem` — then spawns the fused `NetworkUnit` on the now-empty Deploy Area tile. Immediately after spawn: discard base Troop card and all EquipSpell cards via `PlayerCardZoneNetworkView.ServerDiscardFusionCard(cardId)`. **The Champion card is never discarded** — it is always available and must never enter the Discard Pile. |
 | F3.7 | **Forfeit / disconnect** | §6 Win | Override `OnPlayerLeft(NetworkRunner, PlayerRef)` in `GameStateNetworkView`. On fire (server-authority only): iterate `IUnitSubsystem.AllUnits`, for each unit owned by the leaving player apply its `death_anchor` to the player's `PlayerCardZoneNetworkView.HP` and despawn it; then call `ServerCheckElimination()`. The remaining player is declared winner via the normal win-condition path. |
 | F3.4 | **MainPhaseSpell play** | §3, §6 Main | `IPlayerCardZoneSubsystem.RequestPlayMainPhaseSpell(cardId, target)`. Server validates the player has **not yet confirmed** fusion (`PlayerReady[i] == false`); rejects if already confirmed. Routes to `BehaviorRegistrySubsystem.ResolveMainPhaseSpell(behaviorId).Execute(target)`. Card moves to discard immediately. |
@@ -479,7 +479,7 @@ Each row is **independently implementable and incrementally testable**. The "Com
 
 | # | Feature | Rule ref | Components |
 |---|---|---|---|
-| F5.1 | **Draw 2 + hand-keep UI** | §5 Draw, §13 | `DrawPhasePanel` on `PhaseInteractionPanel_DrawCard.prefab`. Shows 2 new + current hand. Drag-and-drop keep selection. `Button_Confirm` → `IPlayerCardZoneSubsystem.RequestKeepCards(keep)`. Drops cards go to discard. Hand max=6. |
+| F5.1 | **Draw 2 + hand-keep UI** | §5 Draw, §13 | `DrawPhasePanel` on `PhaseInteractionPanel_DrawCard.prefab`. Shows 2 new + current hand. Drag-and-drop keep selection. `Button_Confirm` → `IPlayerCardZoneSubsystem.RequestKeepCards(keep)`. Drops cards go to discard. Hand max=6. **`HandPanelAnchor` is also shown during DrawPhase** (so the player can see their current hand alongside this panel) — both are entries in `PanelVisibilityRouter._phasePanels[]` for `DrawPhase`. |
 | F5.2 | **Reshuffle on empty deck** | §13 | `PlayerCardZoneController.DrawCard()`: if deck empty, shuffle Discard into Deck immediately, then draw. |
 | F5.3 | **Draw-phase ready/confirm + auto-advance** | §5 Draw | `DrawPhasePanel.Button_Confirm` calls `IPlayerCardZoneSubsystem.RequestKeepCards(keep)` (card payload), then on success calls `IGameStateSubsystem.RequestSetLocalReady(true)` (phase advance). Timer-0 fallback: `GameStateController` flips remaining unready players. |
 
@@ -661,9 +661,9 @@ All under `Features/Gameplay/Scripts/UI/`. Interfaces under `Core/Scripts/Interf
 | `GameplayPlayerProfileUI.cs` | `Profile_Gameplay.prefab` | `IProfileSubsystem` (own PFP) + `IPlayerRosterSubsystem` (HP / Name / UserId for all players) + `IGameStateSubsystem` (PlayerReady display) |
 | `GameplayDeckChoosePanel.cs` (finish) | `PhaseInteractionPanel_DeckChoose.prefab` | `IGameplayDeckChooseSubsystem`, `IGameplayDeckSubsystem` |
 | `GameplayDeckSelectOverlay.cs` | `Overlay_Gameplay_Decks.prefab` | `IGameplayDeckSubsystem.DecksChanged` |
-| `DrawPhasePanel.cs` | `PhaseInteractionPanel_DrawCard.prefab` | `IPlayerCardZoneSubsystem.OwnHandChanged` |
-| `FusionPanel.cs` | `PhaseInteractionPanel_Fusion.prefab` | `IFusionSubsystem.StagingChanged`, `IPlayerCardZoneSubsystem.OwnHandChanged` |
-| `HandPanel.cs` | `PhaseInteractionPanel_Hand.prefab` | `IPlayerCardZoneSubsystem.OwnHandChanged` |
+| `DrawPhasePanel.cs` | `PhaseInteractionPanel_DrawCard.prefab` | `IPlayerCardZoneSubsystem.HandChanged` (filters by local player) |
+| `FusionPanel.cs` | `PhaseInteractionPanel_Fusion.prefab` | `IFusionSubsystem.StagingChanged`, `IFusionSubsystem.FusionConfirmed`, `IGameStateSubsystem.PhaseChanged`, `IGameStateSubsystem.PhaseTimeRemainingChanged` |
+| `HandPanel.cs` | `PhaseInteractionPanel_Hand.prefab` (drawer-wrapped) | `IPlayerCardZoneSubsystem.HandChanged` (filters by local player) — visible in **MainPhase** (drag source) and **DrawPhase** (card management) |
 | `SkillPanel.cs` | `PhaseInteractionPanel_Skill.prefab` | `ICombatSubsystem.CurrentTurnChanged`, `ICombatSubsystem.TurnEnded`, `IUnitSubsystem.OwnUnitSkillsChanged`. On each trigger: reads `CurrentActorCanMove`, `CurrentActorCanAct`, and each `Skills[i].CurrentCD` to set slot interactability. No dedicated HasMoved/HasActed events. `Button_SkipTurn` → `ICombatSubsystem.EndTurn()` (always enabled while it is the local player's unit's turn). |
 | `TurnOrderPanel.cs` | `PhaseInteractionPanel_TurnOrder.prefab` | `ICombatSubsystem.QueueChanged` — each `CombatQueueEntry.CardId` used to fetch card image via `ICardLoadingManagerSubsystem` |
 | `MatchResultPanel.cs` | `PhaseInteractionPanel_MatchResult.prefab` | `IMatchResultSubsystem.MatchEnded`, `IMatchRewardsSubsystem.OwnRewardsReceived`, `IPlayerRosterSubsystem` (names / UserIds for PFP fetch) |
@@ -673,7 +673,7 @@ All under `Features/Gameplay/Scripts/UI/`. Interfaces under `Core/Scripts/Interf
 
 ### 6.2 Prefabs to wire (no new prefabs — only component-attach + serialized field assignment)
 
-For each prefab listed in §1.4, drop the matching `*.cs` script onto its root and serialize-field-assign children per `Gameplay_UI_Panels_details.md`. Use the existing `Tools/Primora/Add PanelDrawers to Anchors` editor menu to (re)wire drawer toggles on Hand/Skill/TurnOrder anchors.
+For each prefab listed in §1.4, drop the matching `*.cs` script onto its root and serialize-field-assign children per `Gameplay_UI_Panels_details.md`. Use the existing `Tools/Primora/Add PanelDrawers to Anchors` editor menu to (re)wire drawer toggles on Hand/Skill/TurnOrder anchors. **Drawer-wrapped panels** (Hand, Skill, TurnOrder) use their anchor root (`HandPanelAnchor`, `SkillPanelAnchor`, `TurnOrderPanelAnchor`) as the `PanelVisibilityRouter` target. **Direct phase panels** (DeckChoose, Fusion, DrawCard, MatchResult) are router targets themselves — no anchor wrapper. `SkillPanelAnchor` is **CombatPhase only**; `HandPanelAnchor` is shown in both **MainPhase** and **DrawPhase**.
 
 ### 6.3 Profile-to-Core preparation (in scope for Track B, not the migration itself)
 
@@ -691,11 +691,11 @@ To keep Gameplay agnostic of where Profile lives:
 1. **Scene load:** From Lobby Battle, Gameplay scene loads, HUD visible, both `Profile_Player` and `Profile_Enemy1` populated from `IProfileSubsystem` events. `Profile_Enemy2` hidden.
 2. **Phase indicator:** Mock or real `PhaseChanged` fires → `PhaseNameValueText` updates "START PHASE" → "MAIN PHASE" etc.
 3. **DeckChoose overlay:** Click `DeckButton` → `Overlay_Gameplay_Decks` appears with 8 deck slots populated from `IGameplayDeckSubsystem.DecksChanged` (fetched directly from `/api/decks` — independent of Lobby's `IDeckSubsystem`). Click slot → name+id propagate back to `PhaseInteractionPanel_DeckChoose`'s `DeckButton`. Click Confirm → panel hides on `IsReadyChanged(true)`.
-4. **Hand drawer:** `Toggle_Sidebar` on `HandPanelAnchor` slides the hand panel open via `PanelDrawer` DOTween. Cards visible per `HandChanged`.
+4. **Hand drawer:** `Toggle_Sidebar` on `HandPanelAnchor` slides the hand panel open via `PanelDrawer` DOTween. Cards visible per `HandChanged` (filtered by local player). Panel is shown in both MainPhase (drag source for Fusion) and DrawPhase (card management) — verify `PanelVisibilityRouter` has `HandPanelAnchor` entries for both phases.
 5. **Fusion flow:** Drag from `HandPanel.CardSlot` → `FusionPanel.FuseSlot1`. Calls `IFusionSubsystem.StageEquipSpell(0, cardId)`. `StagingChanged` event re-renders. Confirm → panel closes.
 6. **Targeting overlay:** Click a skill in `SkillPanel` → board tiles in range highlight yellow; valid (per `target_condition`) turn green on hover; invalid red. Click → confirmation → highlights clear.
 7. **TurnOrder:** Mock `QueueChanged` with 5 units → `Content` scroll view populated with 5 `CardSlot_Empty` items.
-8. **DrawPhase:** Mock 2 new cards → `DrawPhasePanel` shows 2 + current hand. Drag to discard zone. Confirm → kept cards reported via `RequestKeepCards`.
+8. **DrawPhase:** Mock 2 new cards → `DrawPhasePanel` shows 2 + current hand. `HandPanelAnchor` is also visible alongside `PhaseInteractionPanel_DrawCard` (both shown simultaneously by `PanelVisibilityRouter`). Drag to discard zone. Confirm → kept cards reported via `RequestKeepCards`.
 9. **MatchResult:** Mock `MatchEnded` event with `Winner=PlayerRef.Local` → crown visible on Player0 slot, Gold/XP/Time populated. Confirm → `ReturnToLobby`.
 
 ---

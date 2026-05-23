@@ -174,6 +174,7 @@ public class DrawPhasePanel : MonoBehaviour
         }
 
         _cardZone.RequestKeepCards(_localPlayer, keep);
+        _gameState.RequestSetLocalReady(true);
         if (_confirmButton != null) _confirmButton.interactable = false;
     }
 
