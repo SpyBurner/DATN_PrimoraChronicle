@@ -6,6 +6,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
 {
     [Inject(Optional = true)] private IGameStateSubsystem _gameState;
     [Inject(Optional = true)] private IUnitSubsystem _unitSubsystem;
+    [Inject(Optional = true)] private INetworkManagerSubsystem _networkManager;
     [Inject(Optional = true)] private IDebugLogger _logger;
 
     [Networked] public GameplayPhase CurrentPhase { get; set; }
@@ -37,6 +38,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             {
                 _gameState = ctx.Container.Resolve<IGameStateSubsystem>();
                 _unitSubsystem = ctx.Container.TryResolve<IUnitSubsystem>();
+                _networkManager = ctx.Container.TryResolve<INetworkManagerSubsystem>();
                 _logger  = ctx.Container.Resolve<IDebugLogger>();
             }
             else
@@ -59,6 +61,9 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             // Reset all ready flags
             for (int i = 0; i < PlayerReady.Length; i++) PlayerReady.Set(i, false);
             _logger?.Log("[GameStateNetworkView] Spawned as StateAuthority. Phase=StartPhase.");
+
+            if (_networkManager != null)
+                _networkManager.PlayerLeft += HandlePlayerLeft;
         }
 
         PushState();
@@ -67,6 +72,8 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         _gameState?.RegisterNetworkBridge(null);
+        if (_networkManager != null)
+            _networkManager.PlayerLeft -= HandlePlayerLeft;
     }
 
     public override void FixedUpdateNetwork()
@@ -492,7 +499,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
 
     // ── Forfeit / disconnect ─────────────────────────────────────────────
 
-    public override void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    private void HandlePlayerLeft(PlayerRef player)
     {
         if (!Object.HasStateAuthority) return;
         if (IsMatchOver) return;
