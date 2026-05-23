@@ -11,6 +11,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
     [Inject(Optional = true)] private IBoardSubsystem _boardSubsystem;
     [Inject(Optional = true)] private IGameStateSubsystem _gameState;
     [Inject(Optional = true)] private ICardLoadingManagerSubsystem _cardLoading;
+    [Inject(Optional = true)] private ITileEffectSubsystem _tileEffectSubsystem;
     [Inject(Optional = true)] private IDebugLogger _logger;
 
     [Header("Unit Prefab")]
@@ -38,6 +39,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
             _boardSubsystem = ctx?.Container.Resolve<IBoardSubsystem>();
             _gameState = ctx?.Container.Resolve<IGameStateSubsystem>();
             _cardLoading = ctx?.Container.Resolve<ICardLoadingManagerSubsystem>();
+            _tileEffectSubsystem = ctx?.Container.TryResolve<ITileEffectSubsystem>();
             _logger = ctx?.Container.Resolve<IDebugLogger>();
         }
 
@@ -110,6 +112,15 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
 
         SpawnUnit(Object.InputAuthority, baseCardId, equipIds);
 
+        // Discard base card if it is a troop — champion is never discarded
+        if (_cardLoading != null && _cardLoading.TryGetCardData(baseCardId, out CardData baseData)
+            && baseData.type == "troop")
+            DiscardFusionCardForPlayer(Object.InputAuthority, baseCardId);
+
+        // Discard all equip spells immediately
+        foreach (var equipId in equipIds)
+            DiscardFusionCardForPlayer(Object.InputAuthority, equipId);
+
         HasFusedThisTurn = true;
         IsConfirmed = true;
 
@@ -117,6 +128,19 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
     }
 
     // â”€â”€ Server-side API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+    public void ServerAutoConfirmFusion(string championId)
+    {
+        if (!Object.HasStateAuthority) return;
+        if (HasFusedThisTurn) return;
+
+        BaseCard = championId;
+        EquipSpellCount = 0;
+        SpawnUnit(Object.InputAuthority, championId, System.Array.Empty<string>());
+        HasFusedThisTurn = true;
+        IsConfirmed = true;
+        _logger?.Log($"[FusionNetworkView] Auto-confirmed fusion (Champion only) for {Object.InputAuthority}.");
+    }
 
     public void ServerResetForNewTurn()
     {
@@ -193,6 +217,8 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
             ? _boardSubsystem.GetDeployArea(owner)
             : new HexCoord(0, 0);
 
+        ServerClearDeployArea(owner, deployCoord);
+
         Vector3 spawnPos = _boardSubsystem != null
             ? _boardSubsystem.GetWorldPosition(deployCoord)
             : Vector3.zero;
@@ -234,5 +260,48 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
             IsConfirmed = IsConfirmed,
             DeployedUnitId = DeployedUnitId.ToString()
         });
+    }
+
+    // ── Deploy area helpers ──────────────────────────────────────────────────
+
+    private void ServerClearDeployArea(PlayerRef owner, HexCoord deployCoord)
+    {
+        if (_unitSubsystem == null) return;
+
+        var allUnits = _unitSubsystem.AllUnits;
+        if (allUnits == null) return;
+
+        var coordinator = GameplayNetworkCoordinator.Instance;
+
+        foreach (var netId in allUnits)
+        {
+            if (!_unitSubsystem.TryGetPublic(netId, out UnitPublicData data)) continue;
+            if (data.Position.P != deployCoord.P || data.Position.Q != deployCoord.Q) continue;
+            if (data.CurrentHP <= 0) continue;
+
+            if (data.DeathAnchor > 0 && coordinator != null)
+            {
+                var pczView = coordinator.GetPlayerCardZoneView(data.Owner);
+                pczView?.ServerApplyDamage(data.DeathAnchor);
+            }
+
+            _boardSubsystem?.SetOccupant(deployCoord, null);
+
+            if (Runner.TryFindObject(netId, out var netObj))
+                Runner.Despawn(netObj);
+
+            _logger?.Log($"[FusionNetworkView] Evicted unit {netId} from deploy area of {owner}.");
+            break;
+        }
+
+        _tileEffectSubsystem?.OnEffectRemovedAt(deployCoord);
+    }
+
+    private void DiscardFusionCardForPlayer(PlayerRef owner, string cardId)
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+        var pczView = coordinator.GetPlayerCardZoneView(owner);
+        pczView?.ServerDiscardFusionCard(cardId);
     }
 }

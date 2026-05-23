@@ -165,6 +165,13 @@ public class UnitNetworkView : NetworkBehaviour
         HasMovedThisTurn = false;
     }
 
+    public void ServerResetOneTimeFlags()
+    {
+        if (!Object.HasStateAuthority) return;
+        for (int i = 0; i < SkillCount; i++)
+            SkillOneTimeDisabled.Set(i, false);
+    }
+
     public void ServerTickCooldowns()
     {
         if (!Object.HasStateAuthority) return;

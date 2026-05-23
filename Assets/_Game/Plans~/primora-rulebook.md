@@ -75,7 +75,7 @@ All deployable units (Champion and Troop cards) carry the following stats:
 - Duplicate EquipSpell cards are allowed in the same fusion.
 - A unit may be deployed with fewer than 4 EquipSpells fused (including zero).
 - The fully assembled unit is placed on the player's Deploy Area tile.
-- All cards used in a fusion (the base unit card and all fused EquipSpells) go to the Discard Pile at the end of the Combat Phase, regardless of whether the unit survived or died.
+- All cards used in a fusion go to the Discard Pile **immediately when the unit is spawned** (at deployment confirmation), not at the end of the Combat Phase. Exception: the Champion card is never discarded — it is always available for fusion regardless of hand/deck/discard state. Only Troop base cards and EquipSpell cards are discarded on spawn.
 
 ---
 

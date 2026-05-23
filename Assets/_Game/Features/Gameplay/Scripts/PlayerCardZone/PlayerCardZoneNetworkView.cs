@@ -191,6 +191,15 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
         HP = Mathf.Max(0, HP - amount);
     }
 
+    public void ServerDiscardFusionCard(string cardId)
+    {
+        if (!Object.HasStateAuthority) return;
+        if (string.IsNullOrEmpty(cardId)) return;
+        if (DiscardCount >= DiscardCapacity) return;
+        Discard.Set(DiscardCount, cardId);
+        DiscardCount++;
+    }
+
     // ── Draw Phase Server API ────────────────────────────────────────────
 
     public void ServerStartDrawPhase()

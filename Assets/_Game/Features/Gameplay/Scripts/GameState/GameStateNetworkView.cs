@@ -5,6 +5,7 @@ using Zenject;
 public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
 {
     [Inject(Optional = true)] private IGameStateSubsystem _gameState;
+    [Inject(Optional = true)] private IUnitSubsystem _unitSubsystem;
     [Inject(Optional = true)] private IDebugLogger _logger;
 
     [Networked] public GameplayPhase CurrentPhase { get; set; }
@@ -35,6 +36,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             if (ctx != null)
             {
                 _gameState = ctx.Container.Resolve<IGameStateSubsystem>();
+                _unitSubsystem = ctx.Container.TryResolve<IUnitSubsystem>();
                 _logger  = ctx.Container.Resolve<IDebugLogger>();
             }
             else
@@ -118,6 +120,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 TransitionTo(GameplayPhase.MainPhase);
                 break;
             case GameplayPhase.MainPhase:
+                AutoDeployUnfusedPlayers();
                 TransitionTo(GameplayPhase.CombatPhase);
                 break;
             case GameplayPhase.DrawPhase:
@@ -140,6 +143,26 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             {
                 dcView.ServerAutoConfirm(player.PlayerId);
                 _logger?.Log($"[GameStateNetworkView] Auto-confirmed deck for unready player {player}.");
+            }
+        }
+    }
+
+    private void AutoDeployUnfusedPlayers()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var fusionView = coordinator.GetFusionView(player);
+            if (fusionView == null || fusionView.HasFusedThisTurn) continue;
+
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            string championId = pczView?.ChampionId.ToString() ?? string.Empty;
+            if (!string.IsNullOrEmpty(championId))
+            {
+                fusionView.ServerAutoConfirmFusion(championId);
+                _logger?.Log($"[GameStateNetworkView] Auto-deployed Champion for unready player {player}.");
             }
         }
     }
@@ -465,5 +488,46 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             CurrentCombatActor = CurrentCombatActor,
             PlayerReady = readyArr,
         });
+    }
+
+    // ── Forfeit / disconnect ─────────────────────────────────────────────
+
+    public override void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    {
+        if (!Object.HasStateAuthority) return;
+        if (IsMatchOver) return;
+
+        _logger?.Log($"[GameStateNetworkView] Player {player} disconnected — treating as forfeit.");
+
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator != null && _unitSubsystem != null)
+        {
+            var allUnits = _unitSubsystem.AllUnits;
+            if (allUnits != null)
+            {
+                var toDestroy = new System.Collections.Generic.List<NetworkId>();
+                foreach (var netId in allUnits)
+                {
+                    if (_unitSubsystem.TryGetPublic(netId, out UnitPublicData data) && data.Owner == player)
+                        toDestroy.Add(netId);
+                }
+
+                foreach (var netId in toDestroy)
+                {
+                    if (!_unitSubsystem.TryGetPublic(netId, out UnitPublicData data)) continue;
+
+                    if (data.DeathAnchor > 0)
+                    {
+                        var pczView = coordinator.GetPlayerCardZoneView(player);
+                        pczView?.ServerApplyDamage(data.DeathAnchor);
+                    }
+
+                    if (Runner.TryFindObject(netId, out var netObj))
+                        Runner.Despawn(netObj);
+                }
+            }
+        }
+
+        ServerCheckElimination();
     }
 }

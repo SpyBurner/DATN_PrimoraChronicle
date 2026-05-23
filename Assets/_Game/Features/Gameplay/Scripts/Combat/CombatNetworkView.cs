@@ -105,6 +105,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         IsCombatActive = false;
         TurnTimer = TickTimer.None;
 
+        ResetOneTimeFlagsOnPersistentUnits();
         CheckBoardClear();
 
         _logger?.Log("[Combat] Combat phase ended.");
@@ -886,5 +887,22 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             HasMoved = CurrentActorHasMoved,
             HasActed = CurrentActorHasActed
         });
+    }
+
+    // ── F4.9: one_time flag reset for Persistent Units ───────────────────
+
+    private void ResetOneTimeFlagsOnPersistentUnits()
+    {
+        var allUnits = _unitSubsystem?.AllUnits;
+        if (allUnits == null) return;
+
+        foreach (var netId in allUnits)
+        {
+            if (!_unitSubsystem.TryGetPublic(netId, out UnitPublicData data)) continue;
+            if (!data.IsPersistent) continue;
+
+            var unitView = FindUnitNetworkView(netId.ToString());
+            unitView?.ServerResetOneTimeFlags();
+        }
     }
 }
