@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Fusion;
 using TMPro;
 using UnityEngine;
@@ -23,8 +22,11 @@ public class FusionPanel : MonoBehaviour
     [SerializeField] private GameObject _normalAttackSlot;
     [SerializeField] private GameObject _movementSlot;
 
-    [Header("Fuse Slots (drop targets)")]
-    [SerializeField] private FuseSlot[] _fuseSlots = new FuseSlot[4];
+    [Header("Fuse Slots")]
+    [SerializeField] private Transform _fuseSlotContainer;
+    [SerializeField] private GameObject _fuseSlotPrefab;
+
+    private FuseSlotUI[] _fuseSlots;
 
     [Header("Timer")]
     [SerializeField] private TMP_Text _timerText;
@@ -41,26 +43,30 @@ public class FusionPanel : MonoBehaviour
 
     private void Awake()
     {
-        if (_unitSlot == null) throw new System.Exception("[FusionPanel._unitSlot] Not assigned in Inspector — see wiring-F3.md F3.2");
-        // if (_unitNameText == null) throw new System.Exception("[FusionPanel._unitNameText] Not assigned in Inspector — see wiring-F3.md F3.2");
-        // if (_unitStatsText == null) throw new System.Exception("[FusionPanel._unitStatsText] Not assigned in Inspector — see wiring-F3.md F3.2");
-        if (_normalAttackSlot == null) throw new System.Exception("[FusionPanel._normalAttackSlot] Not assigned in Inspector — see wiring-F3.md F3.2");
-        if (_movementSlot == null) throw new System.Exception("[FusionPanel._movementSlot] Not assigned in Inspector — see wiring-F3.md F3.2");
-        if (_timerText == null) throw new System.Exception("[FusionPanel._timerText] Not assigned in Inspector — see wiring-F3.md F3.2");
-        if (_confirmButton == null) throw new System.Exception("[FusionPanel._confirmButton] Not assigned in Inspector — see wiring-F3.md F3.2");
-        // if (_confirmText == null) throw new System.Exception("[FusionPanel._confirmText] Not assigned in Inspector — see wiring-F3.md F3.2");
-        if (_handPanel == null) throw new System.Exception("[FusionPanel._handPanel] Not assigned in Inspector — see wiring-F3.md F3.2");
-        for (int i = 0; i < _fuseSlots.Length; i++)
-            if (_fuseSlots[i].Root == null) throw new System.Exception($"[FusionPanel._fuseSlots[{i}].Root] Not assigned in Inspector — see wiring-F3.md F3.2");
+        if (_unitSlot == null) throw new System.Exception("[FusionPanel._unitSlot] Not assigned in Inspector");
+        if (_normalAttackSlot == null) throw new System.Exception("[FusionPanel._normalAttackSlot] Not assigned in Inspector");
+        if (_movementSlot == null) throw new System.Exception("[FusionPanel._movementSlot] Not assigned in Inspector");
+        if (_timerText == null) throw new System.Exception("[FusionPanel._timerText] Not assigned in Inspector");
+        if (_confirmButton == null) throw new System.Exception("[FusionPanel._confirmButton] Not assigned in Inspector");
+        if (_handPanel == null) throw new System.Exception("[FusionPanel._handPanel] Not assigned in Inspector");
+        if (_fuseSlotContainer == null) throw new System.Exception("[FusionPanel._fuseSlotContainer] Not assigned in Inspector");
+        if (_fuseSlotPrefab == null) throw new System.Exception("[FusionPanel._fuseSlotPrefab] Not assigned in Inspector");
+
+        BuildFuseSlots();
     }
 
-    [Serializable]
-    public struct FuseSlot
+    private void BuildFuseSlots()
     {
-        public GameObject Root;
-        public TMP_Text NameText;
-        public Image Icon;
-        public Button ClearButton;
+        foreach (Transform child in _fuseSlotContainer)
+            Destroy(child.gameObject);
+
+        _fuseSlots = new FuseSlotUI[4];
+        for (int i = 0; i < 4; i++)
+        {
+            var go = Instantiate(_fuseSlotPrefab, _fuseSlotContainer);
+            _fuseSlots[i] = go.GetComponent<FuseSlotUI>();
+            go.GetComponent<FuseSlotDropTarget>()?.Initialize(i, this);
+        }
     }
 
     private void OnEnable()
@@ -77,7 +83,7 @@ public class FusionPanel : MonoBehaviour
         for (int i = 0; i < _fuseSlots.Length; i++)
         {
             int slotIndex = i;
-            _fuseSlots[i].ClearButton?.onClick.AddListener(() => OnClearSlotClicked(slotIndex));
+            _fuseSlots[i]?.ClearButton?.onClick.AddListener(() => OnClearSlotClicked(slotIndex));
         }
 
         RefreshUI(_fusion.CurrentStaging);
@@ -92,7 +98,7 @@ public class FusionPanel : MonoBehaviour
         _confirmButton?.onClick.RemoveListener(OnConfirmClicked);
 
         for (int i = 0; i < _fuseSlots.Length; i++)
-            _fuseSlots[i].ClearButton?.onClick.RemoveAllListeners();
+            _fuseSlots[i]?.ClearButton?.onClick.RemoveAllListeners();
     }
 
     private void OnPhaseChanged(GameplayPhase phase)
@@ -165,16 +171,17 @@ public class FusionPanel : MonoBehaviour
 
     private void RefreshFuseSlots(FusionStagingData staging)
     {
+        if (_fuseSlots == null) return;
         int maxSlots = staging.HasInnateSkill ? 3 : 4;
         var equips = staging.EquipSpellIds;
 
         for (int i = 0; i < _fuseSlots.Length; i++)
         {
             var slot = _fuseSlots[i];
-            if (slot.Root == null) continue;
+            if (slot == null) continue;
 
             bool isAvailable = i < maxSlots;
-            slot.Root.SetActive(isAvailable);
+            slot.gameObject.SetActive(isAvailable);
 
             if (!isAvailable) continue;
 
@@ -191,15 +198,12 @@ public class FusionPanel : MonoBehaviour
             }
         }
 
-        if (staging.HasInnateSkill && _fuseSlots.Length > 3)
+        if (staging.HasInnateSkill && _fuseSlots.Length > 3 && _fuseSlots[3] != null)
         {
             var innateSlot = _fuseSlots[3];
-            if (innateSlot.Root != null)
-            {
-                innateSlot.Root.SetActive(true);
-                if (innateSlot.NameText != null) innateSlot.NameText.text = "Innate Skill";
-                if (innateSlot.ClearButton != null) innateSlot.ClearButton.gameObject.SetActive(false);
-            }
+            innateSlot.gameObject.SetActive(true);
+            if (innateSlot.NameText != null) innateSlot.NameText.text = "Innate Skill";
+            if (innateSlot.ClearButton != null) innateSlot.ClearButton.gameObject.SetActive(false);
         }
     }
 

@@ -102,6 +102,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7597207220947142003, guid: dba3cda3f00cf194a813511965ed2fe3, type: 3}
   m_PrefabInstance: {fileID: 2737811853578645853}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6350659109367372107 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9069330114694113302, guid: dba3cda3f00cf194a813511965ed2fe3, type: 3}
+  m_PrefabInstance: {fileID: 2737811853578645853}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &7500491674641913274
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -124,7 +135,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2277711776597158753, guid: 6c499fb144eea204ab43f41a34d2f55d, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4199627844911484788, guid: 6c499fb144eea204ab43f41a34d2f55d, type: 3}
       propertyPath: m_PixelsPerUnitMultiplier
@@ -312,12 +323,37 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6140438799990344810, guid: 6c499fb144eea204ab43f41a34d2f55d, type: 3}
       insertIndex: -1
       addedObject: {fileID: -1859717747756374278}
+    - targetCorrespondingSourceObject: {fileID: 6140438799990344810, guid: 6c499fb144eea204ab43f41a34d2f55d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4821605158393213646}
   m_SourcePrefab: {fileID: 100100000, guid: 6c499fb144eea204ab43f41a34d2f55d, type: 3}
+--- !u!114 &357591459805469449 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7845678442105622195, guid: 6c499fb144eea204ab43f41a34d2f55d, type: 3}
+  m_PrefabInstance: {fileID: 7500491674641913274}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!224 &2630419231967767945 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5518661248222574643, guid: 6c499fb144eea204ab43f41a34d2f55d, type: 3}
   m_PrefabInstance: {fileID: 7500491674641913274}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4267301526140652563 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5994178200829614505, guid: 6c499fb144eea204ab43f41a34d2f55d, type: 3}
+  m_PrefabInstance: {fileID: 7500491674641913274}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1 &4404557811677993424 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6140438799990344810, guid: 6c499fb144eea204ab43f41a34d2f55d, type: 3}
@@ -337,3 +373,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: GameplayFeatures::FuseSlotDropTarget
   _slotIndex: 0
   _fusionPanel: {fileID: 0}
+--- !u!114 &4821605158393213646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4404557811677993424}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff164e2286cfa9d418f36ef5c004385e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::FuseSlotUI
+  NameText: {fileID: 357591459805469449}
+  Icon: {fileID: 4267301526140652563}
+  ClearButton: {fileID: 6350659109367372107}
