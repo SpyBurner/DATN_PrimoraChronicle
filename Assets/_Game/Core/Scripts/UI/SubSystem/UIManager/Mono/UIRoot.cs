@@ -19,13 +19,13 @@ namespace Core
 
         private void Awake()
         {
-            _debugLogger.Log($"[UIRoot] Awake called. _uiManagerSubsystem is null: {_uiManagerSubsystem == null}");
+            _debugLogger.Log("LOG_UIROOT", nameof(UIRoot), $"Awake called. _uiManagerSubsystem is null: {_uiManagerSubsystem == null}");
             if (_uiManagerSubsystem == null)
             {
-                _debugLogger.LogError("[UIRoot] _uiManagerSubsystem is null — missing SceneContext in this scene or UIRoot was not in the scene at load time.");
+                _debugLogger.LogError("LOG_UIROOT", nameof(UIRoot), "_uiManagerSubsystem is null — missing SceneContext in this scene or UIRoot was not in the scene at load time.");
                 return;
             }
-            _debugLogger.Log("[UIRoot] RegisterUIRoot called successfully.");
+            _debugLogger.Log("LOG_UIROOT", nameof(UIRoot), "RegisterUIRoot called successfully.");
             _uiManagerSubsystem.RegisterUIRoot(this);
         }
 

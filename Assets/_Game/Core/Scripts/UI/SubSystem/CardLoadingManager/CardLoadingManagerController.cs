@@ -50,13 +50,13 @@ public class CardLoadingManagerController : ICardLoadingManagerController
             // Use StringID as the primary key for the bridge between JSON and SO
             if (string.IsNullOrWhiteSpace(card.StringID))
             {
-                _debugLogger.LogWarning($"CardSO {card.name} is missing its StringID! Identification will fail.");
+                _debugLogger.LogWarning("LOG_CARDLOADING", nameof(CardLoadingManagerController), $"CardSO {card.name} is missing its StringID! Identification will fail.");
                 continue;
             }
 
             if (cardsById.ContainsKey(card.StringID))
             {
-                _debugLogger.LogWarning($"Duplicate CardSO StringID detected: {card.StringID}. Overwriting.");
+                _debugLogger.LogWarning("LOG_CARDLOADING", nameof(CardLoadingManagerController), $"Duplicate CardSO StringID detected: {card.StringID}. Overwriting.");
                 cardsById[card.StringID] = card;
             }
             else
@@ -83,7 +83,7 @@ public class CardLoadingManagerController : ICardLoadingManagerController
         _model.SpellCardList.Value = spellCardList;
         _model.TroopCardList.Value = troopCardList;
         
-        _debugLogger.Log($"CardLoadingManager: Loaded {cardsById.Count} visual card assets.");
+        _debugLogger.Log("LOG_CARDLOADING", nameof(CardLoadingManagerController), $"Loaded {cardsById.Count} visual card assets.");
     }
 
     private void LoadGDSFromCache()
@@ -98,12 +98,12 @@ public class CardLoadingManagerController : ICardLoadingManagerController
                 if (response?.data != null)
                 {
                     _model.MasterData.Value = response.data;
-                    _debugLogger.Log("CardLoadingManager: Loaded master card data from local cache.");
+                    _debugLogger.Log("LOG_CARDLOADING", nameof(CardLoadingManagerController), "Loaded master card data from local cache.");
                 }
             }
             catch (Exception ex)
             {
-                _debugLogger.LogError($"CardLoadingManager: Failed to deserialize cached JSON: {ex.Message}");
+                _debugLogger.LogError("LOG_CARDLOADING", nameof(CardLoadingManagerController), $"Failed to deserialize cached JSON: {ex.Message}");
             }
         }
     }
@@ -125,16 +125,16 @@ public class CardLoadingManagerController : ICardLoadingManagerController
                 }
                 catch (IOException ioEx)
                 {
-                    _debugLogger.LogWarning($"CardLoadingManager: Failed to write to cache file: {ioEx.Message}");
+                    _debugLogger.LogWarning("LOG_CARDLOADING", nameof(CardLoadingManagerController), $"Failed to write to cache file: {ioEx.Message}");
                 }
 
                 _model.MasterData.Value = response.data;
-                _debugLogger.Log($"CardLoadingManager: Successfully synchronized GDS data. Version: {response.data.metadata?.version ?? "unknown"}");
+                _debugLogger.Log("LOG_CARDLOADING", nameof(CardLoadingManagerController), $"Successfully synchronized GDS data. Version: {response.data.metadata?.version ?? "unknown"}");
             }
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"CardLoadingManager: Network fetch failed: {ex.Message}. Using cached data.");
+            _debugLogger.LogError("LOG_CARDLOADING", nameof(CardLoadingManagerController), $"Network fetch failed: {ex.Message}. Using cached data.");
         }
     }
 

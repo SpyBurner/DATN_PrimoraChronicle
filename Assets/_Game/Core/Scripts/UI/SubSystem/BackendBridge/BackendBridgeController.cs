@@ -21,11 +21,11 @@ public class BackendBridgeController : IBackendBridgeController
     {
         if (!Application.isBatchMode)
         {
-            _logger.Log("[BackendBridge] Non-headless build detected. Subsystem initialized but inactive.");
+            _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), "Non-headless build detected. Subsystem initialized but inactive.");
             return;
         }
 
-        _logger.Log("[BackendBridge] Headless build detected. Starting HttpListener...");
+        _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), "Headless build detected. Starting HttpListener...");
         try
         {
             _listener = new HttpListener();
@@ -33,15 +33,15 @@ public class BackendBridgeController : IBackendBridgeController
             {
                 _listener.Prefixes.Add("http://*:7070/");
                 _listener.Start();
-                _logger.Log("[BackendBridge] HttpListener started on http://*:7070/");
+                _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), "HttpListener started on http://*:7070/");
             }
             catch (HttpListenerException ex)
             {
-                _logger.LogWarning($"[BackendBridge] Failed to bind to *, falling back to localhost: {ex.Message}");
+                _logger.LogWarning("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Failed to bind to *, falling back to localhost: {ex.Message}");
                 _listener = new HttpListener();
                 _listener.Prefixes.Add("http://localhost:7070/");
                 _listener.Start();
-                _logger.Log("[BackendBridge] HttpListener started on http://localhost:7070/");
+                _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), "HttpListener started on http://localhost:7070/");
             }
 
             _listenThread = new Thread(ListenLoop)
@@ -58,13 +58,13 @@ public class BackendBridgeController : IBackendBridgeController
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[BackendBridge] Failed to start HttpListener: {ex.Message}");
+            _logger.LogError("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Failed to start HttpListener: {ex.Message}");
         }
     }
 
     public void ClearPendingStartSession()
     {
-        _logger.Log("[BackendBridge] Clearing pending StartSessionCommand...");
+        _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), "Clearing pending StartSessionCommand...");
         _model.ApplyState(new BackendBridgeStateData
         {
             PendingStartSession = null,
@@ -88,7 +88,7 @@ public class BackendBridgeController : IBackendBridgeController
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[BackendBridge] Exception during HttpListener shutdown: {ex.Message}");
+            _logger.LogError("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Exception during HttpListener shutdown: {ex.Message}");
         }
 
         _model.ApplyState(new BackendBridgeStateData
@@ -125,7 +125,7 @@ public class BackendBridgeController : IBackendBridgeController
             var path = request.Url.AbsolutePath;
             var method = request.HttpMethod;
 
-            _logger.Log($"[BackendBridge] Inbound request: {method} {path}");
+            _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Inbound request: {method} {path}");
 
             if (method == "POST" && path == "/start-session")
             {
@@ -139,7 +139,7 @@ public class BackendBridgeController : IBackendBridgeController
                     return;
                 }
 
-                _logger.Log($"[BackendBridge] StartSession command received: {cmd.SessionName}");
+                _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"StartSession command received: {cmd.SessionName}");
 
                 MainThreadDispatcher.Enqueue(() =>
                 {
@@ -154,7 +154,7 @@ public class BackendBridgeController : IBackendBridgeController
             }
             else if (method == "POST" && path == "/force-end-match")
             {
-                _logger.Log("[BackendBridge] ForceEndMatch command received.");
+                _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), "ForceEndMatch command received.");
                 // For now, write a placeholder or trigger the event
                 WriteResponse(response, 200, "{\"status\": \"accepted\"}");
             }
@@ -165,7 +165,7 @@ public class BackendBridgeController : IBackendBridgeController
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[BackendBridge] Error handling request: {ex.Message}");
+            _logger.LogError("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Error handling request: {ex.Message}");
             try
             {
                 WriteResponse(response, 500, $"{{\"error\": \"{ex.Message}\"}}");
@@ -187,26 +187,26 @@ public class BackendBridgeController : IBackendBridgeController
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[BackendBridge] Error writing response: {ex.Message}");
+            _logger.LogError("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Error writing response: {ex.Message}");
         }
     }
 
     public async Task ReportMatchResultAsync(MatchResultData result)
     {
-        _logger.Log($"[BackendBridge] Reporting match result to backend: {result.SessionName}");
+        _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Reporting match result to backend: {result.SessionName}");
         try
         {
             await _http.Post<string, MatchResultData>("/api/matches/result", result);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[BackendBridge] Failed to report match result: {ex.Message}");
+            _logger.LogError("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Failed to report match result: {ex.Message}");
         }
     }
 
     public async Task ReportPlayerDisconnectedAsync(string userId)
     {
-        _logger.Log($"[BackendBridge] Reporting player disconnected: {userId}");
+        _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Reporting player disconnected: {userId}");
         try
         {
             var payload = new PlayerDisconnectedPayload { userId = userId };
@@ -214,13 +214,13 @@ public class BackendBridgeController : IBackendBridgeController
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[BackendBridge] Failed to report player disconnect: {ex.Message}");
+            _logger.LogError("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Failed to report player disconnect: {ex.Message}");
         }
     }
 
     public async Task NotifyMatchCreatedAsync(string sessionName, string player1UserId, string player2UserId)
     {
-        _logger.Log($"[BackendBridge] Notifying match created for session: {sessionName}");
+        _logger.Log("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Notifying match created for session: {sessionName}");
         try
         {
             await _http.Post("/api/matchmaking/notify", new {
@@ -231,7 +231,7 @@ public class BackendBridgeController : IBackendBridgeController
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[BackendBridge] Failed to notify match created: {ex.Message}");
+            _logger.LogError("LOG_BACKENDBRIDGE", nameof(BackendBridgeController), $"Failed to notify match created: {ex.Message}");
         }
     }
 }

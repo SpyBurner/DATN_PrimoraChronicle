@@ -14,7 +14,7 @@ internal class BoardController : IBoardController
     public void RegisterBridge(IBoardNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[Board] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_BOARD", nameof(BoardController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnAuthoritativeStateReceived(BoardStateData data) => _model.ApplyState(data);

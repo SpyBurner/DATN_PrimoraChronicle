@@ -6,7 +6,9 @@ using UnityEngine.Events;
 public interface IBoardSubsystem : ISubsystem
 {
     event UnityAction<bool> IsGeneratedChanged;
+    event UnityAction<System.Collections.Generic.IReadOnlyList<HexCoord>> TilesChanged;
     event UnityAction<HexCoord, string> TileOccupantChanged;
+    event UnityAction<HexCoord, string> TileEffectChanged;
 
     bool IsGenerated { get; }
     IReadOnlyList<HexCoord> AllTiles { get; }
@@ -17,8 +19,10 @@ public interface IBoardSubsystem : ISubsystem
     bool IsEmpty(HexCoord coord);
     HexCoord GetDeployArea(PlayerRef owner);
     IReadOnlyList<HexCoord> GetNeighbors(HexCoord coord);
+    bool ContainsTile(HexCoord coord);
     IReadOnlyList<HexCoord> GetTilesInRange(HexCoord center, int range);
     IReadOnlyList<HexCoord> FindPath(HexCoord from, HexCoord to, int maxDistance);
+    void SetOccupant(HexCoord coord, string unitId);
 
     void RegisterNetworkBridge(IBoardNetworkBridge bridge);
     void OnAuthoritativeStateReceived(BoardStateData data);

@@ -1,4 +1,1 @@
-public interface IUnitNetworkBridge
-{
-    // Track A: add RPC stubs as unit spawn/destroy/update RPCs are defined
-}
+// Replaced by IUnitPublicNetworkBridge and IUnitPrivateNetworkBridge (AoI split per plan §3.3)

@@ -42,15 +42,15 @@ internal class AccountRegisterController : IAccountRegisterController
                 return;
             }
 
-            _debugLogger.Log($"Attempting registration for {username}");
+            _debugLogger.Log("LOG_ACCOUNT", nameof(AccountRegisterController), $"Attempting registration for {username}");
 
             var payload = new RegisterRequest { username = username, password = password };
             var response = await _httpService.Post<RegisterResponse, RegisterRequest>("/api/auth/register", payload);
 
             if (response != null && response.user != null)
             {
-                _debugLogger.Log($"Registration successful for {response.user.username}. Returning to Login.");
-                
+                _debugLogger.Log("LOG_ACCOUNT", nameof(AccountRegisterController), $"Registration successful for {response.user.username}. Returning to Login.");
+
                 // Instead of loading Lobby, we go back to Login as requested.
                 _uiManager.Show<AccountLoginPanel>();
             }
@@ -61,7 +61,7 @@ internal class AccountRegisterController : IAccountRegisterController
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"Registration failed: {ex.Message}");
+            _debugLogger.LogError("LOG_ACCOUNT", nameof(AccountRegisterController), $"Registration failed: {ex.Message}");
             _model.SetErrorMessage($"Registration failed: {ex.Message}");
         }
         finally

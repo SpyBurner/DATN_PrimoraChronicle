@@ -13,11 +13,15 @@ public class PlayerCardZoneSubsystem : IPlayerCardZoneSubsystem
     public event UnityAction<PlayerRef, int> DeckCountChanged;
     public event UnityAction<PlayerRef, int> DiscardCountChanged;
     public event UnityAction<PlayerRef, int> HPChanged;
+    public event UnityAction<PlayerRef, int> DrawPhaseNewCardsChanged;
+    public event UnityAction<PlayerRef, bool> DrawPhaseConfirmedChanged;
 
     public IReadOnlyList<string> GetHand(PlayerRef player) => _model.GetHand(player);
     public int GetDeckCount(PlayerRef player) => _model.GetDeckCount(player);
     public int GetDiscardCount(PlayerRef player) => _model.GetDiscardCount(player);
     public int GetHP(PlayerRef player) => _model.GetHP(player);
+    public int GetDrawPhaseNewCards(PlayerRef player) => _model.GetDrawPhaseNewCards(player);
+    public bool GetDrawPhaseConfirmed(PlayerRef player) => _model.GetDrawPhaseConfirmed(player);
 
     public void Initialize()
     {
@@ -25,6 +29,8 @@ public class PlayerCardZoneSubsystem : IPlayerCardZoneSubsystem
         _model.HandChanged += HandleHandChanged;
         _model.DeckCountChanged += HandleDeckCountChanged;
         _model.DiscardCountChanged += HandleDiscardCountChanged;
+        _model.DrawPhaseNewCardsChanged += HandleDrawPhaseNewCardsChanged;
+        _model.DrawPhaseConfirmedChanged += HandleDrawPhaseConfirmedChanged;
         _controller.Initialize();
     }
 
@@ -34,16 +40,18 @@ public class PlayerCardZoneSubsystem : IPlayerCardZoneSubsystem
         _model.HandChanged -= HandleHandChanged;
         _model.DeckCountChanged -= HandleDeckCountChanged;
         _model.DiscardCountChanged -= HandleDiscardCountChanged;
+        _model.DrawPhaseNewCardsChanged -= HandleDrawPhaseNewCardsChanged;
+        _model.DrawPhaseConfirmedChanged -= HandleDrawPhaseConfirmedChanged;
         _controller.Dispose();
         _model.Dispose();
     }
 
-    public void RequestDraw(PlayerRef player, int count) => _controller.RequestDraw(player, count);
-    public void RequestKeepCards(PlayerRef player, IReadOnlyList<string> keep) => _controller.RequestKeepCards(player, keep);
+    public void RequestDraw(PlayerRef p, int count) => _controller.RequestDraw(p, count);
+    public void RequestKeepCards(PlayerRef p, IReadOnlyList<string> keep) => _controller.RequestKeepCards(p, keep);
     public void RequestPlayMainPhaseSpell(string cardId, HexCoord target) => _controller.RequestPlayMainPhaseSpell(cardId, target);
 
     public void RegisterNetworkBridge(IPlayerCardZoneNetworkBridge bridge) => _controller.RegisterBridge(bridge);
-    public void OnAuthoritativeStateReceived(PlayerCardZoneData data) => _controller.OnAuthoritativeStateReceived(data);
+    public void OnAuthoritativeStateReceived(PlayerCardZonePrivateData data) => _controller.OnAuthoritativeStateReceived(data);
 
     private void HandleHPChanged(PlayerRef p, int hp)
     {
@@ -66,6 +74,18 @@ public class PlayerCardZoneSubsystem : IPlayerCardZoneSubsystem
     private void HandleDiscardCountChanged(PlayerRef p, int count)
     {
         try { DiscardCountChanged?.Invoke(p, count); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+    }
+
+    private void HandleDrawPhaseNewCardsChanged(PlayerRef p, int count)
+    {
+        try { DrawPhaseNewCardsChanged?.Invoke(p, count); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+    }
+
+    private void HandleDrawPhaseConfirmedChanged(PlayerRef p, bool confirmed)
+    {
+        try { DrawPhaseConfirmedChanged?.Invoke(p, confirmed); }
         catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
     }
 }

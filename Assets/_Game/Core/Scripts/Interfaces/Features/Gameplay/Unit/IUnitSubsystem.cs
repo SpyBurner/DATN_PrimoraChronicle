@@ -4,19 +4,22 @@ using UnityEngine.Events;
 
 public interface IUnitSubsystem : ISubsystem
 {
-    event UnityAction<string> UnitSpawned;
-    event UnityAction<string> UnitDied;
-    event UnityAction<string, int> UnitHPChanged;
-    event UnityAction<string, HexCoord> UnitMoved;
-    event UnityAction<string, string, int> StatusApplied;
-    event UnityAction<string, string> StatusRemoved;
-    event UnityAction<string, int> GrowthStacksChanged;
+    event UnityAction<NetworkId> UnitSpawned;
+    event UnityAction<NetworkId> UnitDied;
+    event UnityAction<NetworkId, int> UnitHPChanged;
+    event UnityAction<NetworkId, HexCoord> UnitMoved;
+    event UnityAction<NetworkId, string, int> StatusApplied;
+    event UnityAction<NetworkId, string> StatusRemoved;
+    // owner-only — fires only on the unit-owner's client
+    event UnityAction<NetworkId, IReadOnlyList<SkillSlot>> OwnUnitSkillsChanged;
 
-    IReadOnlyList<string> AllUnitIds { get; }
-    bool TryGetUnit(string unitNetworkId, out UnitStateData data);
-    IReadOnlyList<string> GetUnitsOwnedBy(PlayerRef owner);
+    IReadOnlyList<NetworkId> AllUnits { get; }
+    bool TryGetPublic(NetworkId id, out UnitPublicData data);
+    bool TryGetOwnSkills(NetworkId id, out IReadOnlyList<SkillSlot> skills);
 
-    void RegisterNetworkBridge(IUnitNetworkBridge bridge);
-    void OnUnitStateReceived(UnitStateData data);
-    void OnUnitDestroyed(string unitNetworkId);
+    void RegisterNetworkBridge(IUnitPublicNetworkBridge bridge);
+    void RegisterPrivateNetworkBridge(IUnitPrivateNetworkBridge bridge);
+    void OnUnitPublicStateReceived(UnitPublicData data);
+    void OnUnitPrivateStateReceived(UnitPrivateData data);
+    void OnUnitDestroyed(NetworkId unitId);
 }

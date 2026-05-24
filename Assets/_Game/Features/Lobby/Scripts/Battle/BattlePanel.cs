@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
@@ -48,12 +47,12 @@ public class BattlePanel : UIPanel
     {
         var args = new StartGameArgs
         {
-            GameMode    = GameMode.Shared,
-            SessionName = "test-shared-session",
+            GameMode    = GameMode.AutoHostOrClient,
+            SessionName = "test-host-session",
             PlayerCount = _battleSetup.PlayerCnt,
             SessionProperties = new Dictionary<string, SessionProperty>
             {
-                { "ai_count", 1 }
+                { "ai_count", _battleSetup.FillRoomWithAI ? _battleSetup.PlayerCnt - 1 : 0 }
             }
         };
 

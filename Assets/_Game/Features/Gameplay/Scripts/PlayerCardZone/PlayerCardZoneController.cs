@@ -16,23 +16,16 @@ internal class PlayerCardZoneController : IPlayerCardZoneController
     public void RegisterBridge(IPlayerCardZoneNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[PlayerCardZone] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
-    public void OnAuthoritativeStateReceived(PlayerCardZoneData data) => _model.ApplyState(data);
+    public void OnAuthoritativeStateReceived(PlayerCardZonePrivateData data) => _model.ApplyState(data);
 
-    public void RequestDraw(PlayerRef player, int count)
-    {
-        if (_bridge != null) _bridge.SendDrawRpc(player, count);
-    }
+    public void RequestDraw(PlayerRef p, int count) => _bridge?.SendDrawRpc(p, count);
 
-    public void RequestKeepCards(PlayerRef player, IReadOnlyList<string> keep)
-    {
-        if (_bridge != null) _bridge.SendKeepCardsRpc(player, string.Join(",", keep));
-    }
+    public void RequestKeepCards(PlayerRef p, IReadOnlyList<string> keep)
+        => _bridge?.SendKeepCardsRpc(p, string.Join(",", keep));
 
     public void RequestPlayMainPhaseSpell(string cardId, HexCoord target)
-    {
-        if (_bridge != null) _bridge.SendPlayMainPhaseSpellRpc(cardId, target);
-    }
+        => _bridge?.SendPlayMainPhaseSpellRpc(cardId, target);
 }

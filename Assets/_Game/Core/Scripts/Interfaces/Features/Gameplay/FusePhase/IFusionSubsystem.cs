@@ -10,7 +10,7 @@ public interface IFusionSubsystem : ISubsystem
     bool IsConfirmed { get; }
 
     void StageBase(string cardId);
-    void StageEquipSpell(int slotIndex, string equipSpellId);
+    void StageEquipSpell(int slotIndex, string equipSpellId, int handIndex);
     void ClearSlot(int slotIndex);
     void ClearStaging();
     Task ConfirmFusion();

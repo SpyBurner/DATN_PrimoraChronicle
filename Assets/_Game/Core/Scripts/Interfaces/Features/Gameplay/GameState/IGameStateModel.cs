@@ -1,3 +1,4 @@
+using System;
 using Fusion;
 using UnityObservables;
 
@@ -8,6 +9,10 @@ public interface IGameStateModel : IModel
     Observable<float> MatchElapsed { get; }
     Observable<int> RoundNumber { get; }
     Observable<PlayerRef> CurrentCombatActor { get; }
+
+    // playerId is 1-based (PlayerRef.PlayerId)
+    bool IsPlayerReady(int playerId);
+    void SetPlayerReady(int playerId, bool ready);
 
     void ApplyState(GameStateData data);
 }

@@ -9,88 +9,89 @@ public class UnitSubsystem : IUnitSubsystem
     [Inject] private readonly IUnitController _controller;
     [Inject] private readonly IUnitModel _model;
 
-    public event UnityAction<string> UnitSpawned;
-    public event UnityAction<string> UnitDied;
-    public event UnityAction<string, int> UnitHPChanged;
-    public event UnityAction<string, HexCoord> UnitMoved;
-    public event UnityAction<string, string, int> StatusApplied;
-    public event UnityAction<string, string> StatusRemoved;
-    public event UnityAction<string, int> GrowthStacksChanged;
+    public event UnityAction<NetworkId> UnitSpawned;
+    public event UnityAction<NetworkId> UnitDied;
+    public event UnityAction<NetworkId, int> UnitHPChanged;
+    public event UnityAction<NetworkId, HexCoord> UnitMoved;
+    public event UnityAction<NetworkId, string, int> StatusApplied;
+    public event UnityAction<NetworkId, string> StatusRemoved;
+    public event UnityAction<NetworkId, IReadOnlyList<SkillSlot>> OwnUnitSkillsChanged;
 
-    private readonly Dictionary<string, UnitStateData> _prevStates = new();
+    private readonly Dictionary<NetworkId, UnitPublicData> _prevPublic = new();
 
-    public IReadOnlyList<string> AllUnitIds => new List<string>(_model.Units.Keys);
+    public IReadOnlyList<NetworkId> AllUnits => new List<NetworkId>(_model.Units.Keys);
 
-    public bool TryGetUnit(string unitNetworkId, out UnitStateData data)
-        => _model.Units.TryGetValue(unitNetworkId, out data);
+    public bool TryGetPublic(NetworkId id, out UnitPublicData data)
+        => _model.Units.TryGetValue(id, out data);
 
-    public IReadOnlyList<string> GetUnitsOwnedBy(PlayerRef owner)
+    public bool TryGetOwnSkills(NetworkId id, out IReadOnlyList<SkillSlot> skills)
     {
-        var result = new List<string>();
-        foreach (var kvp in _model.Units)
-            if (kvp.Value.Owner == owner) result.Add(kvp.Key);
-        return result;
+        return _model.TryGetOwnSkills(id, out skills);
     }
 
     public void Initialize()
     {
-        _model.UnitStateChanged += HandleUnitStateChanged;
+        _model.UnitPublicStateChanged += HandlePublicStateChanged;
+        _model.UnitPrivateStateChanged += HandlePrivateStateChanged;
         _model.UnitRemoved += HandleUnitRemoved;
         _controller.Initialize();
     }
 
     public void Dispose()
     {
-        _model.UnitStateChanged -= HandleUnitStateChanged;
+        _model.UnitPublicStateChanged -= HandlePublicStateChanged;
+        _model.UnitPrivateStateChanged -= HandlePrivateStateChanged;
         _model.UnitRemoved -= HandleUnitRemoved;
-        _prevStates.Clear();
+        _prevPublic.Clear();
         _controller.Dispose();
         _model.Dispose();
     }
 
-    public void RegisterNetworkBridge(IUnitNetworkBridge bridge) => _controller.RegisterBridge(bridge);
-    public void OnUnitStateReceived(UnitStateData data) => _controller.OnUnitStateReceived(data);
-    public void OnUnitDestroyed(string unitNetworkId) => _controller.OnUnitDestroyed(unitNetworkId);
+    public void RegisterNetworkBridge(IUnitPublicNetworkBridge bridge) => _controller.RegisterPublicBridge(bridge);
+    public void RegisterPrivateNetworkBridge(IUnitPrivateNetworkBridge bridge) => _controller.RegisterPrivateBridge(bridge);
+    public void OnUnitPublicStateReceived(UnitPublicData data) => _controller.OnUnitPublicStateReceived(data);
+    public void OnUnitPrivateStateReceived(UnitPrivateData data) => _controller.OnUnitPrivateStateReceived(data);
+    public void OnUnitDestroyed(NetworkId unitId) => _controller.OnUnitDestroyed(unitId);
 
-    private void HandleUnitStateChanged(UnitStateData data)
+    private void HandlePublicStateChanged(UnitPublicData data)
     {
-        bool isNew = !_prevStates.ContainsKey(data.UnitNetworkId);
+        bool isNew = !_prevPublic.ContainsKey(data.UnitId);
 
         if (isNew)
         {
-            try { UnitSpawned?.Invoke(data.UnitNetworkId); }
+            try { UnitSpawned?.Invoke(data.UnitId); }
             catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
         }
         else
         {
-            var prev = _prevStates[data.UnitNetworkId];
+            var prev = _prevPublic[data.UnitId];
 
             if (prev.CurrentHP != data.CurrentHP)
             {
-                try { UnitHPChanged?.Invoke(data.UnitNetworkId, data.CurrentHP); }
+                try { UnitHPChanged?.Invoke(data.UnitId, data.CurrentHP); }
                 catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
             }
 
-            if (prev.Position != data.Position)
+            if (prev.Position.P != data.Position.P || prev.Position.Q != data.Position.Q)
             {
-                try { UnitMoved?.Invoke(data.UnitNetworkId, data.Position); }
-                catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
-            }
-
-            if (prev.GrowthStacks != data.GrowthStacks)
-            {
-                try { GrowthStacksChanged?.Invoke(data.UnitNetworkId, data.GrowthStacks); }
+                try { UnitMoved?.Invoke(data.UnitId, data.Position); }
                 catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
             }
         }
 
-        _prevStates[data.UnitNetworkId] = data;
+        _prevPublic[data.UnitId] = data;
     }
 
-    private void HandleUnitRemoved(string unitNetworkId)
+    private void HandlePrivateStateChanged(UnitPrivateData data)
     {
-        _prevStates.Remove(unitNetworkId);
-        try { UnitDied?.Invoke(unitNetworkId); }
+        try { OwnUnitSkillsChanged?.Invoke(data.UnitId, data.Skills ?? new List<SkillSlot>()); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+    }
+
+    private void HandleUnitRemoved(NetworkId unitId)
+    {
+        _prevPublic.Remove(unitId);
+        try { UnitDied?.Invoke(unitId); }
         catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
     }
 }

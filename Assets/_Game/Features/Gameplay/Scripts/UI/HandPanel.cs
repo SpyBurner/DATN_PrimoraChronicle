@@ -1,0 +1,108 @@
+using System;
+using System.Collections.Generic;
+using Fusion;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using Zenject;
+
+public class HandPanel : MonoBehaviour
+{
+    [Inject] private readonly IPlayerCardZoneSubsystem _cardZone;
+    [Inject] private readonly IGameStateSubsystem _gameState;
+    [Inject] private readonly ICardLoadingManagerSubsystem _cardLoading;
+
+    [Header("References")]
+    [SerializeField] private Transform _cardSlotContainer;
+    [SerializeField] private GameObject _cardSlotPrefab;
+    [SerializeField] private TMP_Text _handCountText;
+
+    private readonly List<GameObject> _spawnedSlots = new();
+
+    private PlayerRef _localPlayer;
+
+    private void Awake()
+    {
+        if (_cardSlotContainer == null) throw new System.Exception("[HandPanel._cardSlotContainer] Not assigned in Inspector — see wiring-F3.md F3.1");
+        if (_cardSlotPrefab == null) throw new System.Exception("[HandPanel._cardSlotPrefab] Not assigned in Inspector — see wiring-F3.md F3.1");
+        if (_handCountText == null) throw new System.Exception("[HandPanel._handCountText] Not assigned in Inspector — see wiring-F3.md F3.1");
+
+        foreach (Transform child in _cardSlotContainer) Destroy(child.gameObject);
+    }
+
+    private void OnEnable()
+    {
+        _cardZone.HandChanged += OnHandChanged;
+
+        var runner = FindFirstObjectByType<NetworkRunner>();
+        if (runner != null) _localPlayer = runner.LocalPlayer;
+
+        var hand = _cardZone.GetHand(_localPlayer);
+        if (hand != null) RenderHand(hand);
+    }
+
+    private void OnDisable()
+    {
+        _cardZone.HandChanged -= OnHandChanged;
+    }
+
+
+
+    private void OnHandChanged(PlayerRef player, IReadOnlyList<string> hand)
+    {
+        if (player != _localPlayer) return;
+        try
+        {
+            RenderHand(hand);
+        }
+        catch (Exception ex) { Debug.LogException(ex); }
+    }
+
+    private void RenderHand(IReadOnlyList<string> hand)
+    {
+        ClearSlots();
+        if (hand == null) return;
+
+        for (int i = 0; i < hand.Count; i++)
+        {
+            var cardId = hand[i];
+            var slot = Instantiate(_cardSlotPrefab, _cardSlotContainer);
+            slot.SetActive(true);
+
+            bool isUnit = false;
+            var nameText = slot.GetComponentInChildren<TMP_Text>();
+            if (_cardLoading.TryGetCardData(cardId, out var cardData))
+            {
+                if (nameText != null) nameText.text = cardData.name;
+                isUnit = cardData.type.ToLower() == "troop" || cardData.type.ToLower() == "champion";
+            }
+            else if (nameText != null)
+            {
+                nameText.text = cardId;
+            }
+
+            var dragHandle = slot.GetComponent<CardDragHandle>();
+            if (dragHandle != null)
+                dragHandle.Initialize(cardId, i, isUnit);
+
+            _spawnedSlots.Add(slot);
+        }
+
+        if (_handCountText != null)
+            _handCountText.text = $"{hand.Count}/6";
+    }
+
+    private void ClearSlots()
+    {
+        foreach (var slot in _spawnedSlots)
+            if (slot != null) Destroy(slot);
+        _spawnedSlots.Clear();
+    }
+
+    public string GetCardIdAtIndex(int index)
+    {
+        var hand = _cardZone.GetHand(_localPlayer);
+        if (hand == null || index < 0 || index >= hand.Count) return null;
+        return hand[index];
+    }
+}

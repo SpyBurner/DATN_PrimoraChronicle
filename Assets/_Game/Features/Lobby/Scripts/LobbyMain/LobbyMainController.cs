@@ -17,11 +17,11 @@ internal class LobbyMainController : ILobbyMainController
             string userId = _authSessionModel.CurrentUserId.Value;
             if (string.IsNullOrWhiteSpace(userId))
             {
-                _debugLogger.LogError("LobbyMain: Cannot load user profile without a current user id");
+                _debugLogger.LogError("LOG_LOBBY_MAIN", nameof(LobbyMainController), "LobbyMain: Cannot load user profile without a current user id");
                 return;
             }
 
-            _debugLogger.Log("LobbyMain: Initializing — fetching user profile");
+            _debugLogger.Log("LOG_LOBBY_MAIN", nameof(LobbyMainController), "LobbyMain: Initializing — fetching user profile");
             string encodedUserId = Uri.EscapeDataString(userId);
             var profile = await _httpService.Get<UserProfileResponse>($"/api/users/me?user_id={encodedUserId}");
 
@@ -31,16 +31,16 @@ internal class LobbyMainController : ILobbyMainController
                 _model.SetLevel(Math.Max(1, profile.level));
                 _model.SetGold(profile.gold);
                 _model.SetAvatarUrl(profile.avatarUrl);
-                _debugLogger.Log($"LobbyMain: Loaded profile for {profile.username}");
+                _debugLogger.Log("LOG_LOBBY_MAIN", nameof(LobbyMainController), $"LobbyMain: Loaded profile for {profile.username}");
             }
             else
             {
-                _debugLogger.LogError("LobbyMain: Failed to load user profile");
+                _debugLogger.LogError("LOG_LOBBY_MAIN", nameof(LobbyMainController), "LobbyMain: Failed to load user profile");
             }
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"LobbyMain: Initialize failed: {ex.Message}");
+            _debugLogger.LogError("LOG_LOBBY_MAIN", nameof(LobbyMainController), $"LobbyMain: Initialize failed: {ex.Message}");
         }
     }
 
@@ -50,12 +50,12 @@ internal class LobbyMainController : ILobbyMainController
     {
         try
         {
-            _debugLogger.Log("LobbyMain: Logging out");
+            _debugLogger.Log("LOG_LOBBY_MAIN", nameof(LobbyMainController), "LobbyMain: Logging out");
             await _sceneLoader.LoadScene("Account");
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"LobbyMain: Logout failed: {ex.Message}");
+            _debugLogger.LogError("LOG_LOBBY_MAIN", nameof(LobbyMainController), $"LobbyMain: Logout failed: {ex.Message}");
         }
     }
 }

@@ -1,9 +1,11 @@
+using Fusion;
+
 public interface ICombatController : IController
 {
-    void RequestMove(string unitId, HexCoord destination);
-    void RequestNormalAttack(string unitId, HexCoord target);
-    void RequestSkill(string unitId, string skillId, HexCoord target);
-    void RequestEndTurn();
+    void RequestMove(NetworkId unit, HexCoord destination);
+    void RequestNormalAttack(NetworkId unit, HexCoord target);
+    void RequestSkill(NetworkId unit, string skillId, HexCoord target);
+    void EndTurn();
     void RegisterBridge(ICombatNetworkBridge bridge);
     void OnAuthoritativeStateReceived(CombatStateData data);
 }

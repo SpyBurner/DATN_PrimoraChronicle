@@ -17,6 +17,14 @@ public class GameplayHUDController : MonoBehaviour
 
     private bool _profilesBound;
 
+    private void Awake()
+    {
+        if (_phaseNameText == null) throw new System.Exception("[GameplayHUDController._phaseNameText] Not assigned in Inspector — see wiring.md F1.4");
+        if (_matchTimeText == null) throw new System.Exception("[GameplayHUDController._matchTimeText] Not assigned in Inspector — see wiring.md F1.4");
+        if (_localProfile == null) throw new System.Exception("[GameplayHUDController._localProfile] Not assigned in Inspector — see wiring.md F1.4");
+        if (_opponentProfile == null) throw new System.Exception("[GameplayHUDController._opponentProfile] Not assigned in Inspector — see wiring.md F1.4");
+    }
+
     private void OnEnable()
     {
         if (_enemy2ProfileRoot != null) _enemy2ProfileRoot.SetActive(false);

@@ -14,7 +14,7 @@ internal class TileEffectController : ITileEffectController
     public void RegisterBridge(ITileEffectNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[TileEffect] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_TILEEFFECT", nameof(TileEffectController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnEffectReceived(TileEffectInstance instance) => _model.ApplyEffect(instance);

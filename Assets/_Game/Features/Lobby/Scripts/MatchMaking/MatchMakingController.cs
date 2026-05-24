@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fusion;
+using UnityEngine;
 using Zenject;
 
 internal class MatchMakingController : IMatchMakingController
@@ -16,47 +17,39 @@ internal class MatchMakingController : IMatchMakingController
 
     public void Initialize()
     {
-        _debugLogger.Log("[MatchMaking] Initializing Controller. Subscribing to NetworkManager events.");
+        _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] Initializing Controller. Subscribing to NetworkManager events.");
         _networkManager.RunnerStateChanged  += HandleRunnerStateChanged;
         _networkManager.PlayerCountChanged  += HandlePlayerCountChanged;
     }
 
     public void Dispose()
     {
-        _debugLogger.Log("[MatchMaking] Disposing Controller. Unsubscribing from NetworkManager events.");
+        _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] Disposing Controller. Unsubscribing from NetworkManager events.");
         _networkManager.RunnerStateChanged  -= HandleRunnerStateChanged;
         _networkManager.PlayerCountChanged  -= HandlePlayerCountChanged;
     }
 
     private void HandleRunnerStateChanged(NetworkRunner.States state)
     {
-        _debugLogger.Log($"[MatchMaking] HandleRunnerStateChanged: NetworkRunner State transitioned to {state}");
-        
-        if (state == NetworkRunner.States.Running && _networkManager.PlayerCount >= _battleSetup.PlayerCnt)
-        {
-            _debugLogger.Log("[MatchMaking] HandleRunnerStateChanged: Runner is Running and player count met. Commencing LoadNetworkedScene to GAMEPLAY.");
-            _model.ApplyState(new MatchMakingStateData
-            {
-                Phase  = MatchMakingPhase.Connected,
-                Status = "Connected!"
-            });
-            _sceneLoader.LoadNetworkedScene(_networkManager.Runner, SceneNames.GAMEPLAY);
-        }
+        _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), $"[MatchMaking] HandleRunnerStateChanged: NetworkRunner State transitioned to {state}");
 
         if (state == NetworkRunner.States.Shutdown)
         {
-            _debugLogger.Log("[MatchMaking] HandleRunnerStateChanged: Runner is Shutdown. Returning model state to Idle.");
+            _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] HandleRunnerStateChanged: Runner is Shutdown. Returning model state to Idle.");
             _model.ApplyState(new MatchMakingStateData
             {
                 Phase  = MatchMakingPhase.Idle,
                 Status = string.Empty
             });
+            return;
         }
+
+        TryLoadGameplayScene();
     }
 
     private void HandlePlayerCountChanged(int count)
     {
-        _debugLogger.Log($"[MatchMaking] HandlePlayerCountChanged: Session Player Count changed to {count}");
+        _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), $"[MatchMaking] HandlePlayerCountChanged: Session Player Count changed to {count}. RunnerState={_networkManager.RunnerState}, Required={_battleSetup.PlayerCnt}");
         _model.ApplyState(new MatchMakingStateData
         {
             Phase             = _model.Phase.Value,
@@ -64,17 +57,34 @@ internal class MatchMakingController : IMatchMakingController
             Timer             = _model.Timer.Value,
             PlayerJoinedCount = count
         });
+
+        TryLoadGameplayScene();
+    }
+
+    private void TryLoadGameplayScene()
+    {
+        if (_networkManager.RunnerState != NetworkRunner.States.Running) return;
+        if (_model.PlayerJoinedCount.Value < _battleSetup.PlayerCnt) return;
+        if (_model.Phase.Value == MatchMakingPhase.Connected) return;
+
+        _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] TryLoadGameplayScene: Player count met while Runner is Running. Loading GAMEPLAY.");
+        _model.ApplyState(new MatchMakingStateData
+        {
+            Phase  = MatchMakingPhase.Connected,
+            Status = "Connected!"
+        });
+        _sceneLoader.LoadNetworkedScene(_networkManager.Runner, SceneNames.GAMEPLAY);
     }
 
     public Task AcceptMatch()
     {
-        _debugLogger.Log("[MatchMaking] AcceptMatch called (stub logic, returning completed task).");
+        _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] AcceptMatch called (stub logic, returning completed task).");
         return Task.CompletedTask;
     }
 
     public async Task RejectMatch()
     {
-        _debugLogger.Log("[MatchMaking] RejectMatch called. Command shutting down NetworkRunner.");
+        _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] RejectMatch called. Command shutting down NetworkRunner.");
         await _networkManager.ShutdownRunner();
         _model.ApplyState(new MatchMakingStateData
         {
@@ -88,11 +98,11 @@ internal class MatchMakingController : IMatchMakingController
 #if FUSION_SHARED_TEST
         try
         {
-            _debugLogger.Log("[TEST] [MatchMaking] CancelMatchmaking: Shared test mode cancellation initiated.");
-            
+            _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[TEST] [MatchMaking] CancelMatchmaking: Shared test mode cancellation initiated.");
+
             if (_pollingCts != null)
             {
-                _debugLogger.Log("[TEST] [MatchMaking] CancelMatchmaking: Cancelling status polling task.");
+                _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[TEST] [MatchMaking] CancelMatchmaking: Cancelling status polling task.");
                 _pollingCts.Cancel();
                 _pollingCts.Dispose();
                 _pollingCts = null;
@@ -100,7 +110,7 @@ internal class MatchMakingController : IMatchMakingController
 
             if (_networkManager.RunnerState == NetworkRunner.States.Running)
             {
-                _debugLogger.Log("[TEST] [MatchMaking] CancelMatchmaking: NetworkRunner is active. Requesting shutdown.");
+                _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[TEST] [MatchMaking] CancelMatchmaking: NetworkRunner is active. Requesting shutdown.");
                 await _networkManager.ShutdownRunner();
             }
 
@@ -112,27 +122,27 @@ internal class MatchMakingController : IMatchMakingController
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"[TEST] [MatchMaking] CancelMatchmaking failed: {ex.Message}");
+            _debugLogger.LogError("LOG_MATCHMAKING", nameof(MatchMakingController), $"[TEST] [MatchMaking] CancelMatchmaking failed: {ex.Message}");
         }
 #else
         try
         {
-            _debugLogger.Log("[MatchMaking] CancelMatchmaking: Standard matchmaking cancellation initiated.");
-            
+            _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] CancelMatchmaking: Standard matchmaking cancellation initiated.");
+
             if (_pollingCts != null)
             {
-                _debugLogger.Log("[MatchMaking] CancelMatchmaking: Cancelling status polling task.");
+                _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] CancelMatchmaking: Cancelling status polling task.");
                 _pollingCts.Cancel();
                 _pollingCts.Dispose();
                 _pollingCts = null;
             }
 
-            _debugLogger.Log("[MatchMaking] CancelMatchmaking: Calling DELETE /api/matchmaking/queue...");
+            _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] CancelMatchmaking: Calling DELETE /api/matchmaking/queue...");
             try { await _http.Delete("/api/matchmaking/queue"); } catch { }
 
-            _debugLogger.Log("[MatchMaking] CancelMatchmaking: Shutting down NetworkRunner.");
+            _debugLogger.Log("LOG_MATCHMAKING", nameof(MatchMakingController), "[MatchMaking] CancelMatchmaking: Shutting down NetworkRunner.");
             await _networkManager.ShutdownRunner();
-            
+
             _model.ApplyState(new MatchMakingStateData
             {
                 Phase  = MatchMakingPhase.Idle,
@@ -141,7 +151,7 @@ internal class MatchMakingController : IMatchMakingController
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"[MatchMaking] CancelMatchmaking failed: {ex.Message}");
+            _debugLogger.LogError("LOG_MATCHMAKING", nameof(MatchMakingController), $"[MatchMaking] CancelMatchmaking failed: {ex.Message}");
         }
 #endif
     }

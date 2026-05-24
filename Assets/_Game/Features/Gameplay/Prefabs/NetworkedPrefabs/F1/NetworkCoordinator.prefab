@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8805050866114620390
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 544417254600220594}
+  - component: {fileID: 4117140762922180325}
+  - component: {fileID: 2567984651941167486}
+  - component: {fileID: 4551778163107886710}
+  m_Layer: 0
+  m_Name: NetworkCoordinator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &544417254600220594
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805050866114620390}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.7069834, y: 0, z: 0, w: 0.7072302}
+  m_LocalPosition: {x: -0.00000017881393, y: 0.34787002, z: -0.000000029802322}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 0}
+--- !u!114 &4117140762922180325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805050866114620390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3275420669
+  ObjectInterest: 1
+  Flags: 131073
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 2567984651941167486}
+  - {fileID: 4551778163107886710}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &2567984651941167486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805050866114620390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 1
+  SyncParent: 1
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
+--- !u!114 &4551778163107886710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805050866114620390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22906fef3cd23e647aa0636351b64665, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameplayFeatures::GameplayNetworkCoordinator
+  _gameStateManagerPrefab:
+    RawGuidValue: 8c74f9b0d0737b04e99bb4cf89692fd9
+  _boardManagerPrefab:
+    RawGuidValue: 57c77e7bf58e76647a9b0e9cace5eb32
+  _playerStatePrefab:
+    RawGuidValue: 00000000000000000000000000000000
+  _deckChooseViewPrefab:
+    RawGuidValue: b2d9cbf8e1c078a489b9bfe69c7c0da7
+  _playerCardZoneViewPrefab:
+    RawGuidValue: b4feb8ab945454a49ac9dc5c8e530b7c
+  _playerRosterPublicViewPrefab:
+    RawGuidValue: 553b700cb40119747bac685bdca2f8b5
+  _matchRewardsPrivateViewPrefab:
+    RawGuidValue: 9c99322cbacd8e144a661352968de8e2
+  _fusionViewPrefab:
+    RawGuidValue: 25dfe4b9fd625ba4d99579845f1a8ca3
+  _unitPrefab:
+    RawGuidValue: b854eefbc7e688a41a155e78fe91e990
+  _combatCoordinatorPrefab:
+    RawGuidValue: d577c0c9a75a13345a7ae9acd1f68f99
+  _matchResultCoordinatorPrefab:
+    RawGuidValue: 00000000000000000000000000000000
+  _playerPieceConfigs:
+  - Mesh: {fileID: 6944211603708085423, guid: 9c2f43550e86ad846a5632c26906d5c8, type: 3}
+    Materials:
+    - {fileID: 2100000, guid: 9f4e8739a25a373499db187fccdfe74e, type: 2}
+    - {fileID: 2100000, guid: 3c582199456695a4896309defcc301bd, type: 2}
+  - Mesh: {fileID: 6944211603708085423, guid: 9c2f43550e86ad846a5632c26906d5c8, type: 3}
+    Materials:
+    - {fileID: 2100000, guid: 9f4e8739a25a373499db187fccdfe74e, type: 2}
+    - {fileID: 2100000, guid: 37a2701cc021796468f1f933af19b943, type: 2}
+  - Mesh: {fileID: 6944211603708085423, guid: 9c2f43550e86ad846a5632c26906d5c8, type: 3}
+    Materials:
+    - {fileID: 2100000, guid: 9f4e8739a25a373499db187fccdfe74e, type: 2}
+    - {fileID: 2100000, guid: 9a48af454b90403419189bbe29b70c91, type: 2}
+  _PlayerStates: []
+  _PlayerCardZoneIds: []
+  _PlayerCount: 0

@@ -22,7 +22,7 @@ internal class DeckBuildController : IDeckBuildController
     {
         try
         {
-            _debugLogger.Log($"DeckBuild: Loading deck {deckId}");
+            _debugLogger.Log("LOG_DECKBUILD", nameof(DeckBuildController), $"DeckBuild: Loading deck {deckId}");
             var response = await _httpService.Get<DeckDetailData>($"/api/decks/{deckId}");
 
             if (response != null)
@@ -43,28 +43,28 @@ internal class DeckBuildController : IDeckBuildController
                     }
                     else
                     {
-                        _debugLogger.LogWarning($"DeckBuild: Could not resolve card ID {cardId}");
+                        _debugLogger.LogWarning("LOG_DECKBUILD", nameof(DeckBuildController), $"DeckBuild: Could not resolve card ID {cardId}");
                     }
                 }
 
                 List<CardSO> availableCards = await GetAllCollection(deckCards);
                 _model.SetRenderData(deckCards, championCards, grantedCards, availableCards);
-                _debugLogger.Log($"DeckBuild: Loaded deck '{response.name}' with {deckCards.Count} cards, {championCards.Count} champions, and {grantedCards.Count} granted cards");
+                _debugLogger.Log("LOG_DECKBUILD", nameof(DeckBuildController), $"DeckBuild: Loaded deck '{response.name}' with {deckCards.Count} cards, {championCards.Count} champions, and {grantedCards.Count} granted cards");
             }
             else
             {
-                _debugLogger.LogError("DeckBuild: Failed to load deck");
+                _debugLogger.LogError("LOG_DECKBUILD", nameof(DeckBuildController), "DeckBuild: Failed to load deck");
             }
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"DeckBuild: LoadDeck failed: {ex.Message}");
+            _debugLogger.LogError("LOG_DECKBUILD", nameof(DeckBuildController), $"DeckBuild: LoadDeck failed: {ex.Message}");
         }
     }
 
     public async Task CreateEmptyDeck()
     {
-        _debugLogger.Log("DeckBuild: Creating empty deck");
+        _debugLogger.Log("LOG_DECKBUILD", nameof(DeckBuildController), "DeckBuild: Creating empty deck");
         _model.SetCurrentDeck(string.Empty, string.Empty);
         List<CardSO> availableCards = await GetAllCollection();
         _model.SetRenderData(Array.Empty<CardSO>(), Array.Empty<CardSO>(), Array.Empty<CardSO>(), availableCards);
@@ -74,15 +74,15 @@ internal class DeckBuildController : IDeckBuildController
     {
         try
         {
-            _debugLogger.Log("DeckBuild: Loading available cards from collection");
+            _debugLogger.Log("LOG_DECKBUILD", nameof(DeckBuildController), "DeckBuild: Loading available cards from collection");
             List<CardSO> currentDeck = new List<CardSO>(_model.DeckCards.Value);
             List<CardSO> availableCards = await GetAllCollection(currentDeck);
             _model.SetAvailableCards(availableCards);
-            _debugLogger.Log($"DeckBuild: Loaded {availableCards.Count} available cards");
+            _debugLogger.Log("LOG_DECKBUILD", nameof(DeckBuildController), $"DeckBuild: Loaded {availableCards.Count} available cards");
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"DeckBuild: LoadAvailableCards failed: {ex.Message}");
+            _debugLogger.LogError("LOG_DECKBUILD", nameof(DeckBuildController), $"DeckBuild: LoadAvailableCards failed: {ex.Message}");
         }
     }
 
@@ -171,7 +171,7 @@ internal class DeckBuildController : IDeckBuildController
             string deckName = _model.CurrentDeckName.Value;
             string championStringId = _model.ChampionCards.Value.FirstOrDefault()?.StringID;
 
-            _debugLogger.Log($"DeckBuild: Saving deck {deckName} ({deckId})");
+            _debugLogger.Log("LOG_DECKBUILD", nameof(DeckBuildController), $"DeckBuild: Saving deck {deckName} ({deckId})");
 
             List<string> cardIds = _model.DeckCards.Value.Select(c => c.StringID).ToList();
 
@@ -205,12 +205,12 @@ internal class DeckBuildController : IDeckBuildController
             };
 
             await _httpService.Post<SaveDeckRequest>($"/api/decks/save", payload);
-            _debugLogger.Log("DeckBuild: Deck saved successfully");
+            _debugLogger.Log("LOG_DECKBUILD", nameof(DeckBuildController), "DeckBuild: Deck saved successfully");
         }
         catch (Exception ex)
         {
             _model.SetErrorMessage($"Save failed: {ex.Message}");
-            _debugLogger.LogError($"DeckBuild: SaveDeck failed: {ex.Message}");
+            _debugLogger.LogError("LOG_DECKBUILD", nameof(DeckBuildController), $"DeckBuild: SaveDeck failed: {ex.Message}");
         }
     }
 

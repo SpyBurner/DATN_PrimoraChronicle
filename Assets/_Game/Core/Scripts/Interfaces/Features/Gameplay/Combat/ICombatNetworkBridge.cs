@@ -1,7 +1,9 @@
+using Fusion;
+
 public interface ICombatNetworkBridge
 {
-    void SendMoveRpc(string unitId, HexCoord destination);
-    void SendNormalAttackRpc(string unitId, HexCoord target);
-    void SendSkillRpc(string unitId, string skillId, HexCoord target);
+    void SendMoveRpc(NetworkId unit, HexCoord destination);
+    void SendNormalAttackRpc(NetworkId unit, HexCoord target);
+    void SendSkillRpc(NetworkId unit, string skillId, HexCoord target);
     void SendEndTurnRpc();
 }

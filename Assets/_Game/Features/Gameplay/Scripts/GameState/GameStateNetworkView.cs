@@ -5,6 +5,8 @@ using Zenject;
 public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
 {
     [Inject(Optional = true)] private IGameStateSubsystem _gameState;
+    [Inject(Optional = true)] private IUnitSubsystem _unitSubsystem;
+    [Inject(Optional = true)] private INetworkManagerSubsystem _networkManager;
     [Inject(Optional = true)] private IDebugLogger _logger;
 
     [Networked] public GameplayPhase CurrentPhase { get; set; }
@@ -13,12 +15,15 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     [Networked] public float MatchElapsed { get; set; }
     [Networked] public PlayerRef CurrentCombatActor { get; set; }
     [Networked] public NetworkBool IsMatchOver { get; set; }
+    // Capacity 8: allow 0-based PlayerId
+    [Networked, Capacity(8)] public NetworkArray<NetworkBool> PlayerReady => default;
 
     [Header("Phase Durations")]
     [SerializeField] private float _startPhaseDuration = 30f;
     [SerializeField] private float _mainPhaseDuration = 60f;
     [SerializeField] private float _drawPhaseDuration = 30f;
     [SerializeField] private float _matchTimeLimit = 3600f;
+    [SerializeField] private bool _pauseTimer;
 
     private ChangeDetector _changeDetector;
 
@@ -29,10 +34,12 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         // fall back to resolving from the SceneContext directly.
         if (_gameState == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             if (ctx != null)
             {
                 _gameState = ctx.Container.Resolve<IGameStateSubsystem>();
+                _unitSubsystem = ctx.Container.TryResolve<IUnitSubsystem>();
+                _networkManager = ctx.Container.TryResolve<INetworkManagerSubsystem>();
                 _logger  = ctx.Container.Resolve<IDebugLogger>();
             }
             else
@@ -52,7 +59,12 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             RoundNumber = 1;
             MatchElapsed = 0f;
             IsMatchOver = false;
-            _logger?.Log("[GameStateNetworkView] Spawned as StateAuthority. Phase=StartPhase.");
+            // Reset all ready flags
+            for (int i = 0; i < PlayerReady.Length; i++) PlayerReady.Set(i, false);
+            _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), "Spawned as StateAuthority. Phase=StartPhase.");
+
+            if (_networkManager != null)
+                _networkManager.PlayerLeft += HandlePlayerLeft;
         }
 
         PushState();
@@ -61,6 +73,8 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         _gameState?.RegisterNetworkBridge(null);
+        if (_networkManager != null)
+            _networkManager.PlayerLeft -= HandlePlayerLeft;
     }
 
     public override void FixedUpdateNetwork()
@@ -68,11 +82,48 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         if (!Object.HasStateAuthority) return;
         if (IsMatchOver) return;
 
-        MatchElapsed += Runner.DeltaTime;
+        if (_pauseTimer)
+        {
+            if (PhaseTimer.IsRunning && PhaseTimer.TargetTick.HasValue)
+                PhaseTimer = TickTimer.CreateFromTicks(Runner, PhaseTimer.TargetTick.Value + 1);
+        }
+        else
+        {
+            MatchElapsed += Runner.DeltaTime;
+        }
 
         if (MatchElapsed >= _matchTimeLimit)
         {
-            TransitionTo(GameplayPhase.GameOver);
+            EndMatchByTimeLimit();
+            return;
+        }
+
+        if (CurrentPhase == GameplayPhase.StartPhase && AreAllPlayersReady())
+        {
+            TransitionTo(GameplayPhase.MainPhase);
+            return;
+        }
+
+        if (CurrentPhase == GameplayPhase.MainPhase && AreAllPlayersReady())
+        {
+            TransitionTo(GameplayPhase.CombatPhase);
+            return;
+        }
+
+        if (CurrentPhase != GameplayPhase.Setup && CurrentPhase != GameplayPhase.StartPhase)
+        {
+            var eliminatedPlayer = CheckElimination();
+            if (eliminatedPlayer.IsRealPlayer)
+            {
+                EndMatchByElimination(eliminatedPlayer);
+                return;
+            }
+        }
+
+        if (CurrentPhase == GameplayPhase.DrawPhase && AllPlayersDrawPhaseConfirmed())
+        {
+            RoundNumber++;
+            TransitionTo(GameplayPhase.MainPhase);
             return;
         }
 
@@ -91,9 +142,11 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 TransitionTo(GameplayPhase.MainPhase);
                 break;
             case GameplayPhase.MainPhase:
+                AutoDeployUnfusedPlayers();
                 TransitionTo(GameplayPhase.CombatPhase);
                 break;
             case GameplayPhase.DrawPhase:
+                AutoKeepUnconfirmedPlayers();
                 RoundNumber++;
                 TransitionTo(GameplayPhase.MainPhase);
                 break;
@@ -111,7 +164,27 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             if (dcView != null && !dcView.IsReady)
             {
                 dcView.ServerAutoConfirm(player.PlayerId);
-                _logger?.Log($"[GameStateNetworkView] Auto-confirmed deck for unready player {player}.");
+                _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Auto-confirmed deck for unready player {player}.");
+            }
+        }
+    }
+
+    private void AutoDeployUnfusedPlayers()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var fusionView = coordinator.GetFusionView(player);
+            if (fusionView == null || fusionView.HasFusedThisTurn) continue;
+
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            string championId = pczView?.ChampionId.ToString() ?? string.Empty;
+            if (!string.IsNullOrEmpty(championId))
+            {
+                fusionView.ServerAutoConfirmFusion(championId);
+                _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Auto-deployed Champion for unready player {player}.");
             }
         }
     }
@@ -120,6 +193,10 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     {
         CurrentPhase = newPhase;
 
+        // Reset all player ready flags on every phase transition
+        if (Object.HasStateAuthority)
+            for (int i = 0; i < PlayerReady.Length; i++) PlayerReady.Set(i, false);
+
         switch (newPhase)
         {
             case GameplayPhase.StartPhase:
@@ -127,12 +204,15 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 break;
             case GameplayPhase.MainPhase:
                 PhaseTimer = TickTimer.CreateFromSeconds(Runner, _mainPhaseDuration);
+                ResetFusionViews();
                 break;
             case GameplayPhase.CombatPhase:
                 PhaseTimer = TickTimer.None;
+                StartCombatPhase();
                 break;
             case GameplayPhase.DrawPhase:
                 PhaseTimer = TickTimer.CreateFromSeconds(Runner, _drawPhaseDuration);
+                StartDrawPhase();
                 break;
             case GameplayPhase.GameOver:
                 PhaseTimer = TickTimer.None;
@@ -140,16 +220,245 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 break;
         }
 
-        _logger?.Log($"[GameStateNetworkView] Phase transition -> {newPhase}");
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Phase transition -> {newPhase}");
+    }
+
+    private bool AreAllPlayersReady()
+    {
+        // Use the authoritative PlayerReady NetworkArray.
+        // At least 2 active players must exist and all must be ready.
+        int activeCount = 0;
+        foreach (var _ in Runner.ActivePlayers) activeCount++;
+        if (activeCount < 2) return false;
+
+        foreach (var player in Runner.ActivePlayers)
+        {
+            int slot = player.PlayerId;
+            if (slot < 0 || slot >= PlayerReady.Length) return false;
+            if (!PlayerReady.Get(slot)) return false;
+        }
+        return true;
+    }
+
+    private void StartCombatPhase()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator != null)
+        {
+            foreach (var player in coordinator.GetAllPlayers())
+            {
+                var fusionView = coordinator.GetFusionView(player);
+                fusionView?.ServerSpawnConfirmedUnit();
+            }
+        }
+        coordinator?.CombatView?.ServerStartCombatPhase();
+    }
+
+    private void ResetFusionViews()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var fusionView = coordinator.GetFusionView(player);
+            if (fusionView != null) fusionView.ServerResetForNewTurn();
+        }
+    }
+
+    private void StartDrawPhase()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            pczView?.ServerStartDrawPhase();
+        }
+
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), "DrawPhase started — drew cards for all players.");
+    }
+
+    private void AutoKeepUnconfirmedPlayers()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            if (pczView != null && !pczView.DrawPhaseConfirmed)
+            {
+                pczView.ServerAutoKeepOnTimeout();
+                _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Auto-kept cards for unconfirmed player {player}.");
+            }
+        }
+    }
+
+    private bool AllPlayersDrawPhaseConfirmed()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return false;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            if (pczView != null && !pczView.DrawPhaseConfirmed)
+                return false;
+        }
+        return true;
+    }
+
+    // ── Win Condition ───────────────────────────────────────────────────
+
+    private PlayerRef CheckElimination()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return default;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            if (pczView != null && pczView.IsSetup && pczView.HP <= 0)
+                return player;
+        }
+        return default;
+    }
+
+    private void EndMatchByElimination(PlayerRef eliminatedPlayer)
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        PlayerRef winner = default;
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            if (player != eliminatedPlayer)
+            {
+                winner = player;
+                break;
+            }
+        }
+
+        CommitMatchResult(new GameMatchResult
+        {
+            Winner = winner,
+            IsTie = false,
+            GoldEarned = CalculateGoldReward(),
+            XPEarned = CalculateXPReward(),
+            DurationSeconds = MatchElapsed
+        });
+    }
+
+    private void EndMatchByTimeLimit()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null)
+        {
+            TransitionTo(GameplayPhase.GameOver);
+            return;
+        }
+
+        PlayerRef highestHPPlayer = default;
+        int highestHP = int.MinValue;
+        bool isTie = false;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var pczView = coordinator.GetPlayerCardZoneView(player);
+            if (pczView == null) continue;
+
+            int hp = pczView.HP;
+            if (hp > highestHP)
+            {
+                highestHP = hp;
+                highestHPPlayer = player;
+                isTie = false;
+            }
+            else if (hp == highestHP)
+            {
+                isTie = true;
+            }
+        }
+
+        CommitMatchResult(new GameMatchResult
+        {
+            Winner = isTie ? default : highestHPPlayer,
+            IsTie = isTie,
+            GoldEarned = isTie ? 0 : CalculateGoldReward(),
+            XPEarned = CalculateXPReward(),
+            DurationSeconds = MatchElapsed
+        });
+    }
+
+    private void CommitMatchResult(GameMatchResult result)
+    {
+        TransitionTo(GameplayPhase.GameOver);
+
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        var matchResultView = coordinator?.MatchResultView;
+        if (matchResultView != null)
+        {
+            matchResultView.ServerEndMatch(result);
+        }
+        else
+        {
+            _logger?.LogWarning("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), "MatchResultView not found — cannot commit result.");
+        }
+    }
+
+    private int CalculateGoldReward()
+    {
+        int baseGold = 50;
+        int roundBonus = RoundNumber * 5;
+        return baseGold + roundBonus;
+    }
+
+    private int CalculateXPReward()
+    {
+        int baseXP = 100;
+        int roundBonus = RoundNumber * 10;
+        return baseXP + roundBonus;
     }
 
     // ── IGameStateNetworkBridge ──────────────────────────────────────────
 
     public void SendPhaseTransitionRpc(GameplayPhase phase)
-        => Rpc_RequestPhaseTransition(phase);
+        => Rpc_RequestPhaseTransition(Runner.LocalPlayer, phase);
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void Rpc_RequestPhaseTransition(GameplayPhase phase)
+    public void SendSetReadyRpc(bool ready)
+        => Rpc_SetReady(Runner.LocalPlayer, ready);
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_SetReady(PlayerRef sender, bool ready, RpcInfo info = default)
+    {
+        if (_gameState == null) return;
+
+        // Only accept ready=true when AcceptsReadyInput; always accept ready=false (unless locked)
+        if (ready && !_gameState.AcceptsReadyInput)
+        {
+            _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Rpc_SetReady(true) rejected — AcceptsReadyInput=false for phase {CurrentPhase}.");
+            return;
+        }
+
+        int slotIndex = sender.PlayerId;
+        if (slotIndex < 0 || slotIndex >= PlayerReady.Length) return;
+
+        // Lock: once ready=true, server ignores ready=false until phase advances
+        if (!ready && PlayerReady.Get(slotIndex))
+        {
+            _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Rpc_SetReady(false) rejected — {sender} already locked ready.");
+            return;
+        }
+
+        PlayerReady.Set(slotIndex, ready);
+        _gameState.OnPlayerReadyChanged(sender, ready);
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Rpc_SetReady({ready}) from {sender} — slot {slotIndex} written.");
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_RequestPhaseTransition(PlayerRef sender, GameplayPhase phase, RpcInfo info = default)
     {
         TransitionTo(phase);
     }
@@ -175,6 +484,27 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         CurrentCombatActor = actor;
     }
 
+    public void ServerSetPlayerReady(PlayerRef player, bool ready)
+    {
+        if (!Object.HasStateAuthority) return;
+        int slot = player.PlayerId;
+        if (slot < 0 || slot >= PlayerReady.Length) return;
+        if (!ready && PlayerReady.Get(slot)) return; // locked once set
+        PlayerReady.Set(slot, ready);
+        _gameState?.OnPlayerReadyChanged(player, ready);
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"ServerSetPlayerReady({ready}) for {player} — slot {slot}.");
+    }
+
+    public void ServerCheckElimination()
+    {
+        if (!Object.HasStateAuthority) return;
+        if (IsMatchOver) return;
+
+        var eliminatedPlayer = CheckElimination();
+        if (eliminatedPlayer.IsRealPlayer)
+            EndMatchByElimination(eliminatedPlayer);
+    }
+
     // ── State push (server → all clients) ────────────────────────────────
 
     public override void Render()
@@ -197,13 +527,73 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             timeRemaining = remaining.HasValue ? remaining.Value : 0f;
         }
 
+        // Copy NetworkArray<NetworkBool> into plain bool[] for the data struct
+        var readyArr = new bool[PlayerReady.Length];
+        for (int i = 0; i < PlayerReady.Length; i++)
+            readyArr[i] = PlayerReady.Get(i);
+
+        // Detect and fire events for changed ready states
+        foreach (var player in Runner.ActivePlayers)
+        {
+            int playerId = player.PlayerId;
+            if (playerId >= 0 && playerId < readyArr.Length)
+            {
+                bool newReady = readyArr[playerId];
+                bool oldReady = _gameState.IsReady(player);
+                if (newReady != oldReady)
+                    _gameState.OnPlayerReadyChanged(player, newReady);
+            }
+        }
+
         _gameState.OnAuthoritativeStateReceived(new GameStateData
         {
             Phase = CurrentPhase,
             PhaseTimeRemaining = timeRemaining,
             MatchElapsed = MatchElapsed,
             RoundNumber = RoundNumber,
-            CurrentCombatActor = CurrentCombatActor
+            CurrentCombatActor = CurrentCombatActor,
+            PlayerReady = readyArr,
         });
+    }
+
+    // ── Forfeit / disconnect ─────────────────────────────────────────────
+
+    private void HandlePlayerLeft(PlayerRef player)
+    {
+        if (!Object.HasStateAuthority) return;
+        if (IsMatchOver) return;
+
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Player {player} disconnected — treating as forfeit.");
+
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator != null && _unitSubsystem != null)
+        {
+            var allUnits = _unitSubsystem.AllUnits;
+            if (allUnits != null)
+            {
+                var toDestroy = new System.Collections.Generic.List<NetworkId>();
+                foreach (var netId in allUnits)
+                {
+                    if (_unitSubsystem.TryGetPublic(netId, out UnitPublicData data) && data.Owner == player)
+                        toDestroy.Add(netId);
+                }
+
+                foreach (var netId in toDestroy)
+                {
+                    if (!_unitSubsystem.TryGetPublic(netId, out UnitPublicData data)) continue;
+
+                    if (data.DeathAnchor > 0)
+                    {
+                        var pczView = coordinator.GetPlayerCardZoneView(player);
+                        pczView?.ServerApplyDamage(data.DeathAnchor);
+                    }
+
+                    if (Runner.TryFindObject(netId, out var netObj))
+                        Runner.Despawn(netObj);
+                }
+            }
+        }
+
+        ServerCheckElimination();
     }
 }

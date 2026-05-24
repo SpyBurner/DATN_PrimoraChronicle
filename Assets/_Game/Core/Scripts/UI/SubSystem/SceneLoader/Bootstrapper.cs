@@ -8,12 +8,13 @@ namespace Core
     {
         [Inject] private readonly ISceneLoaderSubsystem _sceneLoader;
         [Inject] private readonly IUIManagerSubsystem _uiManager;
+        [Inject] private readonly IDebugLogger _logger;
 
         [SerializeField] private string _nextSceneName = SceneNames.ACCOUNT;
 
         private async void Start()
         {
-            Debug.Log("Bootstrapper starting...");
+            _logger.Log("LOG_BOOTSTRAP", nameof(Bootstrapper), "Starting.");
             await Initialize();
             // Load the initial scene (e.g., Account Scene)
             //await Task.Delay(500);
@@ -31,7 +32,7 @@ namespace Core
                 * However, in this architecture, panels are typically instantiated when their scenes load,
                 * so we can keep this method focused on any global setup that might be necessary.
                 */
-            Debug.Log("Bootstrapper initialization complete.");
+            _logger.Log("LOG_BOOTSTRAP", nameof(Bootstrapper), "Initialization complete.");
         }
     }
 }

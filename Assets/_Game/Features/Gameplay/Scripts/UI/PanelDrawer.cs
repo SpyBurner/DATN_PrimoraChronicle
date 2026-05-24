@@ -25,6 +25,9 @@ public class PanelDrawer : MonoBehaviour
 
     private void Awake()
     {
+        if (_panel == null) throw new System.Exception("[PanelDrawer._panel] Not assigned in Inspector — see wiring-F3.md (HandPanelAnchor / SkillPanelAnchor / TurnOrderPanelAnchor)");
+        if (_toggle == null) throw new System.Exception("[PanelDrawer._toggle] Not assigned in Inspector — see wiring-F3.md (Toggle_Sidebar on anchor prefab)");
+
         Transform openMarker = transform.Find("OpenPosition");
         if (openMarker != null)
         {

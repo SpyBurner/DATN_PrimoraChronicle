@@ -15,7 +15,25 @@
       "Skill(unity-mcp-skill:*)",
       "mcp__mcp-unity__get_scene_info",
       "Bash(python3)",
-      "mcp__mcp-unity__batch_execute"
+      "mcp__mcp-unity__batch_execute",
+      "Bash(Move-Item \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\wiring.md\" \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\Old\\\\wiring.md\")",
+      "Bash(Move-Item \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\wiring-F2.md\" \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\Old\\\\wiring-F2.md\")",
+      "Bash(Move-Item \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\wiring-F3.md\" \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\Old\\\\wiring-F3.md\")",
+      "Bash(Move-Item \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\wiring-F4.md\" \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\Old\\\\wiring-F4.md\")",
+      "Bash(Move-Item \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\wiring-F5.md\" \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Plans~\\\\Manual\\\\Old\\\\wiring-F5.md\")",
+      "Bash(Remove-Item -Force \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Features\\\\Gameplay\\\\Prefabs\\\\NetworkedPrefabs\\\\F6\\\\MatchRewradsPrivateState.prefab\" -ErrorAction Stop)",
+      "Bash(Remove-Item -Force \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Features\\\\Gameplay\\\\Prefabs\\\\NetworkedPrefabs\\\\F6\\\\MatchRewradsPrivateState.prefab.meta\" -ErrorAction Stop)",
+      "Bash(Write-Output \"Deleted.\")",
+      "PowerShell(Remove-Item -Force \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Features\\\\Gameplay\\\\Prefabs\\\\NetworkedPrefabs\\\\F6\\\\MatchRewradsPrivateState.prefab\" -Confirm:$false)",
+      "PowerShell(Remove-Item -Force \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\\\\Assets\\\\_Game\\\\Features\\\\Gameplay\\\\Prefabs\\\\NetworkedPrefabs\\\\F6\\\\MatchRewradsPrivateState.prefab.meta\" -Confirm:$false)",
+      "mcp__mcp-unity__execute_menu_item",
+      "Bash(Get-ChildItem -Path \"d:\\\\UnityProjects\\\\DATN_PrimoraChronicle\" -Recurse -Filter \"*.cs\")",
+      "Bash(Select-String -Pattern \"HexPatternResolver|ContainsTile\" -List)",
+      "Bash(Select-Object Path)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "mcp-unity"
+  ]
 }

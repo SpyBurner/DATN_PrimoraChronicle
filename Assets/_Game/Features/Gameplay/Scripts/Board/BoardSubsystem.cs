@@ -11,7 +11,9 @@ public class BoardSubsystem : IBoardSubsystem
     [Inject] private readonly IBoardModel _model;
 
     public event UnityAction<bool> IsGeneratedChanged;
+    public event UnityAction<System.Collections.Generic.IReadOnlyList<HexCoord>> TilesChanged;
     public event UnityAction<HexCoord, string> TileOccupantChanged;
+    public event UnityAction<HexCoord, string> TileEffectChanged;
 
     public bool IsGenerated => _model.IsGenerated.Value;
 
@@ -48,6 +50,8 @@ public class BoardSubsystem : IBoardSubsystem
         AllTiles = tiles;
         _tilePositions.Clear();
         foreach (var kvp in positions) _tilePositions[kvp.Key] = kvp.Value;
+        try { TilesChanged?.Invoke(tiles); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
     }
 
     public void RegisterDeployArea(PlayerRef owner, HexCoord coord) => _deployAreas[owner.RawEncoded] = coord;
@@ -76,7 +80,16 @@ public class BoardSubsystem : IBoardSubsystem
     public bool IsEmpty(HexCoord coord) => !_occupants.ContainsKey(coord);
 
     public HexCoord GetDeployArea(PlayerRef owner)
-        => _deployAreas.TryGetValue(owner.RawEncoded, out var c) ? c : HexCoord.Invalid;
+    {
+        var coord = GameplayNetworkCoordinator.Instance;
+        if (coord != null && coord.BoardView != null)
+        {
+            int index = coord.GetPlayerIndex(owner);
+            if (index == 0) return BoardNetworkView.DeployAreaPlayer1;
+            if (index == 1) return BoardNetworkView.DeployAreaPlayer2;
+        }
+        return _deployAreas.TryGetValue(owner.RawEncoded, out var c) ? c : HexCoord.Invalid;
+    }
 
     public IReadOnlyList<HexCoord> GetNeighbors(HexCoord coord)
     {
@@ -93,6 +106,8 @@ public class BoardSubsystem : IBoardSubsystem
         return result;
     }
 
+    public bool ContainsTile(HexCoord coord) => _tilePositions.ContainsKey(coord);
+
     public IReadOnlyList<HexCoord> GetTilesInRange(HexCoord center, int range)
     {
         var result = new List<HexCoord>();
@@ -103,9 +118,37 @@ public class BoardSubsystem : IBoardSubsystem
 
     public IReadOnlyList<HexCoord> FindPath(HexCoord from, HexCoord to, int maxDistance)
     {
-        // Track A: implement BFS pathfinding. Stub returns direct path if distance <= maxDistance.
-        if (Distance(from, to) <= maxDistance && IsEmpty(to))
-            return new List<HexCoord> { to };
+        if (!IsEmpty(to)) return new List<HexCoord>();
+        if (Distance(from, to) > maxDistance) return new List<HexCoord>();
+
+        // BFS pathfinding through empty tiles only
+        var visited = new HashSet<HexCoord> { from };
+        var queue = new Queue<(HexCoord pos, List<HexCoord> path)>();
+        queue.Enqueue((from, new List<HexCoord>()));
+
+        while (queue.Count > 0)
+        {
+            var (current, path) = queue.Dequeue();
+
+            if (path.Count >= maxDistance) continue;
+
+            foreach (var neighbor in GetNeighbors(current))
+            {
+                if (visited.Contains(neighbor)) continue;
+
+                var newPath = new List<HexCoord>(path) { neighbor };
+
+                if (neighbor == to)
+                    return newPath;
+
+                if (IsEmpty(neighbor))
+                {
+                    visited.Add(neighbor);
+                    queue.Enqueue((neighbor, newPath));
+                }
+            }
+        }
+
         return new List<HexCoord>();
     }
 

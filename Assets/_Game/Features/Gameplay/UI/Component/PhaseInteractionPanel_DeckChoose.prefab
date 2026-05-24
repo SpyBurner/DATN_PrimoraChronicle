@@ -371,7 +371,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3682555380005985387, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 1.2063891
       objectReference: {fileID: 0}
     - target: {fileID: 3682555380005985387, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_LocalRotation.w
@@ -391,11 +391,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3682555380005985387, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 960
       objectReference: {fileID: 0}
     - target: {fileID: 3682555380005985387, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -523
       objectReference: {fileID: 0}
     - target: {fileID: 3682555380005985387, guid: 7548995a51ea8a744ab32d010080e261, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -546,7 +546,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GameplayFeatures::GameplayDeckChoosePanel
   _currentDeckButton: {fileID: 1314938541026374448}
-  _deckSelectOverlay: {fileID: -6257757991291379693, guid: c55d53caab4e79845986fc64c0597be2, type: 3}
+  _deckSelectOverlay: {fileID: 0}
   _timerText: {fileID: 6063241059028565102}
   _confirmButton: {fileID: 8172300592666288215}
 --- !u!224 &3748454976144258734 stripped

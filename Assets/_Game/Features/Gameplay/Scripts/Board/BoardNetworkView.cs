@@ -23,19 +23,24 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
     private readonly List<HexTile> _tiles = new();
     private readonly Dictionary<HexCoord, Vector3> _tilePositions = new();
 
-    private static readonly HexCoord DeployAreaPlayer1 = new(4, -4);
-    private static readonly HexCoord DeployAreaPlayer2 = new(-4, 4);
+    private void Awake()
+    {
+        if (!_hexTilePrefab.IsValid) throw new System.Exception("[BoardNetworkView._hexTilePrefab] Not assigned in Inspector — see wiring.md F1.2");
+    }
+
+    public static readonly HexCoord DeployAreaPlayer1 = new(4, -4);
+    public static readonly HexCoord DeployAreaPlayer2 = new(-4, 4);
 
     public override void Spawned()
     {
         if (_board == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _board = ctx?.Container.Resolve<IBoardSubsystem>();
         }
         if (_logger == null)
         {
-            var ctx = FindObjectOfType<SceneContext>();
+            var ctx = FindFirstObjectByType<SceneContext>();
             _logger = ctx?.Container.Resolve<IDebugLogger>();
         }
 
@@ -111,7 +116,7 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
         }
 
         IsGenerated = true;
-        _logger?.Log($"[BoardNetworkView] Generated board with {spawnedCount} hex tiles.");
+        _logger?.Log("LOG_BOARDNETWORKVIEW", nameof(BoardNetworkView), $"Generated board with {spawnedCount} hex tiles.");
         RegisterWithSubsystem();
     }
 
@@ -127,7 +132,7 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
             float inradius = zSize / 2f;
             _horizontalSpacing = 2f * inradius;
             _verticalSpacing = Mathf.Sqrt(3f) * inradius;
-            _logger?.Log($"[BoardNetworkView] Measured spacing from tile bounds: H={_horizontalSpacing:F3}, V={_verticalSpacing:F3}");
+            _logger?.Log("LOG_BOARDNETWORKVIEW", nameof(BoardNetworkView), $"Measured spacing from tile bounds: H={_horizontalSpacing:F3}, V={_verticalSpacing:F3}");
         }
 
         Runner.Despawn(tempTile);
@@ -147,7 +152,7 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
         if (_tiles.Count > 0)
         {
             RegisterWithSubsystem();
-            _logger?.Log($"[BoardNetworkView] Rebuilt tile registry from {_tiles.Count} children (client).");
+            _logger?.Log("LOG_BOARDNETWORKVIEW", nameof(BoardNetworkView), $"Rebuilt tile registry from {_tiles.Count} children (client).");
         }
     }
 
@@ -179,8 +184,11 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
 
     private void RegisterDeployAreas(BoardSubsystem boardSub)
     {
+        var sorted = new List<PlayerRef>(Runner.ActivePlayers);
+        sorted.Sort((a, b) => a.PlayerId.CompareTo(b.PlayerId));
+
         int playerIndex = 0;
-        foreach (var player in Runner.ActivePlayers)
+        foreach (var player in sorted)
         {
             var deployCoord = playerIndex == 0 ? DeployAreaPlayer1 : DeployAreaPlayer2;
             boardSub.RegisterDeployArea(player, deployCoord);
@@ -193,12 +201,14 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
 
     public override void Render()
     {
+        // On the client, tile NetworkObjects are spawned after BoardNetworkView.Spawned() fires.
+        // Retry registration every frame until children are actually present.
+        if (!Object.HasStateAuthority && IsGenerated && _tiles.Count == 0)
+            RebuildTileRegistryFromChildren();
+
         if (_changeDetector == null) return;
         foreach (var _ in _changeDetector.DetectChanges(this))
         {
-            if (IsGenerated && _tiles.Count == 0)
-                RebuildTileRegistryFromChildren();
-
             PushState();
             break;
         }
@@ -236,8 +246,11 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
 
     public Quaternion GetDeployRotation(int playerIndex)
     {
-        float yRotation = playerIndex == 0 ? 210f : 30f;
-        Vector3 facing = Quaternion.Euler(0f, yRotation, 0f) * Vector3.forward;
-        return Quaternion.LookRotation(Vector3.up, facing);
+        Vector3 deployPos = GetDeployWorldPosition(playerIndex);
+        Vector3 centerPos = transform.position;
+        Vector3 direction = (centerPos - deployPos).normalized;
+        if (direction.sqrMagnitude < 0.001f) direction = Vector3.forward;
+        direction.y = 0f;
+        return Quaternion.LookRotation(direction, Vector3.up);
     }
 }
