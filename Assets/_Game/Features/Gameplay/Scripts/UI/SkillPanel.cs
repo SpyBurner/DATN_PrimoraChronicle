@@ -15,6 +15,7 @@ public class SkillPanel : MonoBehaviour
     [Inject] private readonly IGameStateSubsystem _gameState;
     [Inject] private readonly INetworkManagerSubsystem _network;
     [Inject] private readonly ICardLoadingManagerSubsystem _cardLoading;
+    [Inject] private readonly IDebugLogger _debugLogger;
 
     [Header("References")]
     [SerializeField] private Transform _skillSlotContainer;
@@ -30,20 +31,21 @@ public class SkillPanel : MonoBehaviour
     private readonly List<SkillSlotUI> _spawnedSlots = new();
     private PlayerRef _localPlayer;
     private NetworkId _currentActor;
+    private string _activeSkillId;
 
     private void Awake()
     {
-        if (_skillSlotContainer == null) throw new System.Exception("[SkillPanel._skillSlotContainer] Not assigned in Inspector — see wiring-F4.md F4.5");
-        if (_skillSlotPrefab == null) throw new System.Exception("[SkillPanel._skillSlotPrefab] Not assigned in Inspector — see wiring-F4.md F4.5");
-        if (_endTurnButton == null) throw new System.Exception("[SkillPanel._endTurnButton] Not assigned in Inspector — see wiring-F4.md F4.5");
-        if (_actorNameText == null) throw new System.Exception("[SkillPanel._actorNameText] Not assigned in Inspector — see wiring-F4.md F4.5");
+        if (_skillSlotContainer == null) throw new Exception("[SkillPanel._skillSlotContainer] Not assigned in Inspector — see wiring-F4.md F4.5");
+        if (_skillSlotPrefab == null) throw new Exception("[SkillPanel._skillSlotPrefab] Not assigned in Inspector — see wiring-F4.md F4.5");
+        if (_endTurnButton == null) throw new Exception("[SkillPanel._endTurnButton] Not assigned in Inspector — see wiring-F4.md F4.5");
+        if (_actorNameText == null) throw new Exception("[SkillPanel._actorNameText] Not assigned in Inspector — see wiring-F4.md F4.5");
 
         foreach (Transform child in _skillSlotContainer) Destroy(child.gameObject);
     }
 
     private void OnEnable()
     {
-        _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
+        RefreshLocalPlayer();
 
         _combat.CurrentTurnChanged += OnCurrentTurnChanged;
         _combat.CurrentActorCanMoveChanged += OnActionFlagsChanged;
@@ -68,13 +70,30 @@ public class SkillPanel : MonoBehaviour
         _endTurnButton?.onClick.RemoveListener(OnEndTurnClicked);
         ClearSlots();
         _currentActor = default;
+        _activeSkillId = null;
+    }
+
+    private void RefreshLocalPlayer()
+    {
+        _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"RefreshLocalPlayer → Runner={(_network.Runner != null ? "ready" : "null")} localPlayer={_localPlayer}");
     }
 
     private void OnCurrentTurnChanged(NetworkId actorId)
     {
         try
         {
+            if (_targeting.IsTargeting)
+            {
+                _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OnCurrentTurnChanged — cancelling lingering targeting (activeSkill={_activeSkillId})");
+                _activeSkillId = null;
+                _targeting.Cancel();
+            }
+
+            RefreshLocalPlayer();
             _currentActor = actorId;
+            bool isLocal = IsLocalPlayerActor(actorId);
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OnCurrentTurnChanged actorId={actorId} localPlayer={_localPlayer} isLocal={isLocal}");
             RenderSkills(actorId);
         }
         catch (Exception ex) { Debug.LogException(ex); }
@@ -90,10 +109,11 @@ public class SkillPanel : MonoBehaviour
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private void OnOwnUnitSkillsChanged(NetworkId actorId, IReadOnlyList<SkillSlot> _)
+    private void OnOwnUnitSkillsChanged(NetworkId actorId, IReadOnlyList<SkillSlot> skills)
     {
         try
         {
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OwnUnitSkillsChanged actorId={actorId} currentActor={_currentActor} match={actorId == _currentActor} skillCount={skills?.Count ?? 0}");
             if (actorId != _currentActor) return;
             RenderSkills(actorId);
         }
@@ -102,13 +122,23 @@ public class SkillPanel : MonoBehaviour
 
     private void OnTargetingCancelled()
     {
-        try { RefreshSlotInteractability(); }
+        try
+        {
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"TargetingCancelled activeSkill={_activeSkillId}");
+            _activeSkillId = null;
+            RefreshSlotInteractability();
+        }
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
-    private void OnTargetingConfirmed(HexCoord _)
+    private void OnTargetingConfirmed(HexCoord coord)
     {
-        try { RefreshSlotInteractability(); }
+        try
+        {
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"TargetingConfirmed coord={coord} activeSkill={_activeSkillId}");
+            _activeSkillId = null;
+            RefreshSlotInteractability();
+        }
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
@@ -116,15 +146,25 @@ public class SkillPanel : MonoBehaviour
     {
         if (actorId == default) return false;
         if (!_unit.TryGetPublic(actorId, out var data)) return false;
-        return data.Owner == _localPlayer;
+        bool isLocal = data.Owner == _localPlayer;
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"IsLocalPlayerActor actorId={actorId} owner={data.Owner} localPlayer={_localPlayer} result={isLocal}");
+        return isLocal;
     }
 
     private void RenderSkills(NetworkId actorId)
     {
         ClearSlots();
 
-        if (actorId == default) return;
-        if (!_unit.TryGetPublic(actorId, out var unitData)) return;
+        if (actorId == default)
+        {
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), "RenderSkills skipped — actorId is default");
+            return;
+        }
+        if (!_unit.TryGetPublic(actorId, out var unitData))
+        {
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"RenderSkills skipped — TryGetPublic failed for {actorId}");
+            return;
+        }
 
         if (_actorNameText != null)
         {
@@ -134,7 +174,19 @@ public class SkillPanel : MonoBehaviour
             _actorNameText.text = displayName;
         }
 
-        if (!_unit.TryGetOwnSkills(actorId, out var skills) || skills == null) return;
+        if (!IsLocalPlayerActor(actorId))
+        {
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"RenderSkills — actor {actorId} belongs to opponent, hiding skills");
+            return;
+        }
+
+        if (!_unit.TryGetOwnSkills(actorId, out var skills) || skills == null)
+        {
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"RenderSkills — TryGetOwnSkills null/false for {actorId}");
+            return;
+        }
+
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"RenderSkills actorId={actorId} skillCount={skills.Count} isLocal={IsLocalPlayerActor(actorId)}");
 
         for (int i = 0; i < skills.Count; i++)
         {
@@ -213,7 +265,11 @@ public class SkillPanel : MonoBehaviour
             ApplySlotVisualState(slot, skill, _currentActor);
 
             if (slot.Button != null)
-                slot.Button.interactable = !targeting && isLocal && IsSkillReady(skill.SkillId, skill);
+            {
+                bool isActiveSkill = targeting && skill.SkillId == _activeSkillId;
+                // Keep the active skill button clickable so the player can reclick to cancel targeting.
+                slot.Button.interactable = (!targeting || isActiveSkill) && isLocal && IsSkillReady(skill.SkillId, skill);
+            }
         }
 
         if (_endTurnButton != null)
@@ -223,15 +279,29 @@ public class SkillPanel : MonoBehaviour
     private void OnSkillClicked(string skillId)
     {
         if (_currentActor == default) return;
-        if (_targeting.IsTargeting) return;
+
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OnSkillClicked skillId={skillId} isTargeting={_targeting.IsTargeting} activeSkill={_activeSkillId}");
+
+        if (_targeting.IsTargeting)
+        {
+            if (skillId == _activeSkillId)
+            {
+                _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"Reclick on active skill '{skillId}' — cancelling targeting");
+                _activeSkillId = null;
+                _targeting.Cancel();
+            }
+            return;
+        }
 
         if (skillId == "move")
         {
+            _activeSkillId = skillId;
             BeginMoveTargeting();
             return;
         }
         if (skillId == "n_atk")
         {
+            _activeSkillId = skillId;
             BeginNormalAttackTargeting();
             return;
         }
@@ -258,6 +328,9 @@ public class SkillPanel : MonoBehaviour
             IgnorePathfinding = skillData?.ignore_pathfinding ?? false,
         };
 
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"BeginTargeting skillId={skillId} mask={mask} range={range} caster={_currentActor}");
+
+        _activeSkillId = skillId;
         RefreshSlotInteractability();
         _targeting.BeginTargeting(request, target => OnTargetConfirmed(skillId, target));
         RefreshSlotInteractability();
@@ -265,7 +338,12 @@ public class SkillPanel : MonoBehaviour
 
     private void BeginMoveTargeting()
     {
-        if (!_combat.CurrentActorCanMove) return;
+        if (!_combat.CurrentActorCanMove)
+        {
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), "BeginMoveTargeting — CurrentActorCanMove is false, aborting");
+            _activeSkillId = null;
+            return;
+        }
 
         int range = 2;
         if (_unit.TryGetPublic(_currentActor, out var data) && data.MoveRange > 0)
@@ -280,13 +358,19 @@ public class SkillPanel : MonoBehaviour
             IgnorePathfinding = false
         };
 
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"BeginMoveTargeting range={range} caster={_currentActor}");
         _targeting.BeginTargeting(request, target => OnTargetConfirmed("move", target));
         RefreshSlotInteractability();
     }
 
     private void BeginNormalAttackTargeting()
     {
-        if (!_combat.CurrentActorCanAct) return;
+        if (!_combat.CurrentActorCanAct)
+        {
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), "BeginNormalAttackTargeting — CurrentActorCanAct is false, aborting");
+            _activeSkillId = null;
+            return;
+        }
 
         int range = 1;
         if (_unit.TryGetPublic(_currentActor, out var data)
@@ -306,12 +390,15 @@ public class SkillPanel : MonoBehaviour
             IgnorePathfinding = false
         };
 
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"BeginNormalAttackTargeting range={range} caster={_currentActor}");
         _targeting.BeginTargeting(request, target => OnTargetConfirmed("n_atk", target));
         RefreshSlotInteractability();
     }
 
     private void OnTargetConfirmed(string skillId, HexCoord target)
     {
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OnTargetConfirmed skillId={skillId} target={target} activeSkill={_activeSkillId}");
+        if (_activeSkillId != skillId) return;
         if (skillId == "move")
             _combat.RequestMove(_currentActor, target);
         else if (skillId == "n_atk")

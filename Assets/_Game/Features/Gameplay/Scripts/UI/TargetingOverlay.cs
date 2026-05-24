@@ -10,25 +10,26 @@ public class TargetingOverlay : MonoBehaviour
     [Inject] private readonly IBoardSubsystem _board;
     [Inject] private readonly IUnitSubsystem _unit;
     [Inject] private readonly INetworkManagerSubsystem _network;
+    [Inject] private readonly IDebugLogger _debugLogger;
 
     [Header("Tile Highlight Prefab")]
     [SerializeField] private TileHighlight _tileHighlightPrefab;
 
     [Header("Colors")]
-    [SerializeField] private Color _rangeColor = new Color(1f, 0.92f, 0.016f, 0.6f);
-    [SerializeField] private Color _validTargetColor = new Color(0.2f, 0.8f, 0.2f, 0.8f);
-    [SerializeField] private Color _invalidTargetColor = new Color(1f, 0.2f, 0.2f, 0.6f);
+    [SerializeField] private Color _rangeColor = new(1f, 0.92f, 0.016f, 0.6f);
+    [SerializeField] private Color _validTargetColor = new(0.2f, 0.8f, 0.2f, 0.8f);
+    [SerializeField] private Color _invalidTargetColor = new(1f, 0.2f, 0.2f, 0.6f);
 
     [Header("Settings")]
     [SerializeField] private float _highlightYOffset = 0.05f;
-    [SerializeField] private LayerMask _tileLayerMask = ~0;
+    [SerializeField] private LayerMask _tileLayerMask = 1 << 6;
 
     private readonly List<TileHighlight> _highlights = new();
     private readonly Dictionary<HexCoord, TileHighlight> _highlightMap = new();
 
     private void Awake()
     {
-        if (_tileHighlightPrefab == null) throw new System.Exception("[TargetingOverlay._tileHighlightPrefab] Not assigned in Inspector — see wiring-F4.md F4.6");
+        if (_tileHighlightPrefab == null) throw new Exception("[TargetingOverlay._tileHighlightPrefab] Not assigned in Inspector — see wiring-F4.md F4.6");
     }
     private TargetingRequest _activeRequest;
     private HexCoord _hoveredCoord;
@@ -40,6 +41,7 @@ public class TargetingOverlay : MonoBehaviour
     {
         _mainCamera = Camera.main;
         _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
+        _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"OnEnable localPlayer={_localPlayer} camera={(_mainCamera != null ? "ok" : "NULL")}");
 
         _targeting.TargetingStarted += OnTargetingStarted;
         _targeting.HighlightedTilesChanged += OnHighlightedTilesChanged;
@@ -73,6 +75,10 @@ public class TargetingOverlay : MonoBehaviour
             _activeRequest = request;
             _isActive = true;
             _hoveredCoord = HexCoord.Invalid;
+            // Re-read localPlayer here in case Runner wasn't ready at OnEnable (common on remote client).
+            if (_network.Runner != null)
+                _localPlayer = _network.Runner.LocalPlayer;
+            _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"TargetingStarted mask={request.Mask} range={request.Range} caster={request.Caster} localPlayer={_localPlayer} camera={(_mainCamera != null ? "ok" : "NULL")}");
             ShowRangeHighlights();
         }
         catch (Exception ex) { Debug.LogException(ex); }
@@ -111,12 +117,27 @@ public class TargetingOverlay : MonoBehaviour
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
+    private bool TileRaycast(Ray ray, out RaycastHit hit)
+    {
+        if (_network.Runner != null)
+            return _network.Runner.GetPhysicsScene().Raycast(ray.origin, ray.direction, out hit, 100f, _tileLayerMask, QueryTriggerInteraction.Collide);
+        return Physics.Raycast(ray, out hit, 100f, _tileLayerMask, QueryTriggerInteraction.Collide);
+    }
+
+    private static bool TryGetTileCoord(RaycastHit hit, out HexCoord coord)
+    {
+        var tile = hit.collider.GetComponentInParent<HexTile>();
+        if (tile == null) { coord = HexCoord.Invalid; return false; }
+        coord = new HexCoord(tile.p, tile.q);
+        return true;
+    }
+
     private void HandleHoverInput()
     {
         var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-        if (!Physics.Raycast(ray, out var hit, 200f, _tileLayerMask)) return;
+        if (!TileRaycast(ray, out var hit)) return;
 
-        if (!_board.TryResolveWorldToHex(hit.point, out var coord)) return;
+        if (!TryGetTileCoord(hit, out var coord)) return;
         if (coord == _hoveredCoord) return;
 
         _hoveredCoord = coord;
@@ -129,10 +150,32 @@ public class TargetingOverlay : MonoBehaviour
         if (!Input.GetMouseButtonDown(0)) return;
 
         var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-        if (!Physics.Raycast(ray, out var hit, 200f, _tileLayerMask)) return;
-        if (!_board.TryResolveWorldToHex(hit.point, out var coord)) return;
+        Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 2f);
 
-        if (!IsValidTarget(coord)) return;
+        _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"Click — layerMask={_tileLayerMask.value} usingFusionScene={_network.Runner != null} ray={ray}");
+
+        if (!TileRaycast(ray, out var hit))
+        {
+            // Fallback: check default physics scene unrestricted to diagnose layer/scene mismatch.
+            var allHits = Physics.RaycastAll(ray, 100f, -1, QueryTriggerInteraction.Collide);
+            var names = new System.Text.StringBuilder();
+            foreach (var h in allHits) names.Append($"{h.collider.gameObject.name}(layer {h.collider.gameObject.layer}) ");
+            _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"Click — Raycast missed. Default scene hit {allHits.Length}: {(names.Length > 0 ? names.ToString() : "none")}");
+            return;
+        }
+
+        _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"Click — hit '{hit.collider.gameObject.name}' layer={hit.collider.gameObject.layer} point={hit.point}");
+
+        if (!TryGetTileCoord(hit, out var coord))
+        {
+            _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"Click — no HexTile component on hit object '{hit.collider.gameObject.name}'");
+            return;
+        }
+
+        bool valid = IsValidTarget(coord);
+        _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"Click — coord={coord} valid={valid} mask={_activeRequest.Mask} isEmpty={_board.IsEmpty(coord)}");
+
+        if (!valid) return;
 
         _targeting.ConfirmTarget(coord);
     }
@@ -187,7 +230,7 @@ public class TargetingOverlay : MonoBehaviour
         if (!isEmpty)
         {
             bool isEnemyUnit = IsEnemyAt(coord);
-            bool isAllyUnit = !isEnemyUnit;
+            bool isAllyUnit = IsAllyAt(coord);
 
             if ((mask & TargetMask.Enemy) != 0 && isEnemyUnit) return true;
             if ((mask & TargetMask.Ally) != 0 && isAllyUnit) return true;
@@ -202,7 +245,23 @@ public class TargetingOverlay : MonoBehaviour
         {
             if (!_unit.TryGetPublic(netId, out var unitData)) continue;
             if (unitData.Position == coord)
-                return unitData.Owner != _localPlayer;
+            {
+                bool isEnemy = unitData.Owner != _localPlayer;
+                _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"IsEnemyAt coord={coord} unitOwner={unitData.Owner} localPlayer={_localPlayer} isEnemy={isEnemy}");
+                return isEnemy;
+            }
+        }
+        _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"IsEnemyAt coord={coord} — no unit found at tile");
+        return false;
+    }
+
+    private bool IsAllyAt(HexCoord coord)
+    {
+        foreach (var netId in _unit.AllUnits)
+        {
+            if (!_unit.TryGetPublic(netId, out var unitData)) continue;
+            if (unitData.Position == coord)
+                return unitData.Owner == _localPlayer;
         }
         return false;
     }

@@ -288,7 +288,7 @@ MonoBehaviour:
   _highlightYOffset: 0.02
   _tileLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 8
 --- !u!1 &211258213
 GameObject:
   m_ObjectHideFlags: 0
@@ -3904,6 +3904,30 @@ PrefabInstance:
     - target: {fileID: 5025271642161476515, guid: 0bc361c79d7a0424f8e512836cff20e5, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -124.58199
+      objectReference: {fileID: 0}
+    - target: {fileID: 5719807746783229635, guid: 0bc361c79d7a0424f8e512836cff20e5, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5719807746783229635, guid: 0bc361c79d7a0424f8e512836cff20e5, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5719807746783229635, guid: 0bc361c79d7a0424f8e512836cff20e5, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5719807746783229635, guid: 0bc361c79d7a0424f8e512836cff20e5, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5719807746783229635, guid: 0bc361c79d7a0424f8e512836cff20e5, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5719807746783229635, guid: 0bc361c79d7a0424f8e512836cff20e5, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5854658867135285651, guid: 0bc361c79d7a0424f8e512836cff20e5, type: 3}
       propertyPath: m_Name
