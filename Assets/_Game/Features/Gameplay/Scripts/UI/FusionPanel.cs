@@ -201,7 +201,13 @@ public class FusionPanel : MonoBehaviour
         {
             var innateSlot = _fuseSlots[3];
             innateSlot.gameObject.SetActive(true);
-            if (innateSlot.NameText != null) innateSlot.NameText.text = "Innate Skill";
+            string skillName = "Innate Skill";
+            if (_cardLoading.TryGetCardData(staging.BaseCardId, out var baseCardData) &&
+                _cardLoading.TryGetSkillData(baseCardData.grants_skill, out var skillData))
+            {
+                skillName = skillData.name;
+            }
+            if (innateSlot.NameText != null) innateSlot.NameText.text = skillName;
             if (innateSlot.ClearButton != null) innateSlot.ClearButton.gameObject.SetActive(false);
         }
     }

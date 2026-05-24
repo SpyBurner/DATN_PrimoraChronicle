@@ -7,6 +7,7 @@ internal class FusionController : IFusionController
 {
     [Inject] private readonly IFusionModel _model;
     [Inject] private readonly IDebugLogger _logger;
+    [Inject] private readonly ICardLoadingManagerSubsystem _cardLoading;
 
     private IFusionNetworkBridge _bridge;
     private string _baseCardId;
@@ -96,10 +97,20 @@ internal class FusionController : IFusionController
 
     private void RefreshStaging()
     {
+        bool hasInnateSkill = false;
+        if (!string.IsNullOrEmpty(_baseCardId) && _cardLoading != null)
+        {
+            if (_cardLoading.TryGetCardData(_baseCardId, out var data))
+            {
+                hasInnateSkill = !string.IsNullOrEmpty(data.grants_skill);
+            }
+        }
+
         _model.UpdateStaging(new FusionStagingData
         {
             BaseCardId = _baseCardId,
-            EquipSpellIds = (string[])_equipSlots.Clone()
+            EquipSpellIds = (string[])_equipSlots.Clone(),
+            HasInnateSkill = hasInnateSkill
         });
     }
 }

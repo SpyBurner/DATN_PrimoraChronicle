@@ -27,6 +27,10 @@ public class SkillPanel : MonoBehaviour
     [SerializeField] private Color _cooldownColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
     [SerializeField] private Color _disabledColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
 
+    [Header("Basic Actions")]
+    [SerializeField] private Button _moveButton;
+    [SerializeField] private Button _normalAttackButton;
+
     private readonly List<SkillSlotUI> _spawnedSlots = new();
     private PlayerRef _localPlayer;
     private NetworkId _currentActor;
@@ -58,6 +62,8 @@ public class SkillPanel : MonoBehaviour
         _combat.CurrentTurnChanged += OnCurrentTurnChanged;
         _targeting.TargetingCancelled += OnTargetingCancelled;
         _endTurnButton?.onClick.AddListener(OnEndTurnClicked);
+        _moveButton?.onClick.AddListener(OnMoveClicked);
+        _normalAttackButton?.onClick.AddListener(OnNormalAttackClicked);
 
         if (_combat.CurrentActor != default)
             OnCurrentTurnChanged(_combat.CurrentActor);
@@ -68,6 +74,8 @@ public class SkillPanel : MonoBehaviour
         _combat.CurrentTurnChanged -= OnCurrentTurnChanged;
         _targeting.TargetingCancelled -= OnTargetingCancelled;
         _endTurnButton?.onClick.RemoveListener(OnEndTurnClicked);
+        _moveButton?.onClick.RemoveListener(OnMoveClicked);
+        _normalAttackButton?.onClick.RemoveListener(OnNormalAttackClicked);
         ClearSlots();
         _currentActor = default;
     }
@@ -210,7 +218,59 @@ public class SkillPanel : MonoBehaviour
 
     private void OnTargetConfirmed(string skillId, HexCoord target)
     {
-        _combat.RequestSkill(_currentActor, skillId, target);
+        if (skillId == "move")
+            _combat.RequestMove(_currentActor, target);
+        else if (skillId == "n_atk")
+            _combat.RequestNormalAttack(_currentActor, target);
+        else
+            _combat.RequestSkill(_currentActor, skillId, target);
+    }
+
+    private void OnMoveClicked()
+    {
+        if (_currentActor == default) return;
+        if (_targeting.IsTargeting) return;
+        if (!_combat.CurrentActorCanMove) return;
+
+        var request = new TargetingRequest
+        {
+            Mask = TargetMask.EmptyTile,
+            Range = 2, // Hardcoded MoveRange for now based on UnitNetworkView
+            DisplayPattern = null,
+            Caster = _currentActor,
+            IgnorePathfinding = false
+        };
+
+        SetInteractable(false);
+        _targeting.BeginTargeting(request, target => OnTargetConfirmed("move", target));
+    }
+
+    private void OnNormalAttackClicked()
+    {
+        if (_currentActor == default) return;
+        if (_targeting.IsTargeting) return;
+        if (!_combat.CurrentActorCanAct) return;
+
+        int range = 1; // Default normal attack range
+        TargetMask mask = TargetMask.Enemy;
+
+        if (_unit.TryGetPublic(_currentActor, out var data))
+        {
+            // UnitNetworkView BaseCardId isn't exposed directly here but we can assume normal attack is standard.
+            // Ideally we get n_atk_pattern from CardData if we had the BaseCardId, but range=1 is default.
+        }
+
+        var request = new TargetingRequest
+        {
+            Mask = mask,
+            Range = range,
+            DisplayPattern = null,
+            Caster = _currentActor,
+            IgnorePathfinding = false
+        };
+
+        SetInteractable(false);
+        _targeting.BeginTargeting(request, target => OnTargetConfirmed("n_atk", target));
     }
 
     private void OnEndTurnClicked()
@@ -222,10 +282,16 @@ public class SkillPanel : MonoBehaviour
     private void SetInteractable(bool interactable)
     {
         foreach (var slot in _spawnedSlots)
-            if (slot.Button != null) slot.Button.interactable = interactable && IsSkillReady(slot.SkillId);
+            if (slot.Button != null) slot.Button.interactable = interactable && IsSkillReady(slot.SkillId) && _combat.CurrentActorCanAct;
 
         if (_endTurnButton != null)
             _endTurnButton.interactable = interactable;
+            
+        if (_moveButton != null)
+            _moveButton.interactable = interactable && _combat.CurrentActorCanMove;
+            
+        if (_normalAttackButton != null)
+            _normalAttackButton.interactable = interactable && _combat.CurrentActorCanAct;
     }
 
     private bool IsSkillReady(string skillId)

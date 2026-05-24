@@ -909,14 +909,24 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             if (string.IsNullOrEmpty(idStr)) continue;
 
             NetworkId entryNetId = default;
-            if (uint.TryParse(idStr, out uint entryRaw)) entryNetId = new NetworkId { Raw = entryRaw };
+            string cleanId = idStr.StartsWith("[Id:") && idStr.EndsWith("]")
+                ? idStr.Substring(4, idStr.Length - 5)
+                : idStr;
+            if (uint.TryParse(cleanId, out uint entryRaw)) entryNetId = new NetworkId { Raw = entryRaw };
+            
             string cardId = FindUnitNetworkView(idStr)?.BaseCardId.ToString() ?? string.Empty;
             queue.Add(new CombatQueueEntry { UnitId = entryNetId, CardId = cardId });
         }
 
         string currentActorStr = CurrentIndex < QueueCount ? ActionQueue.Get(CurrentIndex).ToString() : string.Empty;
         NetworkId currentActorId = default;
-        if (uint.TryParse(currentActorStr, out uint actorRaw)) currentActorId = new NetworkId { Raw = actorRaw };
+        if (!string.IsNullOrEmpty(currentActorStr))
+        {
+            string cleanActorId = currentActorStr.StartsWith("[Id:") && currentActorStr.EndsWith("]")
+                ? currentActorStr.Substring(4, currentActorStr.Length - 5)
+                : currentActorStr;
+            if (uint.TryParse(cleanActorId, out uint actorRaw)) currentActorId = new NetworkId { Raw = actorRaw };
+        }
 
         _combatSubsystem.OnAuthoritativeStateReceived(new CombatStateData
         {
