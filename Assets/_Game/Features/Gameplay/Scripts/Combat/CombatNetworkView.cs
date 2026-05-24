@@ -205,15 +205,55 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
     private void AdvanceTurn()
     {
-        CurrentIndex++;
-
-        if (CurrentIndex >= QueueCount)
+        if (CheckIfCombatShouldEnd())
         {
             ServerEndCombatPhase();
             return;
         }
 
+        CurrentIndex++;
+
+        if (CurrentIndex >= QueueCount)
+        {
+            _logger?.Log("[Combat] End of queue reached. Rebuilding Action Queue for next round.");
+            BuildActionQueue();
+            CurrentIndex = 0;
+
+            if (QueueCount == 0 || CheckIfCombatShouldEnd())
+            {
+                ServerEndCombatPhase();
+                return;
+            }
+        }
+
         StartCurrentActorTurn();
+    }
+
+    private bool CheckIfCombatShouldEnd()
+    {
+        var allUnits = _unitSubsystem?.AllUnits;
+        if (allUnits == null || allUnits.Count == 0) return true;
+
+        var playerUnits = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<string>>();
+        int playersWithUnits = 0;
+
+        foreach (var netId in allUnits)
+        {
+            string id = netId.ToString();
+            if (!TryGetUnitData(id, out UnitPublicData data)) continue;
+            if (data.CurrentHP <= 0) continue;
+            if (data.IsPersistent) continue;
+
+            int ownerKey = data.Owner.RawEncoded;
+            if (!playerUnits.ContainsKey(ownerKey))
+            {
+                playerUnits[ownerKey] = new System.Collections.Generic.List<string>();
+                playersWithUnits++;
+            }
+            playerUnits[ownerKey].Add(id);
+        }
+
+        return playersWithUnits <= 1;
     }
 
     private void ServerEndTurn()

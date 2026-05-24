@@ -80,7 +80,16 @@ public class BoardSubsystem : IBoardSubsystem
     public bool IsEmpty(HexCoord coord) => !_occupants.ContainsKey(coord);
 
     public HexCoord GetDeployArea(PlayerRef owner)
-        => _deployAreas.TryGetValue(owner.RawEncoded, out var c) ? c : HexCoord.Invalid;
+    {
+        var coord = GameplayNetworkCoordinator.Instance;
+        if (coord != null && coord.BoardView != null)
+        {
+            int index = coord.GetPlayerIndex(owner);
+            if (index == 0) return BoardNetworkView.DeployAreaPlayer1;
+            if (index == 1) return BoardNetworkView.DeployAreaPlayer2;
+        }
+        return _deployAreas.TryGetValue(owner.RawEncoded, out var c) ? c : HexCoord.Invalid;
+    }
 
     public IReadOnlyList<HexCoord> GetNeighbors(HexCoord coord)
     {

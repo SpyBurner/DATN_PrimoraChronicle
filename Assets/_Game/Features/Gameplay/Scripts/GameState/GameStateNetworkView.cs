@@ -82,7 +82,15 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         if (!Object.HasStateAuthority) return;
         if (IsMatchOver) return;
 
-        MatchElapsed += Runner.DeltaTime;
+        if (_pauseTimer)
+        {
+            if (PhaseTimer.IsRunning && PhaseTimer.TargetTick.HasValue)
+                PhaseTimer = TickTimer.CreateFromTicks(Runner, PhaseTimer.TargetTick.Value + 1);
+        }
+        else
+        {
+            MatchElapsed += Runner.DeltaTime;
+        }
 
         if (MatchElapsed >= _matchTimeLimit)
         {
@@ -119,7 +127,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             return;
         }
 
-        if (!_pauseTimer && PhaseTimer.Expired(Runner))
+        if (PhaseTimer.Expired(Runner))
         {
             HandlePhaseTimeout();
         }
