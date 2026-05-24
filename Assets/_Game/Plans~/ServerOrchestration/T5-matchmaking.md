@@ -192,7 +192,7 @@ These mirror the BE schema. Keep them under
 
 ## 4. UI (deferred — design only)
 
-`MatchMakingPanel` already exists for the queue. Add a `ReadyCheckPanel`:
+`MatchMakingPanel` already exists for the queue. Add 2 Accept/Reject buttons:
 
 | Element | Wired to |
 |---|---|
