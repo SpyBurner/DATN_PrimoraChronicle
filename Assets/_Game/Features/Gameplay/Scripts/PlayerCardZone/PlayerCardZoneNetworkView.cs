@@ -138,7 +138,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
             roster?.SendHPChangedRpc(Owner, HP);
         }
 
-        _logger?.Log($"[PlayerCardZoneNetworkView] Setup for {Owner}: champion={championId}, deckSize={DeckCount}, HP={HP}");
+        _logger?.Log("LOG_PLAYERCARDZONENETWORKVIEW", nameof(PlayerCardZoneNetworkView), $"Setup for {Owner}: champion={championId}, deckSize={DeckCount}, HP={HP}");
     }
 
     public void ServerDraw(int count)
@@ -233,7 +233,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
             }
         }
 
-        _logger?.LogWarning($"[PlayerCardZone] ServerDiscardFusionCard: '{cardId}' not found in hand for player {Owner}.");
+        _logger?.LogWarning("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneNetworkView), $"ServerDiscardFusionCard: '{cardId}' not found in hand for player {Owner}.");
     }
 
     // ── Draw Phase Server API ────────────────────────────────────────────
@@ -264,7 +264,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
         }
 
         DrawPhaseNewCards = drawn;
-        _logger?.Log($"[PlayerCardZoneNetworkView] DrawPhase: {Owner} drew {drawn} cards. Hand={HandCount}");
+        _logger?.Log("LOG_PLAYERCARDZONENETWORKVIEW", nameof(PlayerCardZoneNetworkView), $"DrawPhase: {Owner} drew {drawn} cards. Hand={HandCount}");
     }
 
     public void ServerAutoKeepOnTimeout()
@@ -290,7 +290,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
 
         DrawPhaseConfirmed = true;
         DrawPhaseNewCards = 0;
-        _logger?.Log($"[PlayerCardZoneNetworkView] DrawPhase auto-keep for {Owner}. Hand={HandCount}");
+        _logger?.Log("LOG_PLAYERCARDZONENETWORKVIEW", nameof(PlayerCardZoneNetworkView), $"DrawPhase auto-keep for {Owner}. Hand={HandCount}");
     }
 
     // ── IPlayerCardZoneNetworkBridge ─────────────────────────────────────
@@ -330,7 +330,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     {
         if (_gameState != null && _gameState.IsReady(sender))
         {
-            _logger?.LogWarning($"[PlayerCardZone] MainPhaseSpell rejected: player {sender} already confirmed fusion.");
+            _logger?.LogWarning("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneNetworkView), $"MainPhaseSpell rejected: player {sender} already confirmed fusion.");
             return;
         }
 
@@ -347,7 +347,7 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
 
         if (!found)
         {
-            _logger?.LogWarning($"[PlayerCardZone] MainPhaseSpell rejected: card '{cardId}' not in hand.");
+            _logger?.LogWarning("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneNetworkView), $"MainPhaseSpell rejected: card '{cardId}' not in hand.");
             return;
         }
 
@@ -360,31 +360,31 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
 
         if (!_cardLoading.TryGetCardData(cardId, out CardData cardData))
         {
-            _logger?.LogWarning($"[PlayerCardZone] No card data for '{cardId}'.");
+            _logger?.LogWarning("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneNetworkView), $"No card data for '{cardId}'.");
             return;
         }
 
         if (string.IsNullOrEmpty(cardData.main_phase_spell_behavior_id))
         {
-            _logger?.LogWarning($"[PlayerCardZone] Card '{cardId}' has no main_phase_spell_behavior_id.");
+            _logger?.LogWarning("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneNetworkView), $"Card '{cardId}' has no main_phase_spell_behavior_id.");
             return;
         }
 
         if (!_behaviorRegistry.TryGetMainPhaseSpellBehavior(cardData.main_phase_spell_behavior_id, out var behaviorSO))
         {
-            _logger?.LogWarning($"[PlayerCardZone] Behavior '{cardData.main_phase_spell_behavior_id}' not found in registry.");
+            _logger?.LogWarning("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneNetworkView), $"Behavior '{cardData.main_phase_spell_behavior_id}' not found in registry.");
             return;
         }
 
         var spellBehavior = behaviorSO as MainPhaseSpellBehaviorSO;
         if (spellBehavior == null)
         {
-            _logger?.LogWarning($"[PlayerCardZone] Behavior '{cardData.main_phase_spell_behavior_id}' is not a MainPhaseSpellBehaviorSO.");
+            _logger?.LogWarning("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneNetworkView), $"Behavior '{cardData.main_phase_spell_behavior_id}' is not a MainPhaseSpellBehaviorSO.");
             return;
         }
 
         spellBehavior.Execute(Owner, target, _unitSubsystem, _boardSubsystem, _cardLoading, _logger);
-        _logger?.Log($"[PlayerCardZone] Executed main phase spell '{cardData.main_phase_spell_behavior_id}' at ({target.P},{target.Q}).");
+        _logger?.Log("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneNetworkView), $"Executed main phase spell '{cardData.main_phase_spell_behavior_id}' at ({target.P},{target.Q}).");
     }
 
     // ── State push (server → all clients) ────────────────────────────────

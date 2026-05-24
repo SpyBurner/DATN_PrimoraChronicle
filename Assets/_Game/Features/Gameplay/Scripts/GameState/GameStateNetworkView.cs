@@ -61,7 +61,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             IsMatchOver = false;
             // Reset all ready flags
             for (int i = 0; i < PlayerReady.Length; i++) PlayerReady.Set(i, false);
-            _logger?.Log("[GameStateNetworkView] Spawned as StateAuthority. Phase=StartPhase.");
+            _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), "Spawned as StateAuthority. Phase=StartPhase.");
 
             if (_networkManager != null)
                 _networkManager.PlayerLeft += HandlePlayerLeft;
@@ -164,7 +164,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             if (dcView != null && !dcView.IsReady)
             {
                 dcView.ServerAutoConfirm(player.PlayerId);
-                _logger?.Log($"[GameStateNetworkView] Auto-confirmed deck for unready player {player}.");
+                _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Auto-confirmed deck for unready player {player}.");
             }
         }
     }
@@ -184,7 +184,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             if (!string.IsNullOrEmpty(championId))
             {
                 fusionView.ServerAutoConfirmFusion(championId);
-                _logger?.Log($"[GameStateNetworkView] Auto-deployed Champion for unready player {player}.");
+                _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Auto-deployed Champion for unready player {player}.");
             }
         }
     }
@@ -220,7 +220,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 break;
         }
 
-        _logger?.Log($"[GameStateNetworkView] Phase transition -> {newPhase}");
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Phase transition -> {newPhase}");
     }
 
     private bool AreAllPlayersReady()
@@ -277,7 +277,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             pczView?.ServerStartDrawPhase();
         }
 
-        _logger?.Log("[GameStateNetworkView] DrawPhase started — drew cards for all players.");
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), "DrawPhase started — drew cards for all players.");
     }
 
     private void AutoKeepUnconfirmedPlayers()
@@ -291,7 +291,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             if (pczView != null && !pczView.DrawPhaseConfirmed)
             {
                 pczView.ServerAutoKeepOnTimeout();
-                _logger?.Log($"[GameStateNetworkView] Auto-kept cards for unconfirmed player {player}.");
+                _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Auto-kept cards for unconfirmed player {player}.");
             }
         }
     }
@@ -404,7 +404,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         }
         else
         {
-            _logger?.LogWarning("[GameStateNetworkView] MatchResultView not found — cannot commit result.");
+            _logger?.LogWarning("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), "MatchResultView not found — cannot commit result.");
         }
     }
 
@@ -438,7 +438,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         // Only accept ready=true when AcceptsReadyInput; always accept ready=false (unless locked)
         if (ready && !_gameState.AcceptsReadyInput)
         {
-            _logger?.Log($"[GameStateNetworkView] Rpc_SetReady(true) rejected — AcceptsReadyInput=false for phase {CurrentPhase}.");
+            _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Rpc_SetReady(true) rejected — AcceptsReadyInput=false for phase {CurrentPhase}.");
             return;
         }
 
@@ -448,13 +448,13 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         // Lock: once ready=true, server ignores ready=false until phase advances
         if (!ready && PlayerReady.Get(slotIndex))
         {
-            _logger?.Log($"[GameStateNetworkView] Rpc_SetReady(false) rejected — {sender} already locked ready.");
+            _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Rpc_SetReady(false) rejected — {sender} already locked ready.");
             return;
         }
 
         PlayerReady.Set(slotIndex, ready);
         _gameState.OnPlayerReadyChanged(sender, ready);
-        _logger?.Log($"[GameStateNetworkView] Rpc_SetReady({ready}) from {sender} — slot {slotIndex} written.");
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Rpc_SetReady({ready}) from {sender} — slot {slotIndex} written.");
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
@@ -492,7 +492,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         if (!ready && PlayerReady.Get(slot)) return; // locked once set
         PlayerReady.Set(slot, ready);
         _gameState?.OnPlayerReadyChanged(player, ready);
-        _logger?.Log($"[GameStateNetworkView] ServerSetPlayerReady({ready}) for {player} — slot {slot}.");
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"ServerSetPlayerReady({ready}) for {player} — slot {slot}.");
     }
 
     public void ServerCheckElimination()
@@ -563,7 +563,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
         if (!Object.HasStateAuthority) return;
         if (IsMatchOver) return;
 
-        _logger?.Log($"[GameStateNetworkView] Player {player} disconnected — treating as forfeit.");
+        _logger?.Log("LOG_GAMESTATENETWORKVIEW", nameof(GameStateNetworkView), $"Player {player} disconnected — treating as forfeit.");
 
         var coordinator = GameplayNetworkCoordinator.Instance;
         if (coordinator != null && _unitSubsystem != null)

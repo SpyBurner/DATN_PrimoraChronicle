@@ -20,7 +20,7 @@ internal class PlayerRosterController : IPlayerRosterController
         else
             _bridges[owner] = bridge;
 
-        _logger.Log($"[PlayerRoster] Bridge for {owner} {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_PLAYERROSTER", nameof(PlayerRosterController), $"Bridge for {owner} {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnAuthoritativeStateReceived(PlayerRosterPublicData data) => _model.ApplyState(data);

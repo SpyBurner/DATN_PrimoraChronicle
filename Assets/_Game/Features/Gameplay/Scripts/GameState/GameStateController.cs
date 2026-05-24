@@ -14,7 +14,7 @@ internal class GameStateController : IGameStateController
     public void RegisterBridge(IGameStateNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[GameState] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_GAMESTATE", nameof(GameStateController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void RequestSetLocalReady(bool ready) => _bridge?.SendSetReadyRpc(ready);

@@ -27,7 +27,7 @@ internal class FusionController : IFusionController
     public void RegisterBridge(IFusionNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[Fusion] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_FUSION", nameof(FusionController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnAuthoritativeStateReceived(FusionStateData data) => _model.ApplyState(data);
@@ -81,7 +81,7 @@ internal class FusionController : IFusionController
     {
         if (string.IsNullOrEmpty(_baseCardId))
         {
-            _logger.LogWarning("[Fusion] ConfirmFusion called with no base card staged.");
+            _logger.LogWarning("LOG_FUSION", nameof(FusionController), "ConfirmFusion called with no base card staged.");
             return Task.CompletedTask;
         }
 

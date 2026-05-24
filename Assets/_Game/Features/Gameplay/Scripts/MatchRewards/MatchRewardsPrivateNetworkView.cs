@@ -85,7 +85,7 @@ public class MatchRewardsPrivateNetworkView : NetworkBehaviour, IMatchRewardsPri
         if (!Object.HasStateAuthority) return;
         GoldEarned = gold;
         XPEarned = xp;
-        _logger?.Log($"[MatchRewardsPrivateNetworkView] Rewards set for {owner}: Gold={gold} XP={xp}");
+        _logger?.Log("LOG_MATCHREWARDSPRIVATENETWORKVIEW", nameof(MatchRewardsPrivateNetworkView), $"Rewards set for {owner}: Gold={gold} XP={xp}");
     }
 
     // ── Server-side helpers ───────────────────────────────────────────────
@@ -95,6 +95,6 @@ public class MatchRewardsPrivateNetworkView : NetworkBehaviour, IMatchRewardsPri
         if (!Object.HasStateAuthority) return;
         Owner = owner;
         Runner.SetPlayerAlwaysInterested(owner, Object, true);
-        _logger?.Log($"[MatchRewardsPrivateNetworkView] Initialized AoI for {owner}.");
+        _logger?.Log("LOG_MATCHREWARDSPRIVATENETWORKVIEW", nameof(MatchRewardsPrivateNetworkView), $"Initialized AoI for {owner}.");
     }
 }

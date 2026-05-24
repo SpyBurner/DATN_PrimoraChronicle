@@ -260,7 +260,7 @@ internal class XxxController : IXxxController
     public void RegisterBridge(IXxxNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[XxxController] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_XXX", nameof(XxxController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     // Per-player topology — replace the above with this dict variant:
@@ -282,7 +282,7 @@ internal class XxxController : IXxxController
     {
         if (string.IsNullOrEmpty(_stagedInput))
         {
-            _logger.LogWarning("[XxxController] Submit called with empty input.");
+            _logger.LogWarning("LOG_XXX", nameof(XxxController), "Submit called with empty input.");
             return;
         }
 

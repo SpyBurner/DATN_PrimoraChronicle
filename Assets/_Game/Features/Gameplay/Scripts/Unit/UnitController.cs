@@ -20,13 +20,13 @@ internal class UnitController : IUnitController
     public void RegisterPublicBridge(IUnitPublicNetworkBridge bridge)
     {
         _publicBridge = bridge;
-        _logger.Log($"[Unit] Public bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_UNIT", nameof(UnitController), $"Public bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void RegisterPrivateBridge(IUnitPrivateNetworkBridge bridge)
     {
         _privateBridge = bridge;
-        _logger.Log($"[Unit] Private bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_UNIT", nameof(UnitController), $"Private bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnUnitPublicStateReceived(UnitPublicData data) => _model.ApplyPublicState(data);

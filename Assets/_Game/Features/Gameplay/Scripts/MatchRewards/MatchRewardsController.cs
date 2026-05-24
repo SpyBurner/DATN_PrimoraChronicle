@@ -14,7 +14,7 @@ internal class MatchRewardsController : IMatchRewardsController
     public void RegisterBridge(IMatchRewardsPrivateNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[MatchRewards] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_MATCHREWARDS", nameof(MatchRewardsController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnAuthoritativeStateReceived(MatchRewardsPrivateData data) => _model.ApplyState(data);

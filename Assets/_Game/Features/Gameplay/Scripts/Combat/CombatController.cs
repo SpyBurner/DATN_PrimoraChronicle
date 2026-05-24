@@ -15,7 +15,7 @@ internal class CombatController : ICombatController
     public void RegisterBridge(ICombatNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[Combat] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_COMBAT", nameof(CombatController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnAuthoritativeStateReceived(CombatStateData data) => _model.ApplyState(data);

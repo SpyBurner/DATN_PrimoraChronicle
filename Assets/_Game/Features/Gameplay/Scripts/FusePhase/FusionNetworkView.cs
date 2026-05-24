@@ -68,25 +68,25 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
 
         if (HasFusedThisTurn)
         {
-            _logger?.LogWarning($"[FusionNetworkView] Player {sender} already fused this turn.");
+            _logger?.LogWarning("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), $"Player {sender} already fused this turn.");
             return;
         }
 
         if (_gameState != null && _gameState.Phase != GameplayPhase.MainPhase)
         {
-            _logger?.LogWarning($"[FusionNetworkView] Fusion rejected: not in MainPhase (current={_gameState.Phase}).");
+            _logger?.LogWarning("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), $"Fusion rejected: not in MainPhase (current={_gameState.Phase}).");
             return;
         }
 
         if (string.IsNullOrEmpty(baseCardId))
         {
-            _logger?.LogWarning("[FusionNetworkView] Fusion rejected: no base card.");
+            _logger?.LogWarning("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), "Fusion rejected: no base card.");
             return;
         }
 
         if (!ValidateBaseCard(baseCardId, out string failureReason))
         {
-            _logger?.LogWarning($"[FusionNetworkView] Fusion rejected: invalid base card '{baseCardId}'. Reason: {failureReason}");
+            _logger?.LogWarning("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), $"Fusion rejected: invalid base card '{baseCardId}'. Reason: {failureReason}");
             return;
         }
 
@@ -98,7 +98,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
 
         if (slotsUsed > MaxEquipSlots)
         {
-            _logger?.LogWarning($"[FusionNetworkView] Fusion rejected: too many slots ({slotsUsed}/{MaxEquipSlots}).");
+            _logger?.LogWarning("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), $"Fusion rejected: too many slots ({slotsUsed}/{MaxEquipSlots}).");
             return;
         }
 
@@ -122,7 +122,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         var gsv = GameplayNetworkCoordinator.Instance != null ? GameplayNetworkCoordinator.Instance.GameStateView : null;
         if (gsv != null) gsv.ServerSetPlayerReady(sender, true);
 
-        _logger?.Log($"[FusionNetworkView] Fusion confirmed for {sender}: base={baseCardId}, equips={equipIds.Length}");
+        _logger?.Log("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), $"Fusion confirmed for {sender}: base={baseCardId}, equips={equipIds.Length}");
     }
 
     public void ServerAutoConfirmFusion(string championId)
@@ -138,7 +138,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         var gsv = GameplayNetworkCoordinator.Instance != null ? GameplayNetworkCoordinator.Instance.GameStateView : null;
         if (gsv != null) gsv.ServerSetPlayerReady(Object.InputAuthority, true);
 
-        _logger?.Log($"[FusionNetworkView] Auto-confirmed fusion (Champion only) for {Object.InputAuthority}.");
+        _logger?.Log("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), $"Auto-confirmed fusion (Champion only) for {Object.InputAuthority}.");
     }
 
     public void ServerSpawnConfirmedUnit()
@@ -242,14 +242,14 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         var coordinator = GameplayNetworkCoordinator.Instance;
         if (coordinator == null)
         {
-            _logger?.LogWarning("[FusionNetworkView] GameplayNetworkCoordinator not available.");
+            _logger?.LogWarning("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), "GameplayNetworkCoordinator not available.");
             return;
         }
 
         var unitPrefab = coordinator.GetUnitPrefab();
         if (!unitPrefab.IsValid)
         {
-            _logger?.LogWarning("[FusionNetworkView] Unit prefab not assigned in coordinator, cannot spawn unit.");
+            _logger?.LogWarning("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), "Unit prefab not assigned in coordinator, cannot spawn unit.");
             return;
         }
 
@@ -273,7 +273,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         var unitObj = Runner.Spawn(unitPrefab, spawnPos, spawnRot, owner);
         if (unitObj == null)
         {
-            _logger?.LogWarning("[FusionNetworkView] Failed to spawn unit NetworkObject.");
+            _logger?.LogWarning("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), "Failed to spawn unit NetworkObject.");
             return;
         }
 
@@ -336,7 +336,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
             if (Runner.TryFindObject(netId, out var netObj))
                 Runner.Despawn(netObj);
 
-            _logger?.Log($"[FusionNetworkView] Evicted unit {netId} from deploy area of {owner}.");
+            _logger?.Log("LOG_FUSIONNETWORKVIEW", nameof(FusionNetworkView), $"Evicted unit {netId} from deploy area of {owner}.");
             break;
         }
 

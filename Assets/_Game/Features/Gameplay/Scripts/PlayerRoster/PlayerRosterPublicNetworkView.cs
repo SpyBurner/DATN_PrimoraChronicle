@@ -51,7 +51,7 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
             string pName = _profile?.Username ?? string.Empty;
             string pId = _authSession?.UserId ?? string.Empty;
 
-            _logger?.Log($"[PlayerRoster] LOCAL INIT! My PlayerRef={Owner}, ProfileUsername='{pName}'");
+            _logger?.Log("LOG_PLAYERROSTER", nameof(PlayerRosterPublicNetworkView), $"LOCAL INIT! My PlayerRef={Owner}, ProfileUsername='{pName}'");
             Rpc_SetProfileData(Runner.LocalPlayer, pName, pId);
         }
 
@@ -119,13 +119,13 @@ public class PlayerRosterPublicNetworkView : NetworkBehaviour, IPlayerRosterNetw
         if (!string.IsNullOrEmpty(playerName)) PlayerName = playerName;
         if (!string.IsNullOrEmpty(userId)) UserId = userId;
 
-        _logger?.Log($"[PlayerRosterPublicNetworkView] Initialized for {owner}: HP={hp}");
+        _logger?.Log("LOG_PLAYERROSTERPUBLICNETWORKVIEW", nameof(PlayerRosterPublicNetworkView), $"Initialized for {owner}: HP={hp}");
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_SetProfileData(PlayerRef sender, string name, string id, RpcInfo info = default)
     {
-        _logger?.Log($"[PlayerRosterPublicNetworkView] Rpc_SetProfileData from {sender}: name='{name}', id='{id}'");
+        _logger?.Log("LOG_PLAYERROSTERPUBLICNETWORKVIEW", nameof(PlayerRosterPublicNetworkView), $"Rpc_SetProfileData from {sender}: name='{name}', id='{id}'");
         PlayerName = name;
         UserId = id;
     }

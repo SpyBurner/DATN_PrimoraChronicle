@@ -16,7 +16,7 @@ internal class PlayerCardZoneController : IPlayerCardZoneController
     public void RegisterBridge(IPlayerCardZoneNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[PlayerCardZone] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_PLAYERCARDZONE", nameof(PlayerCardZoneController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnAuthoritativeStateReceived(PlayerCardZonePrivateData data) => _model.ApplyState(data);

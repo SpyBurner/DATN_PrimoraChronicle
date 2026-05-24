@@ -66,7 +66,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     {
         if (!Object.HasStateAuthority) return;
 
-        _logger?.Log("[GameplayNetworkCoordinator] Spawned as StateAuthority. Initializing match...");
+        _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), "Spawned as StateAuthority. Initializing match...");
 
         SpawnGameStateManager();
         SpawnBoard();
@@ -105,52 +105,52 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
     {
         if (!_gameStateManagerPrefab.IsValid)
         {
-            _logger?.LogWarning("[GameplayNetworkCoordinator] GameState prefab not assigned.");
+            _logger?.LogWarning("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), "GameState prefab not assigned.");
             return;
         }
 
         var obj = Runner.Spawn(_gameStateManagerPrefab, transform.position, transform.rotation);
         _gameStateView = obj.GetComponent<GameStateNetworkView>();
-        _logger?.Log("[GameplayNetworkCoordinator] Spawned GameStateManager.");
+        _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), "Spawned GameStateManager.");
     }
 
     private void SpawnBoard()
     {
         if (!_boardManagerPrefab.IsValid)
         {
-            _logger?.LogWarning("[GameplayNetworkCoordinator] Board prefab not assigned.");
+            _logger?.LogWarning("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), "Board prefab not assigned.");
             return;
         }
 
         var obj = Runner.Spawn(_boardManagerPrefab, transform.position, transform.rotation);
         _boardView = obj.GetComponent<BoardNetworkView>();
-        _logger?.Log("[GameplayNetworkCoordinator] Spawned BoardManager.");
+        _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), "Spawned BoardManager.");
     }
 
     private void SpawnCombatCoordinator()
     {
         if (!_combatCoordinatorPrefab.IsValid)
         {
-            _logger?.LogWarning("[GameplayNetworkCoordinator] CombatCoordinator prefab not assigned.");
+            _logger?.LogWarning("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), "CombatCoordinator prefab not assigned.");
             return;
         }
 
         var obj = Runner.Spawn(_combatCoordinatorPrefab, Vector3.zero, Quaternion.identity);
         _combatView = obj.GetComponent<CombatNetworkView>();
-        _logger?.Log("[GameplayNetworkCoordinator] Spawned CombatCoordinator.");
+        _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), "Spawned CombatCoordinator.");
     }
 
     private void SpawnMatchResultCoordinator()
     {
         if (!_matchResultCoordinatorPrefab.IsValid)
         {
-            _logger?.LogWarning("[GameplayNetworkCoordinator] MatchResultCoordinator prefab not assigned.");
+            _logger?.LogWarning("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), "MatchResultCoordinator prefab not assigned.");
             return;
         }
 
         var obj = Runner.Spawn(_matchResultCoordinatorPrefab, Vector3.zero, Quaternion.identity);
         _matchResultView = obj.GetComponent<MatchResultNetworkView>();
-        _logger?.Log("[GameplayNetworkCoordinator] Spawned MatchResultCoordinator.");
+        _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), "Spawned MatchResultCoordinator.");
     }
 
     private void SpawnExistingPlayers()
@@ -182,7 +182,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
                 _playerCardZones[player] = pczView;
                 RegisterPlayerCardZone(pczObj.Id);
             }
-            _logger?.Log($"[GameplayNetworkCoordinator] Spawned PlayerCardZoneView for {player}.");
+            _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), $"Spawned PlayerCardZoneView for {player}.");
         }
 
         if (_deckChooseViewPrefab.IsValid)
@@ -193,7 +193,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             var dcView = dcObj.GetComponent<GameplayDeckChooseNetworkView>();
             if (dcView != null)
                 _deckChooseViews[player] = dcView;
-            _logger?.Log($"[GameplayNetworkCoordinator] Spawned DeckChooseView for {player}.");
+            _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), $"Spawned DeckChooseView for {player}.");
         }
 
         if (_playerRosterPublicViewPrefab.IsValid)
@@ -210,7 +210,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             {
                 _rosterViews[player] = rView;
             }
-            _logger?.Log($"[GameplayNetworkCoordinator] Spawned PlayerRosterPublicView for {player}.");
+            _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), $"Spawned PlayerRosterPublicView for {player}.");
         }
 
         if (_matchRewardsPrivateViewPrefab.IsValid)
@@ -225,7 +225,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
                 mView.ServerInitialize(player);
                 _rewardsViews[player] = mView;
             }
-            _logger?.Log($"[GameplayNetworkCoordinator] Spawned MatchRewardsPrivateView for {player}.");
+            _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), $"Spawned MatchRewardsPrivateView for {player}.");
         }
 
         if (_fusionViewPrefab.IsValid)
@@ -234,7 +234,7 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
             var fusionView = fusionObj.GetComponent<FusionNetworkView>();
             if (fusionView != null)
                 _fusionViews[player] = fusionView;
-            _logger?.Log($"[GameplayNetworkCoordinator] Spawned FusionView for {player}.");
+            _logger?.Log("LOG_GAMEPLAYNETWORKCOORDINATOR", nameof(GameplayNetworkCoordinator), $"Spawned FusionView for {player}.");
         }
 
     }

@@ -27,12 +27,12 @@ internal class BehaviorRegistryController : IBehaviorRegistryController
         {
             if (string.IsNullOrEmpty(so.behaviorId))
             {
-                _logger.LogWarning($"[BehaviorRegistry] SkillBehavior asset '{so.name}' has empty behaviorId — skipped.");
+                _logger.LogWarning("LOG_BEHAVIORREGISTRY", nameof(BehaviorRegistryController), $"SkillBehavior asset '{so.name}' has empty behaviorId — skipped.");
                 continue;
             }
             if (skills.ContainsKey(so.behaviorId))
             {
-                _logger.LogWarning($"[BehaviorRegistry] Duplicate skill behaviorId '{so.behaviorId}' — skipped '{so.name}'.");
+                _logger.LogWarning("LOG_BEHAVIORREGISTRY", nameof(BehaviorRegistryController), $"Duplicate skill behaviorId '{so.behaviorId}' — skipped '{so.name}'.");
                 continue;
             }
             skills[so.behaviorId] = so;
@@ -42,12 +42,12 @@ internal class BehaviorRegistryController : IBehaviorRegistryController
         {
             if (string.IsNullOrEmpty(so.effectId))
             {
-                _logger.LogWarning($"[BehaviorRegistry] StatusEffectBehavior asset '{so.name}' has empty effectId — skipped.");
+                _logger.LogWarning("LOG_BEHAVIORREGISTRY", nameof(BehaviorRegistryController), $"StatusEffectBehavior asset '{so.name}' has empty effectId — skipped.");
                 continue;
             }
             if (effects.ContainsKey(so.effectId))
             {
-                _logger.LogWarning($"[BehaviorRegistry] Duplicate effect effectId '{so.effectId}' — skipped '{so.name}'.");
+                _logger.LogWarning("LOG_BEHAVIORREGISTRY", nameof(BehaviorRegistryController), $"Duplicate effect effectId '{so.effectId}' — skipped '{so.name}'.");
                 continue;
             }
             effects[so.effectId] = so;
@@ -57,12 +57,12 @@ internal class BehaviorRegistryController : IBehaviorRegistryController
         {
             if (string.IsNullOrEmpty(so.behaviorId))
             {
-                _logger.LogWarning($"[BehaviorRegistry] MainPhaseSpellBehavior asset '{so.name}' has empty behaviorId — skipped.");
+                _logger.LogWarning("LOG_BEHAVIORREGISTRY", nameof(BehaviorRegistryController), $"MainPhaseSpellBehavior asset '{so.name}' has empty behaviorId — skipped.");
                 continue;
             }
             if (spells.ContainsKey(so.behaviorId))
             {
-                _logger.LogWarning($"[BehaviorRegistry] Duplicate spell behaviorId '{so.behaviorId}' — skipped '{so.name}'.");
+                _logger.LogWarning("LOG_BEHAVIORREGISTRY", nameof(BehaviorRegistryController), $"Duplicate spell behaviorId '{so.behaviorId}' — skipped '{so.name}'.");
                 continue;
             }
             spells[so.behaviorId] = so;
@@ -72,19 +72,19 @@ internal class BehaviorRegistryController : IBehaviorRegistryController
         {
             if (string.IsNullOrEmpty(so.behaviorId))
             {
-                _logger.LogWarning($"[BehaviorRegistry] EvolutionBehavior asset '{so.name}' has empty behaviorId — skipped.");
+                _logger.LogWarning("LOG_BEHAVIORREGISTRY", nameof(BehaviorRegistryController), $"EvolutionBehavior asset '{so.name}' has empty behaviorId — skipped.");
                 continue;
             }
             if (evolutions.ContainsKey(so.behaviorId))
             {
-                _logger.LogWarning($"[BehaviorRegistry] Duplicate evolution behaviorId '{so.behaviorId}' — skipped '{so.name}'.");
+                _logger.LogWarning("LOG_BEHAVIORREGISTRY", nameof(BehaviorRegistryController), $"Duplicate evolution behaviorId '{so.behaviorId}' — skipped '{so.name}'.");
                 continue;
             }
             evolutions[so.behaviorId] = so;
         }
 
         _model.ApplyBehaviors(skills, effects, spells, evolutions);
-        _logger.Log($"[BehaviorRegistry] Loaded {skills.Count} skills, {effects.Count} effects, {spells.Count} spells, {evolutions.Count} evolutions.");
+        _logger.Log("LOG_BEHAVIORREGISTRY", nameof(BehaviorRegistryController), $"Loaded {skills.Count} skills, {effects.Count} effects, {spells.Count} spells, {evolutions.Count} evolutions.");
     }
 
     public bool TryGetSkillBehavior(string behaviorId, out SkillBehaviorBaseSO behavior)

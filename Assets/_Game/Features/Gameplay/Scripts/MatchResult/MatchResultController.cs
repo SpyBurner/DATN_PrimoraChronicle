@@ -25,7 +25,7 @@ internal class MatchResultController : IMatchResultController
     public void RegisterBridge(IMatchResultNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[MatchResult] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_MATCHRESULT", nameof(MatchResultController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnAuthoritativeStateReceived(GameMatchResult data)
@@ -72,11 +72,11 @@ internal class MatchResultController : IMatchResultController
         try
         {
             await _backendBridge.ReportMatchResultAsync(reportData);
-            _logger.Log("[MatchResult] Backend report sent successfully.");
+            _logger.Log("LOG_MATCHRESULT", nameof(MatchResultController), "Backend report sent successfully.");
         }
         catch (System.Exception ex)
         {
-            _logger.LogWarning($"[MatchResult] Backend report failed: {ex.Message}");
+            _logger.LogWarning("LOG_MATCHRESULT", nameof(MatchResultController), $"Backend report failed: {ex.Message}");
         }
     }
 

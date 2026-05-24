@@ -99,6 +99,6 @@ public class MatchResultNetworkView : NetworkBehaviour, IMatchResultNetworkBridg
         DurationSeconds = result.DurationSeconds;
         HasResult = true;
 
-        _logger?.Log($"[MatchResultNetworkView] Match ended. Winner={Winner}, IsTie={IsTie}, Duration={DurationSeconds:F1}s");
+        _logger?.Log("LOG_MATCHRESULTNETWORKVIEW", nameof(MatchResultNetworkView), $"Match ended. Winner={Winner}, IsTie={IsTie}, Duration={DurationSeconds:F1}s");
     }
 }

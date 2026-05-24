@@ -116,7 +116,7 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
         }
 
         IsGenerated = true;
-        _logger?.Log($"[BoardNetworkView] Generated board with {spawnedCount} hex tiles.");
+        _logger?.Log("LOG_BOARDNETWORKVIEW", nameof(BoardNetworkView), $"Generated board with {spawnedCount} hex tiles.");
         RegisterWithSubsystem();
     }
 
@@ -132,7 +132,7 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
             float inradius = zSize / 2f;
             _horizontalSpacing = 2f * inradius;
             _verticalSpacing = Mathf.Sqrt(3f) * inradius;
-            _logger?.Log($"[BoardNetworkView] Measured spacing from tile bounds: H={_horizontalSpacing:F3}, V={_verticalSpacing:F3}");
+            _logger?.Log("LOG_BOARDNETWORKVIEW", nameof(BoardNetworkView), $"Measured spacing from tile bounds: H={_horizontalSpacing:F3}, V={_verticalSpacing:F3}");
         }
 
         Runner.Despawn(tempTile);
@@ -152,7 +152,7 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
         if (_tiles.Count > 0)
         {
             RegisterWithSubsystem();
-            _logger?.Log($"[BoardNetworkView] Rebuilt tile registry from {_tiles.Count} children (client).");
+            _logger?.Log("LOG_BOARDNETWORKVIEW", nameof(BoardNetworkView), $"Rebuilt tile registry from {_tiles.Count} children (client).");
         }
     }
 

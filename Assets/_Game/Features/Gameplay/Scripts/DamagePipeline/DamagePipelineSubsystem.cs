@@ -24,7 +24,7 @@ public class DamagePipelineSubsystem : IDamagePipelineSubsystem
         // Pass 3: Commit (clamp to 0 minimum)
         int final = Mathf.Max(0, intercepted);
 
-        _logger?.Log($"[DamagePipeline] {context.SourceUnitId} → {context.TargetUnitId}: Raw={context.RawAmount}, Aggregated={aggregated}, Intercepted={intercepted}, Final={final}");
+        _logger?.Log("LOG_DAMAGEPIPELINE", nameof(DamagePipelineSubsystem), $"{context.SourceUnitId} → {context.TargetUnitId}: Raw={context.RawAmount}, Aggregated={aggregated}, Intercepted={intercepted}, Final={final}");
 
         return final;
     }
@@ -101,7 +101,7 @@ public class DamagePipelineSubsystem : IDamagePipelineSubsystem
                 case "barkskin_ward":
                     // Reduce incoming damage by 15
                     currentAmount = Mathf.Max(0, currentAmount - 15);
-                    _logger?.Log($"[DamagePipeline] barkskin_ward intercepted: reduced by 15.");
+                    _logger?.Log("LOG_DAMAGEPIPELINE", nameof(DamagePipelineSubsystem), $"barkskin_ward intercepted: reduced by 15.");
                     break;
 
                 case "decay":

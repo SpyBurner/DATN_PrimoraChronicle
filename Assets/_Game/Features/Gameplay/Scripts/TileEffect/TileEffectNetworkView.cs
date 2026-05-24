@@ -44,7 +44,7 @@ public class TileEffectNetworkView : NetworkBehaviour, ITileEffectNetworkBridge
         DurationRemaining = duration;
         Owner = owner;
 
-        _logger?.Log($"[TileEffectNetworkView] Initialized effect '{effectId}' at ({coord.P},{coord.Q}) dur={duration}.");
+        _logger?.Log("LOG_TILEEFFECTNETWORKVIEW", nameof(TileEffectNetworkView), $"Initialized effect '{effectId}' at ({coord.P},{coord.Q}) dur={duration}.");
     }
 
     public void ServerTickDuration()
@@ -55,7 +55,7 @@ public class TileEffectNetworkView : NetworkBehaviour, ITileEffectNetworkBridge
         DurationRemaining--;
         if (DurationRemaining <= 0)
         {
-            _logger?.Log($"[TileEffectNetworkView] Effect '{EffectId}' at ({PositionP},{PositionQ}) expired.");
+            _logger?.Log("LOG_TILEEFFECTNETWORKVIEW", nameof(TileEffectNetworkView), $"Effect '{EffectId}' at ({PositionP},{PositionQ}) expired.");
             Runner.Despawn(Object);
         }
     }

@@ -132,7 +132,7 @@ public class UnitNetworkView : NetworkBehaviour
         SkillCount = skillIndex;
         StatusEffectCount = 0;
 
-        _logger?.Log($"[UnitNetworkView] Initialized unit {UnitId} for {owner}: base={baseCardId}, HP={CurrentHP}, Speed={Speed}, Skills={SkillCount}");
+        _logger?.Log("LOG_UNITNETWORKVIEW", nameof(UnitNetworkView), $"Initialized unit {UnitId} for {owner}: base={baseCardId}, HP={CurrentHP}, Speed={Speed}, Skills={SkillCount}");
         PushState();
     }
 

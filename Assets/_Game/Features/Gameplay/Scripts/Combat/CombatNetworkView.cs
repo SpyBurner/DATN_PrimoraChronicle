@@ -61,7 +61,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
         if (TurnTimer.Expired(Runner))
         {
-            _logger?.Log("[Combat] Turn timer expired, auto-ending turn.");
+            _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), "Turn timer expired, auto-ending turn.");
             ServerEndTurn();
         }
     }
@@ -86,7 +86,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
         if (QueueCount == 0)
         {
-            _logger?.Log("[Combat] No units to act. Ending combat immediately.");
+            _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), "No units to act. Ending combat immediately.");
             ServerEndCombatPhase();
             return;
         }
@@ -95,7 +95,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         CurrentIndex = 0;
         StartCurrentActorTurn();
 
-        _logger?.Log($"[Combat] Combat phase started. Queue size={QueueCount}.");
+        _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Combat phase started. Queue size={QueueCount}.");
     }
 
     public void ServerEndCombatPhase()
@@ -108,7 +108,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         ResetOneTimeFlagsOnPersistentUnits();
         CheckBoardClear();
 
-        _logger?.Log("[Combat] Combat phase ended.");
+        _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), "Combat phase ended.");
 
         var coordinator = GameplayNetworkCoordinator.Instance;
         coordinator?.GameStateView?.ServerTransitionToDrawPhase();
@@ -200,7 +200,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             return;
         }
 
-        _logger?.Log($"[Combat] Turn started for unit {actorId} (Speed={data.Speed}).");
+        _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Turn started for unit {actorId} (Speed={data.Speed}).");
     }
 
     private void AdvanceTurn()
@@ -215,7 +215,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
         if (CurrentIndex >= QueueCount)
         {
-            _logger?.Log("[Combat] End of queue reached. Rebuilding Action Queue for next round.");
+            _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), "End of queue reached. Rebuilding Action Queue for next round.");
             BuildActionQueue();
             CurrentIndex = 0;
 
@@ -272,7 +272,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         if (!ValidateIsCurrentActor(unitId)) return;
         if (CurrentActorHasMoved)
         {
-            _logger?.LogWarning($"[Combat] Unit {unitId} already moved this turn.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} already moved this turn.");
             return;
         }
 
@@ -280,14 +280,14 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
         if (!_boardSubsystem.IsEmpty(destination))
         {
-            _logger?.LogWarning($"[Combat] Destination {destination} is occupied.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Destination {destination} is occupied.");
             return;
         }
 
         var path = _boardSubsystem.FindPath(data.Position, destination, 1);
         if (path == null || path.Count == 0)
         {
-            _logger?.LogWarning($"[Combat] No valid path from {data.Position} to {destination} within range 1.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"No valid path from {data.Position} to {destination} within range 1.");
             return;
         }
 
@@ -299,7 +299,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         _boardSubsystem.SetOccupant(destination, unitId);
         CurrentActorHasMoved = true;
 
-        _logger?.Log($"[Combat] Unit {unitId} moved from {data.Position} to {destination}.");
+        _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} moved from {data.Position} to {destination}.");
 
         CheckAutoEndTurn();
     }
@@ -311,7 +311,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         if (!ValidateIsCurrentActor(unitId)) return;
         if (CurrentActorHasActed)
         {
-            _logger?.LogWarning($"[Combat] Unit {unitId} already acted this turn.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} already acted this turn.");
             return;
         }
 
@@ -320,14 +320,14 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         // Validate range (normal attack range = 1)
         if (_boardSubsystem.Distance(attackerData.Position, target) > 1)
         {
-            _logger?.LogWarning($"[Combat] Target {target} out of normal attack range.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Target {target} out of normal attack range.");
             return;
         }
 
         string targetUnitId = FindUnitAtPosition(target);
         if (string.IsNullOrEmpty(targetUnitId))
         {
-            _logger?.LogWarning($"[Combat] No unit at {target} to attack.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"No unit at {target} to attack.");
             return;
         }
 
@@ -336,7 +336,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         // F4.11: Friendly-fire check
         if (targetData.Owner == attackerData.Owner)
         {
-            _logger?.LogWarning($"[Combat] Cannot normal attack allied unit.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Cannot normal attack allied unit.");
             return;
         }
 
@@ -359,7 +359,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         {
             var targetView = FindUnitNetworkView(targetUnitId);
             targetView?.ServerApplyDamage(finalDamage);
-            _logger?.Log($"[Combat] Unit {unitId} attacked {targetUnitId} for {finalDamage} damage (raw={rawDamage}).");
+            _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} attacked {targetUnitId} for {finalDamage} damage (raw={rawDamage}).");
 
             if (TryGetUnitData(targetUnitId, out var postData) && postData.CurrentHP <= 0)
                 ProcessDeath(targetUnitId);
@@ -379,7 +379,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         if (!ValidateIsCurrentActor(unitId)) return;
         if (CurrentActorHasActed)
         {
-            _logger?.LogWarning($"[Combat] Unit {unitId} already acted this turn.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} already acted this turn.");
             return;
         }
 
@@ -391,7 +391,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         int skillIndex = FindSkillIndex(unitView, skillId);
         if (skillIndex < 0)
         {
-            _logger?.LogWarning($"[Combat] Skill '{skillId}' not found on unit {unitId}.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Skill '{skillId}' not found on unit {unitId}.");
             return;
         }
 
@@ -399,21 +399,21 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         int currentCooldown = unitView.SkillCooldowns.Get(skillIndex);
         if (currentCooldown > 0)
         {
-            _logger?.LogWarning($"[Combat] Skill '{skillId}' on cooldown ({currentCooldown} turns remaining).");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Skill '{skillId}' on cooldown ({currentCooldown} turns remaining).");
             return;
         }
 
         // F4.9: Check one-time disabled
         if (unitView.SkillOneTimeDisabled.Get(skillIndex))
         {
-            _logger?.LogWarning($"[Combat] Skill '{skillId}' is permanently disabled (one-time used).");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Skill '{skillId}' is permanently disabled (one-time used).");
             return;
         }
 
         // Validate range
         if (!_cardLoading.TryGetSkillData(skillId, out SkillData skillData))
         {
-            _logger?.LogWarning($"[Combat] No skill data for '{skillId}'.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"No skill data for '{skillId}'.");
             return;
         }
 
@@ -424,7 +424,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         // F4.11: Validate targeting
         if (!ValidateSkillTarget(casterData, target, skillData))
         {
-            _logger?.LogWarning($"[Combat] Invalid target {target} for skill '{skillId}'.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Invalid target {target} for skill '{skillId}'.");
             return;
         }
 
@@ -442,7 +442,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         CurrentActorHasActed = true;
         unitView.HasActedThisTurn = true;
 
-        _logger?.Log($"[Combat] Unit {unitId} used skill '{skillId}' at {target}.");
+        _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} used skill '{skillId}' at {target}.");
 
         // Check deaths after skill execution
         CheckAllUnitDeaths();
@@ -458,7 +458,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         var behavior = behaviorSO as CombatSkillBehaviorSO;
         if (behavior == null)
         {
-            _logger?.LogWarning($"[Combat] Behavior '{skillData.skill_behavior_id}' is not a CombatSkillBehaviorSO.");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Behavior '{skillData.skill_behavior_id}' is not a CombatSkillBehaviorSO.");
             return;
         }
 
@@ -573,7 +573,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         {
             var targetView = FindUnitNetworkView(unitId);
             targetView?.ServerApplyDamage(finalDamage);
-            _logger?.Log($"[Combat] Status '{sourceId}' dealt {finalDamage} to unit {unitId}.");
+            _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Status '{sourceId}' dealt {finalDamage} to unit {unitId}.");
         }
     }
 
@@ -592,7 +592,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
                 {
                     string removedId = unitView.StatusEffectIds.Get(i).ToString();
                     unitView.ServerRemoveStatus(removedId);
-                    _logger?.Log($"[Combat] Status '{removedId}' expired on unit {data.UnitId}.");
+                    _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Status '{removedId}' expired on unit {data.UnitId}.");
                 }
             }
         }
@@ -615,7 +615,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         if (unitView != null && unitView.Object != null)
             Runner.Despawn(unitView.Object);
 
-        _logger?.Log($"[Combat] Unit {unitId} died. DeathAnchor={deathAnchor} applied to player {owner}.");
+        _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} died. DeathAnchor={deathAnchor} applied to player {owner}.");
 
         // Apply DeathAnchor damage to owner's HP
         if (deathAnchor > 0)
@@ -627,7 +627,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             // Check elimination
             if (pczView != null && pczView.HP <= 0)
             {
-                _logger?.Log($"[Combat] Player {owner} eliminated!");
+                _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Player {owner} eliminated!");
                 CheckWinCondition();
             }
         }
@@ -668,7 +668,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         if (_cardLoading != null && _cardLoading.TryGetCardData(nextForm, out CardData evolvedData))
         {
             unitView.ServerEvolve(nextForm, evolvedData);
-            _logger?.Log($"[Combat] Unit {unitId} evolved from '{baseCardId}' to '{nextForm}'.");
+            _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} evolved from '{baseCardId}' to '{nextForm}'.");
         }
     }
 
@@ -712,7 +712,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         // Board clear triggers when only one player has non-persistent units
         if (playersWithUnits > 1) return;
 
-        _logger?.Log("[Combat] Board clear triggered — only one player has non-persistent units remaining.");
+        _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), "Board clear triggered — only one player has non-persistent units remaining.");
 
         // Destroy all non-persistent units
         foreach (var netId in allUnits.ToList())
@@ -837,7 +837,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         string currentActorId = ActionQueue.Get(CurrentIndex).ToString();
         if (currentActorId != unitId)
         {
-            _logger?.LogWarning($"[Combat] Unit {unitId} is not the current actor ({currentActorId}).");
+            _logger?.LogWarning("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} is not the current actor ({currentActorId}).");
             return false;
         }
         return true;

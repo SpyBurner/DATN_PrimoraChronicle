@@ -40,7 +40,7 @@ public class GameplayDeckSubsystem : IGameplayDeckSubsystem
             string userId = _authSession.CurrentUserId.Value;
             if (string.IsNullOrWhiteSpace(userId))
             {
-                _logger.LogWarning("[GameplayDeckSubsystem] No user ID — cannot load decks.");
+                _logger.LogWarning("LOG_GAMEPLAYDECKSUBSYSTEM", nameof(GameplayDeckSubsystem), "No user ID — cannot load decks.");
                 return;
             }
 
@@ -53,7 +53,7 @@ public class GameplayDeckSubsystem : IGameplayDeckSubsystem
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[GameplayDeckSubsystem] LoadDecks failed: {ex.Message}");
+            _logger.LogError("LOG_GAMEPLAYDECKSUBSYSTEM", nameof(GameplayDeckSubsystem), $"LoadDecks failed: {ex.Message}");
         }
         finally
         {

@@ -25,21 +25,21 @@ internal class GameplayDeckChooseController : IGameplayDeckChooseController
     public void StageSelection(DeckSummaryData summary)
     {
         _stagedSummary = summary;
-        _logger.Log($"[GameplayDeckChoose] Staged deck: {summary.id}");
+        _logger.Log("LOG_GAMEPLAYDECKCHOOSE", nameof(GameplayDeckChooseController), $"Staged deck: {summary.id}");
     }
 
     public async Task ConfirmSelection()
     {
         if (string.IsNullOrEmpty(_stagedSummary.id))
         {
-            _logger.LogWarning("[GameplayDeckChoose] ConfirmSelection called with no staged deck.");
+            _logger.LogWarning("LOG_GAMEPLAYDECKCHOOSE", nameof(GameplayDeckChooseController), "ConfirmSelection called with no staged deck.");
             return;
         }
 
         DeckDetailData detail = await FetchDeckDetail(_stagedSummary.id);
         if (detail == null)
         {
-            _logger.LogError($"[GameplayDeckChoose] Failed to fetch detail for deck {_stagedSummary.id}.");
+            _logger.LogError("LOG_GAMEPLAYDECKCHOOSE", nameof(GameplayDeckChooseController), $"Failed to fetch detail for deck {_stagedSummary.id}.");
             return;
         }
 
@@ -71,7 +71,7 @@ internal class GameplayDeckChooseController : IGameplayDeckChooseController
             return;
         }
 
-        _logger.Log("[GameplayDeckChoose] Auto-confirming with default deck.");
+        _logger.Log("LOG_GAMEPLAYDECKCHOOSE", nameof(GameplayDeckChooseController), "Auto-confirming with default deck.");
         string cardIdsJoined = string.Join(",", _defaultCardIds);
 
         if (_bridge != null)
@@ -83,7 +83,7 @@ internal class GameplayDeckChooseController : IGameplayDeckChooseController
     public void RegisterBridge(IGameplayDeckChooseNetworkBridge bridge)
     {
         _bridge = bridge;
-        _logger.Log($"[GameplayDeckChoose] Bridge {(bridge == null ? "unregistered" : "registered")}.");
+        _logger.Log("LOG_GAMEPLAYDECKCHOOSE", nameof(GameplayDeckChooseController), $"Bridge {(bridge == null ? "unregistered" : "registered")}.");
     }
 
     public void OnAuthoritativeStateReceived(GameplayDeckChooseStateData data)
@@ -100,7 +100,7 @@ internal class GameplayDeckChooseController : IGameplayDeckChooseController
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[GameplayDeckChoose] FetchDeckDetail exception: {ex.Message}");
+            _logger.LogError("LOG_GAMEPLAYDECKCHOOSE", nameof(GameplayDeckChooseController), $"FetchDeckDetail exception: {ex.Message}");
             return null;
         }
     }
