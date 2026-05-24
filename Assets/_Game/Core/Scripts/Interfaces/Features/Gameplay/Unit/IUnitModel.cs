@@ -9,6 +9,8 @@ public interface IUnitModel : IModel
     event Action<NetworkId> UnitRemoved;
 
     IReadOnlyDictionary<NetworkId, UnitPublicData> Units { get; }
+    
+    bool TryGetOwnSkills(NetworkId id, out IReadOnlyList<SkillSlot> skills);
 
     void ApplyPublicState(UnitPublicData data);
     void ApplyPrivateState(UnitPrivateData data);

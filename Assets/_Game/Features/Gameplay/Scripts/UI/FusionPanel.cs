@@ -17,8 +17,8 @@ public class FusionPanel : MonoBehaviour
     [SerializeField] private Button _clearBaseButton;
 
     [Header("Innate Slots (always visible)")]
-    // [SerializeField] private GameObject _normalAttackSlot;
-    // [SerializeField] private GameObject _movementSlot;
+    [SerializeField] private GameObject _normalAttackSlot;
+    [SerializeField] private GameObject _movementSlot;
 
     [Header("Fuse Slots")]
     [SerializeField] private Transform _fuseSlotContainer;
@@ -151,8 +151,8 @@ public class FusionPanel : MonoBehaviour
     private void RefreshBaseSlot(string baseCardId)
     {
         bool hasBase = !string.IsNullOrEmpty(baseCardId);
-        // if (_normalAttackSlot != null) _normalAttackSlot.SetActive(hasBase);
-        // if (_movementSlot != null) _movementSlot.SetActive(hasBase);
+        if (_normalAttackSlot != null) _normalAttackSlot.SetActive(hasBase);
+        if (_movementSlot != null) _movementSlot.SetActive(hasBase);
         if (_clearBaseButton != null) _clearBaseButton.gameObject.SetActive(hasBase);
 
         if (hasBase && _cardLoading.TryGetCardData(baseCardId, out var cardData))

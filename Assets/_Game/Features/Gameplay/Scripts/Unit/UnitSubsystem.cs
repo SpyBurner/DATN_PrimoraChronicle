@@ -26,8 +26,7 @@ public class UnitSubsystem : IUnitSubsystem
 
     public bool TryGetOwnSkills(NetworkId id, out IReadOnlyList<SkillSlot> skills)
     {
-        skills = null;
-        return false;
+        return _model.TryGetOwnSkills(id, out skills);
     }
 
     public void Initialize()

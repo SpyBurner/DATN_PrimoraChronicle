@@ -27,10 +27,6 @@ public class SkillPanel : MonoBehaviour
     [SerializeField] private Color _cooldownColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
     [SerializeField] private Color _disabledColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
 
-    [Header("Basic Actions")]
-    [SerializeField] private Button _moveButton;
-    [SerializeField] private Button _normalAttackButton;
-
     private readonly List<SkillSlotUI> _spawnedSlots = new();
     private PlayerRef _localPlayer;
     private NetworkId _currentActor;
@@ -62,8 +58,6 @@ public class SkillPanel : MonoBehaviour
         _combat.CurrentTurnChanged += OnCurrentTurnChanged;
         _targeting.TargetingCancelled += OnTargetingCancelled;
         _endTurnButton?.onClick.AddListener(OnEndTurnClicked);
-        _moveButton?.onClick.AddListener(OnMoveClicked);
-        _normalAttackButton?.onClick.AddListener(OnNormalAttackClicked);
 
         if (_combat.CurrentActor != default)
             OnCurrentTurnChanged(_combat.CurrentActor);
@@ -74,8 +68,6 @@ public class SkillPanel : MonoBehaviour
         _combat.CurrentTurnChanged -= OnCurrentTurnChanged;
         _targeting.TargetingCancelled -= OnTargetingCancelled;
         _endTurnButton?.onClick.RemoveListener(OnEndTurnClicked);
-        _moveButton?.onClick.RemoveListener(OnMoveClicked);
-        _normalAttackButton?.onClick.RemoveListener(OnNormalAttackClicked);
         ClearSlots();
         _currentActor = default;
     }
@@ -147,7 +139,11 @@ public class SkillPanel : MonoBehaviour
 
             if (slotUI.NameText != null)
             {
-                if (_cardLoading.TryGetSkillData(skill.SkillId, out var skillData))
+                if (skill.SkillId == "move")
+                    slotUI.NameText.text = "Move";
+                else if (skill.SkillId == "n_atk")
+                    slotUI.NameText.text = "Attack";
+                else if (_cardLoading.TryGetSkillData(skill.SkillId, out var skillData))
                     slotUI.NameText.text = skillData.name;
                 else
                     slotUI.NameText.text = skill.SkillId;
@@ -155,7 +151,16 @@ public class SkillPanel : MonoBehaviour
 
             bool isDisabled = skill.IsOneTimeDisabled;
             bool onCooldown = skill.CurrentCooldown > 0;
+            
+            // Move doesn't consume cooldown, it consumes HasMoved
+            // N_Atk doesn't consume cooldown, it consumes HasActed
             bool isReady = !isDisabled && !onCooldown;
+            if (skill.SkillId == "move")
+                isReady = _combat.CurrentActorCanMove;
+            else if (skill.SkillId == "n_atk")
+                isReady = _combat.CurrentActorCanAct;
+            else
+                isReady = isReady && _combat.CurrentActorCanAct;
 
             if (slotUI.CooldownText != null)
             {
@@ -163,6 +168,10 @@ public class SkillPanel : MonoBehaviour
                     slotUI.CooldownText.text = "Used";
                 else if (onCooldown)
                     slotUI.CooldownText.text = $"CD: {skill.CurrentCooldown}";
+                else if (skill.SkillId == "move" && !_combat.CurrentActorCanMove)
+                    slotUI.CooldownText.text = "Done";
+                else if (skill.SkillId == "n_atk" && !_combat.CurrentActorCanAct)
+                    slotUI.CooldownText.text = "Done";
                 else
                     slotUI.CooldownText.text = "";
             }
@@ -189,6 +198,17 @@ public class SkillPanel : MonoBehaviour
     {
         if (_currentActor == default) return;
         if (_targeting.IsTargeting) return;
+
+        if (skillId == "move")
+        {
+            OnMoveClicked();
+            return;
+        }
+        else if (skillId == "n_atk")
+        {
+            OnNormalAttackClicked();
+            return;
+        }
 
         _cardLoading.TryGetSkillData(skillId, out var skillData);
 
@@ -282,21 +302,25 @@ public class SkillPanel : MonoBehaviour
     private void SetInteractable(bool interactable)
     {
         foreach (var slot in _spawnedSlots)
-            if (slot.Button != null) slot.Button.interactable = interactable && IsSkillReady(slot.SkillId) && _combat.CurrentActorCanAct;
+        {
+            if (slot.Button != null)
+            {
+                bool ready = IsSkillReady(slot.SkillId);
+                slot.Button.interactable = interactable && ready;
+            }
+        }
 
         if (_endTurnButton != null)
             _endTurnButton.interactable = interactable;
-            
-        if (_moveButton != null)
-            _moveButton.interactable = interactable && _combat.CurrentActorCanMove;
-            
-        if (_normalAttackButton != null)
-            _normalAttackButton.interactable = interactable && _combat.CurrentActorCanAct;
     }
 
     private bool IsSkillReady(string skillId)
     {
         if (_currentActor == default) return false;
+        
+        if (skillId == "move") return _combat.CurrentActorCanMove;
+        if (skillId == "n_atk") return _combat.CurrentActorCanAct;
+
         if (!_unit.TryGetOwnSkills(_currentActor, out var skills) || skills == null) return false;
 
         foreach (var skill in skills)

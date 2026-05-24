@@ -288,5 +288,28 @@ public class UnitNetworkView : NetworkBehaviour
             GrowthStacks = GrowthStacks,
             StatusEffects = statusEffects
         });
+
+        // Push Private State (skills)
+        var skills = new List<SkillSlot>();
+        for (int i = 0; i < SkillCount; i++)
+        {
+            skills.Add(new SkillSlot
+            {
+                SkillId = SkillIds.Get(i).ToString(),
+                CurrentCooldown = SkillCooldowns.Get(i),
+                IsOneTimeDisabled = SkillOneTimeDisabled.Get(i)
+            });
+        }
+        
+        // Always include Move and N_Atk as fundamental skills
+        skills.Add(new SkillSlot { SkillId = "move", CurrentCooldown = 0, IsOneTimeDisabled = false });
+        skills.Add(new SkillSlot { SkillId = "n_atk", CurrentCooldown = 0, IsOneTimeDisabled = false });
+
+        _unitSubsystem.OnUnitPrivateStateReceived(new UnitPrivateData
+        {
+            UnitId = Object.Id,
+            Owner = Owner,
+            Skills = skills
+        });
     }
 }

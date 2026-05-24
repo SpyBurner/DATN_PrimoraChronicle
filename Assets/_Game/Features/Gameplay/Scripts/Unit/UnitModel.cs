@@ -13,6 +13,17 @@ internal class UnitModel : IUnitModel
 
     public IReadOnlyDictionary<NetworkId, UnitPublicData> Units => _publicUnits;
 
+    public bool TryGetOwnSkills(NetworkId id, out IReadOnlyList<SkillSlot> skills)
+    {
+        if (_privateSkills.TryGetValue(id, out var list))
+        {
+            skills = list;
+            return true;
+        }
+        skills = null;
+        return false;
+    }
+
     public void Initialize() { }
 
     public void Dispose()
