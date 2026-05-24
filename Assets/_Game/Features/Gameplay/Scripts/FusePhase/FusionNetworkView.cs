@@ -107,8 +107,6 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         for (int i = 0; i < equipIds.Length; i++)
             EquipSpells.Set(i, equipIds[i]);
 
-        SpawnUnit(sender, baseCardId, equipIds);
-
         // Discard base card if it is a troop — champion is never discarded
         if (_cardLoading != null && _cardLoading.TryGetCardData(baseCardId, out CardData baseData)
             && baseData.type == "troop")
@@ -134,7 +132,6 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
 
         BaseCard = championId;
         EquipSpellCount = 0;
-        SpawnUnit(Object.InputAuthority, championId, System.Array.Empty<string>());
         HasFusedThisTurn = true;
         IsConfirmed = true;
 
@@ -142,6 +139,31 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         if (gsv != null) gsv.ServerSetPlayerReady(Object.InputAuthority, true);
 
         _logger?.Log($"[FusionNetworkView] Auto-confirmed fusion (Champion only) for {Object.InputAuthority}.");
+    }
+
+    public void ServerSpawnConfirmedUnit()
+    {
+        if (!Object.HasStateAuthority) return;
+        if (!IsConfirmed) return;
+        
+        string baseId = BaseCard.ToString();
+        if (string.IsNullOrEmpty(baseId)) return;
+
+        string[] equipIds = new string[EquipSpellCount];
+        for (int i = 0; i < EquipSpellCount; i++)
+        {
+            equipIds[i] = EquipSpells.Get(i).ToString();
+        }
+
+        SpawnUnit(Object.InputAuthority, baseId, equipIds);
+
+        // Invalidate cache to prevent duplication
+        BaseCard = string.Empty;
+        EquipSpellCount = 0;
+        for (int i = 0; i < MaxEquipSlots; i++)
+        {
+            EquipSpells.Set(i, string.Empty);
+        }
     }
 
     public void ServerResetForNewTurn()

@@ -234,6 +234,14 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     private void StartCombatPhase()
     {
         var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator != null)
+        {
+            foreach (var player in coordinator.GetAllPlayers())
+            {
+                var fusionView = coordinator.GetFusionView(player);
+                fusionView?.ServerSpawnConfirmedUnit();
+            }
+        }
         coordinator?.CombatView?.ServerStartCombatPhase();
     }
 
