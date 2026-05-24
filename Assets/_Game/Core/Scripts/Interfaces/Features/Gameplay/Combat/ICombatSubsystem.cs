@@ -7,6 +7,8 @@ public interface ICombatSubsystem : ISubsystem
     event UnityAction<IReadOnlyList<CombatQueueEntry>> QueueChanged;
     event UnityAction<NetworkId> CurrentTurnChanged;
     event UnityAction TurnEnded;
+    event UnityAction<bool> CurrentActorCanMoveChanged;
+    event UnityAction<bool> CurrentActorCanActChanged;
 
     IReadOnlyList<CombatQueueEntry> ActionQueue { get; }
     NetworkId CurrentActor { get; }

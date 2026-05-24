@@ -286,7 +286,10 @@ public class UnitNetworkView : NetworkBehaviour
             DeathAnchor = DeathAnchor,
             IsPersistent = IsPersistent,
             GrowthStacks = GrowthStacks,
-            StatusEffects = statusEffects
+            StatusEffects = statusEffects,
+            BaseCardId = BaseCardId.ToString(),
+            MoveRange = MoveRange,
+            NormalAttackDamage = NormalAttackDamage,
         });
 
         // Push Private State (skills)

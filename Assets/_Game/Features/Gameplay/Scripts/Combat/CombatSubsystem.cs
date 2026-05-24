@@ -12,6 +12,8 @@ public class CombatSubsystem : ICombatSubsystem
     public event UnityAction<IReadOnlyList<CombatQueueEntry>> QueueChanged;
     public event UnityAction<NetworkId> CurrentTurnChanged;
     public event UnityAction TurnEnded;
+    public event UnityAction<bool> CurrentActorCanMoveChanged;
+    public event UnityAction<bool> CurrentActorCanActChanged;
 
     public IReadOnlyList<CombatQueueEntry> ActionQueue => _model.ActionQueue;
     public NetworkId CurrentActor => _model.CurrentActor.Value;
@@ -22,6 +24,8 @@ public class CombatSubsystem : ICombatSubsystem
     {
         _model.QueueChanged += HandleQueueChanged;
         _model.CurrentActor.OnChanged += HandleCurrentActorChanged;
+        _model.HasMoved.OnChanged += HandleHasMovedChanged;
+        _model.HasActed.OnChanged += HandleHasActedChanged;
         _controller.Initialize();
     }
 
@@ -29,6 +33,8 @@ public class CombatSubsystem : ICombatSubsystem
     {
         _model.QueueChanged -= HandleQueueChanged;
         _model.CurrentActor.OnChanged -= HandleCurrentActorChanged;
+        _model.HasMoved.OnChanged -= HandleHasMovedChanged;
+        _model.HasActed.OnChanged -= HandleHasActedChanged;
         _controller.Dispose();
         _model.Dispose();
     }
@@ -50,6 +56,18 @@ public class CombatSubsystem : ICombatSubsystem
     private void HandleCurrentActorChanged()
     {
         try { CurrentTurnChanged?.Invoke(_model.CurrentActor.Value); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+    }
+
+    private void HandleHasMovedChanged()
+    {
+        try { CurrentActorCanMoveChanged?.Invoke(!_model.HasMoved.Value); }
+        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+    }
+
+    private void HandleHasActedChanged()
+    {
+        try { CurrentActorCanActChanged?.Invoke(!_model.HasActed.Value); }
         catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
     }
 }

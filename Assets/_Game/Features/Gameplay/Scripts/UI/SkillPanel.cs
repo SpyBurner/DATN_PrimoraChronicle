@@ -18,7 +18,7 @@ public class SkillPanel : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Transform _skillSlotContainer;
-    [SerializeField] private GameObject _skillSlotPrefab;
+    [SerializeField] private SkillSlotUI _skillSlotPrefab;
     [SerializeField] private Button _endTurnButton;
     [SerializeField] private TMP_Text _actorNameText;
 
@@ -41,22 +41,16 @@ public class SkillPanel : MonoBehaviour
         foreach (Transform child in _skillSlotContainer) Destroy(child.gameObject);
     }
 
-    private struct SkillSlotUI
-    {
-        public GameObject Root;
-        public Button Button;
-        public TMP_Text NameText;
-        public TMP_Text CooldownText;
-        public Image Background;
-        public string SkillId;
-    }
-
     private void OnEnable()
     {
         _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
 
         _combat.CurrentTurnChanged += OnCurrentTurnChanged;
+        _combat.CurrentActorCanMoveChanged += OnActionFlagsChanged;
+        _combat.CurrentActorCanActChanged += OnActionFlagsChanged;
+        _unit.OwnUnitSkillsChanged += OnOwnUnitSkillsChanged;
         _targeting.TargetingCancelled += OnTargetingCancelled;
+        _targeting.TargetConfirmed += OnTargetingConfirmed;
         _endTurnButton?.onClick.AddListener(OnEndTurnClicked);
 
         if (_combat.CurrentActor != default)
@@ -66,21 +60,41 @@ public class SkillPanel : MonoBehaviour
     private void OnDisable()
     {
         _combat.CurrentTurnChanged -= OnCurrentTurnChanged;
+        _combat.CurrentActorCanMoveChanged -= OnActionFlagsChanged;
+        _combat.CurrentActorCanActChanged -= OnActionFlagsChanged;
+        _unit.OwnUnitSkillsChanged -= OnOwnUnitSkillsChanged;
         _targeting.TargetingCancelled -= OnTargetingCancelled;
+        _targeting.TargetConfirmed -= OnTargetingConfirmed;
         _endTurnButton?.onClick.RemoveListener(OnEndTurnClicked);
         ClearSlots();
         _currentActor = default;
     }
-
-
 
     private void OnCurrentTurnChanged(NetworkId actorId)
     {
         try
         {
             _currentActor = actorId;
-            bool isLocalTurn = IsLocalPlayerActor(actorId);
-            SetInteractable(isLocalTurn);
+            RenderSkills(actorId);
+        }
+        catch (Exception ex) { Debug.LogException(ex); }
+    }
+
+    private void OnActionFlagsChanged(bool _)
+    {
+        try
+        {
+            if (_targeting.IsTargeting) return;
+            RefreshSlotInteractability();
+        }
+        catch (Exception ex) { Debug.LogException(ex); }
+    }
+
+    private void OnOwnUnitSkillsChanged(NetworkId actorId, IReadOnlyList<SkillSlot> _)
+    {
+        try
+        {
+            if (actorId != _currentActor) return;
             RenderSkills(actorId);
         }
         catch (Exception ex) { Debug.LogException(ex); }
@@ -88,10 +102,13 @@ public class SkillPanel : MonoBehaviour
 
     private void OnTargetingCancelled()
     {
-        try
-        {
-            SetInteractable(IsLocalPlayerActor(_currentActor));
-        }
+        try { RefreshSlotInteractability(); }
+        catch (Exception ex) { Debug.LogException(ex); }
+    }
+
+    private void OnTargetingConfirmed(HexCoord _)
+    {
+        try { RefreshSlotInteractability(); }
         catch (Exception ex) { Debug.LogException(ex); }
     }
 
@@ -112,7 +129,7 @@ public class SkillPanel : MonoBehaviour
         if (_actorNameText != null)
         {
             string displayName = actorId.ToString();
-            if (!string.IsNullOrEmpty(unitData.UnitId.ToString()) && _cardLoading.TryGetCardData(actorId.ToString(), out var cardData))
+            if (!string.IsNullOrEmpty(unitData.BaseCardId) && _cardLoading.TryGetCardData(unitData.BaseCardId, out var cardData))
                 displayName = cardData.name;
             _actorNameText.text = displayName;
         }
@@ -125,73 +142,82 @@ public class SkillPanel : MonoBehaviour
             if (string.IsNullOrEmpty(skill.SkillId)) continue;
 
             var slot = Instantiate(_skillSlotPrefab, _skillSlotContainer);
-            slot.SetActive(true);
+            slot.gameObject.SetActive(true);
 
-            var slotUI = new SkillSlotUI
+            if (slot.NameText != null)
+                slot.NameText.text = ResolveSkillName(skill.SkillId);
+
+            ApplySlotVisualState(slot, skill, actorId);
+
+            if (slot.Button != null)
             {
-                Root = slot,
-                Button = slot.GetComponentInChildren<Button>(),
-                NameText = slot.transform.Find("NameText")?.GetComponent<TMP_Text>(),
-                CooldownText = slot.transform.Find("CooldownText")?.GetComponent<TMP_Text>(),
-                Background = slot.GetComponent<Image>(),
-                SkillId = skill.SkillId,
-            };
-
-            if (slotUI.NameText != null)
-            {
-                if (skill.SkillId == "move")
-                    slotUI.NameText.text = "Move";
-                else if (skill.SkillId == "n_atk")
-                    slotUI.NameText.text = "Attack";
-                else if (_cardLoading.TryGetSkillData(skill.SkillId, out var skillData))
-                    slotUI.NameText.text = skillData.name;
-                else
-                    slotUI.NameText.text = skill.SkillId;
-            }
-
-            bool isDisabled = skill.IsOneTimeDisabled;
-            bool onCooldown = skill.CurrentCooldown > 0;
-            
-            // Move doesn't consume cooldown, it consumes HasMoved
-            // N_Atk doesn't consume cooldown, it consumes HasActed
-            bool isReady = !isDisabled && !onCooldown;
-            if (skill.SkillId == "move")
-                isReady = _combat.CurrentActorCanMove;
-            else if (skill.SkillId == "n_atk")
-                isReady = _combat.CurrentActorCanAct;
-            else
-                isReady = isReady && _combat.CurrentActorCanAct;
-
-            if (slotUI.CooldownText != null)
-            {
-                if (isDisabled)
-                    slotUI.CooldownText.text = "Used";
-                else if (onCooldown)
-                    slotUI.CooldownText.text = $"CD: {skill.CurrentCooldown}";
-                else if (skill.SkillId == "move" && !_combat.CurrentActorCanMove)
-                    slotUI.CooldownText.text = "Done";
-                else if (skill.SkillId == "n_atk" && !_combat.CurrentActorCanAct)
-                    slotUI.CooldownText.text = "Done";
-                else
-                    slotUI.CooldownText.text = "";
-            }
-
-            if (slotUI.Background != null)
-            {
-                if (isDisabled) slotUI.Background.color = _disabledColor;
-                else if (onCooldown) slotUI.Background.color = _cooldownColor;
-                else slotUI.Background.color = _readyColor;
-            }
-
-            if (slotUI.Button != null)
-            {
-                slotUI.Button.interactable = isReady && IsLocalPlayerActor(actorId);
+                slot.Button.onClick.RemoveAllListeners();
                 string skillId = skill.SkillId;
-                slotUI.Button.onClick.AddListener(() => OnSkillClicked(skillId));
+                slot.Button.onClick.AddListener(() => OnSkillClicked(skillId));
+                slot.Button.interactable = IsSkillReady(skill.SkillId, skill) && IsLocalPlayerActor(actorId);
             }
 
-            _spawnedSlots.Add(slotUI);
+            _spawnedSlots.Add(slot);
         }
+    }
+
+    private string ResolveSkillName(string skillId)
+    {
+        if (skillId == "move") return "Move";
+        if (skillId == "n_atk") return "Attack";
+        if (_cardLoading.TryGetSkillData(skillId, out var skillData))
+            return skillData.name;
+        return skillId;
+    }
+
+    private void ApplySlotVisualState(SkillSlotUI slot, SkillSlot skill, NetworkId actorId)
+    {
+        bool isDisabled = skill.IsOneTimeDisabled;
+        bool onCooldown = skill.CurrentCooldown > 0;
+
+        if (slot.CooldownText != null)
+        {
+            if (isDisabled)
+                slot.CooldownText.text = "Used";
+            else if (onCooldown)
+                slot.CooldownText.text = $"CD: {skill.CurrentCooldown}";
+            else if (skill.SkillId == "move" && !_combat.CurrentActorCanMove)
+                slot.CooldownText.text = "Done";
+            else if (skill.SkillId == "n_atk" && !_combat.CurrentActorCanAct)
+                slot.CooldownText.text = "Done";
+            else
+                slot.CooldownText.text = "";
+        }
+
+        if (slot.Background != null)
+        {
+            if (isDisabled) slot.Background.color = _disabledColor;
+            else if (onCooldown) slot.Background.color = _cooldownColor;
+            else slot.Background.color = _readyColor;
+        }
+    }
+
+    private void RefreshSlotInteractability()
+    {
+        if (!_unit.TryGetOwnSkills(_currentActor, out var skills) || skills == null) return;
+
+        bool isLocal = IsLocalPlayerActor(_currentActor);
+        bool targeting = _targeting.IsTargeting;
+
+        for (int i = 0; i < _spawnedSlots.Count && i < skills.Count; i++)
+        {
+            var slot = _spawnedSlots[i];
+            var skill = skills[i];
+            if (slot == null) continue;
+
+            ApplySlotVisualState(slot, skill, _currentActor);
+
+            if (slot.Button != null)
+                slot.Button.interactable = !targeting && isLocal && IsSkillReady(skill.SkillId, skill);
+        }
+
+        if (_endTurnButton != null)
+            _endTurnButton.interactable = !targeting && isLocal;
     }
 
     private void OnSkillClicked(string skillId)
@@ -201,12 +227,12 @@ public class SkillPanel : MonoBehaviour
 
         if (skillId == "move")
         {
-            OnMoveClicked();
+            BeginMoveTargeting();
             return;
         }
-        else if (skillId == "n_atk")
+        if (skillId == "n_atk")
         {
-            OnNormalAttackClicked();
+            BeginNormalAttackTargeting();
             return;
         }
 
@@ -232,8 +258,56 @@ public class SkillPanel : MonoBehaviour
             IgnorePathfinding = skillData?.ignore_pathfinding ?? false,
         };
 
-        SetInteractable(false);
+        RefreshSlotInteractability();
         _targeting.BeginTargeting(request, target => OnTargetConfirmed(skillId, target));
+        RefreshSlotInteractability();
+    }
+
+    private void BeginMoveTargeting()
+    {
+        if (!_combat.CurrentActorCanMove) return;
+
+        int range = 2;
+        if (_unit.TryGetPublic(_currentActor, out var data) && data.MoveRange > 0)
+            range = data.MoveRange;
+
+        var request = new TargetingRequest
+        {
+            Mask = TargetMask.EmptyTile,
+            Range = range,
+            DisplayPattern = null,
+            Caster = _currentActor,
+            IgnorePathfinding = false
+        };
+
+        _targeting.BeginTargeting(request, target => OnTargetConfirmed("move", target));
+        RefreshSlotInteractability();
+    }
+
+    private void BeginNormalAttackTargeting()
+    {
+        if (!_combat.CurrentActorCanAct) return;
+
+        int range = 1;
+        if (_unit.TryGetPublic(_currentActor, out var data)
+            && !string.IsNullOrEmpty(data.BaseCardId)
+            && _cardLoading.TryGetCardData(data.BaseCardId, out var card)
+            && card.n_atk_pattern != null && card.n_atk_pattern.Count > 0)
+        {
+            range = HexPatternResolver.GetRange(card.n_atk_pattern);
+        }
+
+        var request = new TargetingRequest
+        {
+            Mask = TargetMask.Enemy,
+            Range = range,
+            DisplayPattern = null,
+            Caster = _currentActor,
+            IgnorePathfinding = false
+        };
+
+        _targeting.BeginTargeting(request, target => OnTargetConfirmed("n_atk", target));
+        RefreshSlotInteractability();
     }
 
     private void OnTargetConfirmed(string skillId, HexCoord target)
@@ -246,89 +320,20 @@ public class SkillPanel : MonoBehaviour
             _combat.RequestSkill(_currentActor, skillId, target);
     }
 
-    private void OnMoveClicked()
-    {
-        if (_currentActor == default) return;
-        if (_targeting.IsTargeting) return;
-        if (!_combat.CurrentActorCanMove) return;
-
-        var request = new TargetingRequest
-        {
-            Mask = TargetMask.EmptyTile,
-            Range = 2, // Hardcoded MoveRange for now based on UnitNetworkView
-            DisplayPattern = null,
-            Caster = _currentActor,
-            IgnorePathfinding = false
-        };
-
-        SetInteractable(false);
-        _targeting.BeginTargeting(request, target => OnTargetConfirmed("move", target));
-    }
-
-    private void OnNormalAttackClicked()
-    {
-        if (_currentActor == default) return;
-        if (_targeting.IsTargeting) return;
-        if (!_combat.CurrentActorCanAct) return;
-
-        int range = 1; // Default normal attack range
-        TargetMask mask = TargetMask.Enemy;
-
-        if (_unit.TryGetPublic(_currentActor, out var data))
-        {
-            // UnitNetworkView BaseCardId isn't exposed directly here but we can assume normal attack is standard.
-            // Ideally we get n_atk_pattern from CardData if we had the BaseCardId, but range=1 is default.
-        }
-
-        var request = new TargetingRequest
-        {
-            Mask = mask,
-            Range = range,
-            DisplayPattern = null,
-            Caster = _currentActor,
-            IgnorePathfinding = false
-        };
-
-        SetInteractable(false);
-        _targeting.BeginTargeting(request, target => OnTargetConfirmed("n_atk", target));
-    }
-
     private void OnEndTurnClicked()
     {
         if (!IsLocalPlayerActor(_currentActor)) return;
         _combat.EndTurn();
     }
 
-    private void SetInteractable(bool interactable)
-    {
-        foreach (var slot in _spawnedSlots)
-        {
-            if (slot.Button != null)
-            {
-                bool ready = IsSkillReady(slot.SkillId);
-                slot.Button.interactable = interactable && ready;
-            }
-        }
-
-        if (_endTurnButton != null)
-            _endTurnButton.interactable = interactable;
-    }
-
-    private bool IsSkillReady(string skillId)
+    private bool IsSkillReady(string skillId, SkillSlot skill)
     {
         if (_currentActor == default) return false;
-        
+
         if (skillId == "move") return _combat.CurrentActorCanMove;
         if (skillId == "n_atk") return _combat.CurrentActorCanAct;
 
-        if (!_unit.TryGetOwnSkills(_currentActor, out var skills) || skills == null) return false;
-
-        foreach (var skill in skills)
-        {
-            if (skill.SkillId == skillId)
-                return !skill.IsOneTimeDisabled && skill.CurrentCooldown <= 0;
-        }
-        return false;
+        return !skill.IsOneTimeDisabled && skill.CurrentCooldown <= 0 && _combat.CurrentActorCanAct;
     }
 
     private static TargetMask ResolveTargetMask(int targetCondition)
@@ -345,7 +350,7 @@ public class SkillPanel : MonoBehaviour
     private void ClearSlots()
     {
         foreach (var slot in _spawnedSlots)
-            if (slot.Root != null) Destroy(slot.Root);
+            if (slot != null) Destroy(slot.gameObject);
         _spawnedSlots.Clear();
     }
 }

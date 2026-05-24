@@ -13,4 +13,7 @@ public struct UnitPublicData
     public bool IsPersistent;
     public int GrowthStacks;
     public List<StatusSlot> StatusEffects;
+    public string BaseCardId;
+    public int MoveRange;
+    public int NormalAttackDamage;
 }

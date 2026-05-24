@@ -1,4 +1,5 @@
 using System;
+using Core.GDS;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,7 +19,13 @@ public class FusionPanel : MonoBehaviour
 
     [Header("Innate Slots (always visible)")]
     [SerializeField] private GameObject _normalAttackSlot;
+    [SerializeField] private TMP_Text _normalAttackNameText;
+    [SerializeField] private TMP_Text _normalAttackDamageText;
+    [SerializeField] private TMP_Text _normalAttackRangeText;
     [SerializeField] private GameObject _movementSlot;
+    [SerializeField] private TMP_Text _movementNameText;
+    [SerializeField] private TMP_Text _movementRangeText;
+    [SerializeField] private int _defaultMoveRange = 2;
 
     [Header("Fuse Slots")]
     [SerializeField] private Transform _fuseSlotContainer;
@@ -160,12 +167,44 @@ public class FusionPanel : MonoBehaviour
             if (_unitNameText != null) _unitNameText.text = cardData.name;
             if (_unitStatsText != null)
                 _unitStatsText.text = $"HP:{cardData.hp} SPD:{cardData.speed:F1} ATK:{cardData.n_atk_dmg}";
+
+            ApplyNormalAttackInfo(cardData);
+            ApplyMovementInfo(cardData);
         }
         else
         {
             if (_unitNameText != null) _unitNameText.text = "";
             if (_unitStatsText != null) _unitStatsText.text = "";
+            ClearInnateSlotTexts();
         }
+    }
+
+    private void ApplyNormalAttackInfo(CardData cardData)
+    {
+        if (_normalAttackNameText != null) _normalAttackNameText.text = "Attack";
+        if (_normalAttackDamageText != null) _normalAttackDamageText.text = $"DMG: {cardData.n_atk_dmg}";
+        if (_normalAttackRangeText != null)
+        {
+            int range = cardData.n_atk_pattern != null && cardData.n_atk_pattern.Count > 0
+                ? HexPatternResolver.GetRange(cardData.n_atk_pattern)
+                : 1;
+            _normalAttackRangeText.text = $"RNG: {range}";
+        }
+    }
+
+    private void ApplyMovementInfo(CardData cardData)
+    {
+        if (_movementNameText != null) _movementNameText.text = "Move";
+        if (_movementRangeText != null) _movementRangeText.text = $"RNG: {_defaultMoveRange}";
+    }
+
+    private void ClearInnateSlotTexts()
+    {
+        if (_normalAttackNameText != null) _normalAttackNameText.text = "";
+        if (_normalAttackDamageText != null) _normalAttackDamageText.text = "";
+        if (_normalAttackRangeText != null) _normalAttackRangeText.text = "";
+        if (_movementNameText != null) _movementNameText.text = "";
+        if (_movementRangeText != null) _movementRangeText.text = "";
     }
 
     private void RefreshFuseSlots(FusionStagingData staging)
