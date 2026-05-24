@@ -201,12 +201,14 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
 
     public override void Render()
     {
+        // On the client, tile NetworkObjects are spawned after BoardNetworkView.Spawned() fires.
+        // Retry registration every frame until children are actually present.
+        if (!Object.HasStateAuthority && IsGenerated && _tiles.Count == 0)
+            RebuildTileRegistryFromChildren();
+
         if (_changeDetector == null) return;
         foreach (var _ in _changeDetector.DetectChanges(this))
         {
-            if (IsGenerated && _tiles.Count == 0)
-                RebuildTileRegistryFromChildren();
-
             PushState();
             break;
         }

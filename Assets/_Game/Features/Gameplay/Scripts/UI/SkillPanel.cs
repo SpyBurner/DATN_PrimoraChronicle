@@ -31,6 +31,7 @@ public class SkillPanel : MonoBehaviour
     private readonly List<SkillSlotUI> _spawnedSlots = new();
     private PlayerRef _localPlayer;
     private NetworkId _currentActor;
+    private NetworkId _localActorId; // last actor that belongs to the local player — kept across opponent turns
     private string _activeSkillId;
 
     private void Awake()
@@ -70,6 +71,7 @@ public class SkillPanel : MonoBehaviour
         _endTurnButton?.onClick.RemoveListener(OnEndTurnClicked);
         ClearSlots();
         _currentActor = default;
+        _localActorId = default;
         _activeSkillId = null;
     }
 
@@ -93,8 +95,9 @@ public class SkillPanel : MonoBehaviour
             RefreshLocalPlayer();
             _currentActor = actorId;
             bool isLocal = IsLocalPlayerActor(actorId);
-            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OnCurrentTurnChanged actorId={actorId} localPlayer={_localPlayer} isLocal={isLocal}");
-            RenderSkills(actorId);
+            if (isLocal) _localActorId = actorId;
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OnCurrentTurnChanged actorId={actorId} localPlayer={_localPlayer} isLocal={isLocal} localActorId={_localActorId}");
+            RenderSkills(_localActorId);
         }
         catch (Exception ex) { Debug.LogException(ex); }
     }
@@ -113,9 +116,9 @@ public class SkillPanel : MonoBehaviour
     {
         try
         {
-            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OwnUnitSkillsChanged actorId={actorId} currentActor={_currentActor} match={actorId == _currentActor} skillCount={skills?.Count ?? 0}");
-            if (actorId != _currentActor) return;
-            RenderSkills(actorId);
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OwnUnitSkillsChanged actorId={actorId} localActorId={_localActorId} skillCount={skills?.Count ?? 0}");
+            if (actorId != _localActorId) return;
+            RenderSkills(_localActorId);
         }
         catch (Exception ex) { Debug.LogException(ex); }
     }
@@ -174,15 +177,9 @@ public class SkillPanel : MonoBehaviour
             _actorNameText.text = displayName;
         }
 
-        if (!IsLocalPlayerActor(actorId))
-        {
-            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"RenderSkills — actor {actorId} belongs to opponent, hiding skills");
-            return;
-        }
-
         if (!_unit.TryGetOwnSkills(actorId, out var skills) || skills == null)
         {
-            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"RenderSkills — TryGetOwnSkills null/false for {actorId}");
+            _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"RenderSkills — TryGetOwnSkills null/false for {actorId} (no private data — unit not ours or not yet received)");
             return;
         }
 
@@ -206,7 +203,7 @@ public class SkillPanel : MonoBehaviour
                 slot.Button.onClick.RemoveAllListeners();
                 string skillId = skill.SkillId;
                 slot.Button.onClick.AddListener(() => OnSkillClicked(skillId));
-                slot.Button.interactable = IsSkillReady(skill.SkillId, skill) && IsLocalPlayerActor(actorId);
+                slot.Button.interactable = IsSkillReady(skill.SkillId, skill) && _currentActor == _localActorId;
             }
 
             _spawnedSlots.Add(slot);
@@ -251,7 +248,7 @@ public class SkillPanel : MonoBehaviour
 
     private void RefreshSlotInteractability()
     {
-        if (!_unit.TryGetOwnSkills(_currentActor, out var skills) || skills == null) return;
+        if (!_unit.TryGetOwnSkills(_localActorId, out var skills) || skills == null) return;
 
         bool isLocal = IsLocalPlayerActor(_currentActor);
         bool targeting = _targeting.IsTargeting;
@@ -397,8 +394,7 @@ public class SkillPanel : MonoBehaviour
 
     private void OnTargetConfirmed(string skillId, HexCoord target)
     {
-        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OnTargetConfirmed skillId={skillId} target={target} activeSkill={_activeSkillId}");
-        if (_activeSkillId != skillId) return;
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"OnTargetConfirmed skillId={skillId} target={target}");
         if (skillId == "move")
             _combat.RequestMove(_currentActor, target);
         else if (skillId == "n_atk")

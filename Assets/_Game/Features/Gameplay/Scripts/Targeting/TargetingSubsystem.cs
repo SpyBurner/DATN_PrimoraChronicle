@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.GDS;
 using UnityEngine.Events;
 using Zenject;
 
@@ -17,6 +18,7 @@ public class TargetingSubsystem : ITargetingSubsystem
     private TargetingRequest _currentRequest;
     private UnityAction<HexCoord> _onConfirmed;
     private readonly List<HexCoord> _highlighted = new();
+    private readonly List<HexCoord> _rangeTiles = new(); // stable range ring; never replaced during hover
 
     public bool IsTargeting { get; private set; }
     public IReadOnlyList<HexCoord> HighlightedTiles => _highlighted;
@@ -41,21 +43,20 @@ public class TargetingSubsystem : ITargetingSubsystem
     {
         if (!IsTargeting) return;
 
-        _highlighted.Clear();
+        SkillData skillData = null;
+        bool hasAoE = !string.IsNullOrEmpty(_currentRequest.DisplayPattern)
+            && _cardLoading.TryGetSkillData(_currentRequest.DisplayPattern, out skillData)
+            && skillData?.display_pattern != null && skillData.display_pattern.Count > 0;
 
-        if (!string.IsNullOrEmpty(_currentRequest.DisplayPattern)
-            && _cardLoading.TryGetSkillData(_currentRequest.DisplayPattern, out var skillData)
-            && skillData.display_pattern != null && skillData.display_pattern.Count > 0)
+        if (hasAoE)
         {
+            _highlighted.Clear();
             _highlighted.AddRange(HexPatternResolver.ResolveAll(coord, skillData.display_pattern, _board));
+            try { HighlightedTilesChanged?.Invoke(_highlighted); }
+            catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
         }
-        else
-        {
-            _highlighted.Add(coord);
-        }
-
-        try { HighlightedTilesChanged?.Invoke(_highlighted); }
-        catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+        // For non-AoE skills the range ring is stable — no event needed.
+        // TargetingOverlay.RefreshHighlightColors handles per-tile coloring locally.
     }
 
     public void ConfirmTarget(HexCoord coord)
@@ -92,6 +93,7 @@ public class TargetingSubsystem : ITargetingSubsystem
     private void RefreshRangeHighlights()
     {
         _highlighted.Clear();
+        _rangeTiles.Clear();
 
         if (!_unit.TryGetPublic(_currentRequest.Caster, out var casterData))
         {
@@ -101,6 +103,7 @@ public class TargetingSubsystem : ITargetingSubsystem
         }
 
         _highlighted.AddRange(_board.GetTilesInRange(casterData.Position, _currentRequest.Range));
+        _rangeTiles.AddRange(_highlighted);
 
         try { HighlightedTilesChanged?.Invoke(_highlighted); }
         catch (Exception ex) { UnityEngine.Debug.LogException(ex); }

@@ -26,6 +26,7 @@ public class TargetingOverlay : MonoBehaviour
 
     private readonly List<TileHighlight> _highlights = new();
     private readonly Dictionary<HexCoord, TileHighlight> _highlightMap = new();
+    private TileHighlight _hoverHighlight; // separate highlight for the hovered tile (may be out of range)
 
     private void Awake()
     {
@@ -199,20 +200,33 @@ public class TargetingOverlay : MonoBehaviour
 
     private void RefreshHighlightColors()
     {
-        var highlightedTiles = _targeting.HighlightedTiles;
-        if (highlightedTiles == null) return;
+        // Reset all range highlights to yellow.
+        foreach (var h in _highlights)
+            if (h != null) h.SetColor(_rangeColor);
 
-        foreach (var coord in highlightedTiles)
+        // Destroy stale out-of-range hover highlight.
+        if (_hoverHighlight != null) { Destroy(_hoverHighlight.gameObject); _hoverHighlight = null; }
+
+        if (!_hoveredCoord.IsValid) return;
+
+        Color hoverColor = IsValidTarget(_hoveredCoord) ? _validTargetColor : _invalidTargetColor;
+
+        if (_highlightMap.TryGetValue(_hoveredCoord, out var rangeHighlight))
         {
-            if (!_highlightMap.TryGetValue(coord, out var highlight)) continue;
-
-            Color color;
-            if (coord == _hoveredCoord)
-                color = IsValidTarget(coord) ? _validTargetColor : _invalidTargetColor;
-            else
-                color = _rangeColor;
-
-            highlight.SetColor(color);
+            // Tile is in range — recolor the existing range highlight directly.
+            rangeHighlight.SetColor(hoverColor);
+        }
+        else
+        {
+            // Tile is outside range — spawn a temporary highlight so the player still
+            // sees feedback (red = invalid, no green since out-of-range is always invalid).
+            Vector3 worldPos = _board.GetWorldPosition(_hoveredCoord);
+            if (worldPos != Vector3.zero)
+            {
+                worldPos.y += _highlightYOffset;
+                _hoverHighlight = Instantiate(_tileHighlightPrefab, worldPos, Quaternion.identity, transform);
+                _hoverHighlight.SetColor(_invalidTargetColor);
+            }
         }
     }
 
@@ -286,6 +300,7 @@ public class TargetingOverlay : MonoBehaviour
             if (highlight != null) Destroy(highlight.gameObject);
         _highlights.Clear();
         _highlightMap.Clear();
+        if (_hoverHighlight != null) { Destroy(_hoverHighlight.gameObject); _hoverHighlight = null; }
         _hoveredCoord = HexCoord.Invalid;
     }
 }

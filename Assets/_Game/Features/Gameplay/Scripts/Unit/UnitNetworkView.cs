@@ -8,6 +8,7 @@ public class UnitNetworkView : NetworkBehaviour
 {
     [Inject(Optional = true)] private IUnitSubsystem _unitSubsystem;
     [Inject(Optional = true)] private ICardLoadingManagerSubsystem _cardLoading;
+    [Inject(Optional = true)] private IBoardSubsystem _boardSubsystem;
     [Inject(Optional = true)] private IDebugLogger _logger;
 
     [Networked] public PlayerRef Owner { get; set; }
@@ -40,6 +41,8 @@ public class UnitNetworkView : NetworkBehaviour
 
     [SerializeField] private Transform _meshRoot;
     private bool _meshApplied;
+    private bool _presentationPlaced; // true once transform position has been set at least once
+    private HexCoord _lastPresentationCoord = HexCoord.Invalid;
 
     private ChangeDetector _changeDetector;
 
@@ -50,10 +53,12 @@ public class UnitNetworkView : NetworkBehaviour
             var ctx = FindFirstObjectByType<SceneContext>();
             _unitSubsystem = ctx?.Container.Resolve<IUnitSubsystem>();
             _cardLoading = ctx?.Container.Resolve<ICardLoadingManagerSubsystem>();
+            _boardSubsystem = ctx?.Container.Resolve<IBoardSubsystem>();
             _logger = ctx?.Container.Resolve<IDebugLogger>();
         }
 
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+        TryPlacePresentation(facingCenter: true);
         PushState();
     }
 
@@ -252,12 +257,57 @@ public class UnitNetworkView : NetworkBehaviour
             }
         }
 
+        // Retry initial placement every Render() until the board is ready.
+        if (!_presentationPlaced)
+            TryPlacePresentation(facingCenter: true);
+
         if (_changeDetector == null) return;
-        foreach (var _ in _changeDetector.DetectChanges(this))
+        bool positionChanged = false;
+        bool anyChanged = false;
+        foreach (var prop in _changeDetector.DetectChanges(this))
         {
-            PushState();
-            break;
+            anyChanged = true;
+            if (prop == nameof(PositionP) || prop == nameof(PositionQ))
+                positionChanged = true;
         }
+        if (!anyChanged) return;
+
+        if (positionChanged)
+            TryPlacePresentation(facingCenter: false);
+
+        PushState();
+    }
+
+    private void TryPlacePresentation(bool facingCenter)
+    {
+        if (_boardSubsystem == null) return;
+
+        var coord = new HexCoord(PositionP, PositionQ);
+        Vector3 worldPos = _boardSubsystem.GetWorldPosition(coord);
+        if (worldPos == Vector3.zero) return; // board not ready yet
+
+        // Keep the unit's Y from its prefab (avoids sinking into or floating above the tile).
+        transform.position = new Vector3(worldPos.x, transform.position.y, worldPos.z);
+
+        if (facingCenter || !_lastPresentationCoord.IsValid)
+        {
+            // Face toward board center on initial placement.
+            Vector3 center = _boardSubsystem.GetWorldPosition(new HexCoord(0, 0));
+            Vector3 dir = new Vector3(center.x - worldPos.x, 0f, center.z - worldPos.z);
+            if (dir.sqrMagnitude > 0.001f)
+                transform.rotation = Quaternion.LookRotation(dir.normalized);
+        }
+        else
+        {
+            // Face the direction of travel.
+            Vector3 prevPos = _boardSubsystem.GetWorldPosition(_lastPresentationCoord);
+            Vector3 dir = new Vector3(worldPos.x - prevPos.x, 0f, worldPos.z - prevPos.z);
+            if (dir.sqrMagnitude > 0.001f)
+                transform.rotation = Quaternion.LookRotation(dir.normalized);
+        }
+
+        _lastPresentationCoord = coord;
+        _presentationPlaced = true;
     }
 
     private void PushState()
@@ -292,27 +342,29 @@ public class UnitNetworkView : NetworkBehaviour
             NormalAttackDamage = NormalAttackDamage,
         });
 
-        // Push Private State (skills)
-        var skills = new List<SkillSlot>();
-        for (int i = 0; i < SkillCount; i++)
+        // Private skill state: only push to the owning client (AoI enforcement).
+        if (Runner != null && Owner == Runner.LocalPlayer)
         {
-            skills.Add(new SkillSlot
+            var skills = new List<SkillSlot>();
+            for (int i = 0; i < SkillCount; i++)
             {
-                SkillId = SkillIds.Get(i).ToString(),
-                CurrentCooldown = SkillCooldowns.Get(i),
-                IsOneTimeDisabled = SkillOneTimeDisabled.Get(i)
+                skills.Add(new SkillSlot
+                {
+                    SkillId = SkillIds.Get(i).ToString(),
+                    CurrentCooldown = SkillCooldowns.Get(i),
+                    IsOneTimeDisabled = SkillOneTimeDisabled.Get(i)
+                });
+            }
+
+            skills.Add(new SkillSlot { SkillId = "move", CurrentCooldown = 0, IsOneTimeDisabled = false });
+            skills.Add(new SkillSlot { SkillId = "n_atk", CurrentCooldown = 0, IsOneTimeDisabled = false });
+
+            _unitSubsystem.OnUnitPrivateStateReceived(new UnitPrivateData
+            {
+                UnitId = Object.Id,
+                Owner = Owner,
+                Skills = skills
             });
         }
-        
-        // Always include Move and N_Atk as fundamental skills
-        skills.Add(new SkillSlot { SkillId = "move", CurrentCooldown = 0, IsOneTimeDisabled = false });
-        skills.Add(new SkillSlot { SkillId = "n_atk", CurrentCooldown = 0, IsOneTimeDisabled = false });
-
-        _unitSubsystem.OnUnitPrivateStateReceived(new UnitPrivateData
-        {
-            UnitId = Object.Id,
-            Owner = Owner,
-            Skills = skills
-        });
     }
 }
