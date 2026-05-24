@@ -195,6 +195,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
                 break;
             case GameplayPhase.MainPhase:
                 PhaseTimer = TickTimer.CreateFromSeconds(Runner, _mainPhaseDuration);
+                ResetFusionViews();
                 break;
             case GameplayPhase.CombatPhase:
                 PhaseTimer = TickTimer.None;
@@ -234,6 +235,18 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     {
         var coordinator = GameplayNetworkCoordinator.Instance;
         coordinator?.CombatView?.ServerStartCombatPhase();
+    }
+
+    private void ResetFusionViews()
+    {
+        var coordinator = GameplayNetworkCoordinator.Instance;
+        if (coordinator == null) return;
+
+        foreach (var player in coordinator.GetAllPlayers())
+        {
+            var fusionView = coordinator.GetFusionView(player);
+            if (fusionView != null) fusionView.ServerResetForNewTurn();
+        }
     }
 
     private void StartDrawPhase()
@@ -452,6 +465,17 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     {
         if (!Object.HasStateAuthority) return;
         CurrentCombatActor = actor;
+    }
+
+    public void ServerSetPlayerReady(PlayerRef player, bool ready)
+    {
+        if (!Object.HasStateAuthority) return;
+        int slot = player.PlayerId;
+        if (slot < 0 || slot >= PlayerReady.Length) return;
+        if (!ready && PlayerReady.Get(slot)) return; // locked once set
+        PlayerReady.Set(slot, ready);
+        _gameState?.OnPlayerReadyChanged(player, ready);
+        _logger?.Log($"[GameStateNetworkView] ServerSetPlayerReady({ready}) for {player} — slot {slot}.");
     }
 
     public void ServerCheckElimination()

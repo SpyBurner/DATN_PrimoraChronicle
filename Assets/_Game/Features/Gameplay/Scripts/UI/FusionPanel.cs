@@ -69,6 +69,7 @@ public class FusionPanel : MonoBehaviour
     private void OnEnable()
     {
         _confirmed = false;
+        _fusion.ClearStaging();
 
         _fusion.StagingChanged += OnStagingChanged;
         _fusion.FusionConfirmed += OnFusionConfirmed;
@@ -229,7 +230,6 @@ public class FusionPanel : MonoBehaviour
         if (_confirmed) return;
         SetConfirmInteractable(false);
         await _fusion.ConfirmFusion();
-        _gameState.RequestSetLocalReady(true);
     }
 
     private void OnClearBaseClicked()

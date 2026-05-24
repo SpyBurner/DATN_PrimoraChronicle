@@ -23,7 +23,7 @@ public class DrawPhasePanel : MonoBehaviour
     [SerializeField] private Color _selectedColor = new Color(0.2f, 0.8f, 0.2f, 1f);
     [SerializeField] private Color _discardedColor = new Color(0.4f, 0.4f, 0.4f, 0.6f);
 
-    private const int HandMax = 6;
+    private const int HandMax = 7;
 
     private readonly List<GameObject> _spawnedSlots = new();
 
@@ -39,9 +39,11 @@ public class DrawPhasePanel : MonoBehaviour
     private readonly HashSet<int> _selectedIndices = new();
     private PlayerRef _localPlayer;
     private IReadOnlyList<string> _currentCards;
+    private bool _confirmed;
 
     private void OnEnable()
     {
+        _confirmed = false;
         _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
         _cardZone.HandChanged += OnHandChanged;
         _confirmButton?.onClick.AddListener(OnConfirmClicked);
@@ -120,7 +122,12 @@ public class DrawPhasePanel : MonoBehaviour
 
     private void ToggleCard(int index)
     {
+        if (_confirmed) return;
         if (_currentCards == null) return;
+
+        var cardId = _currentCards[index];
+        if (_cardLoading.TryGetCardData(cardId, out var cardData) && cardData.type.ToLowerInvariant() == "champion")
+            return; // Cannot deselect champion
 
         if (_selectedIndices.Contains(index))
         {
@@ -153,7 +160,10 @@ public class DrawPhasePanel : MonoBehaviour
     private void UpdateConfirmState()
     {
         if (_confirmButton == null) return;
-        _confirmButton.interactable = _selectedIndices.Count <= HandMax;
+        if (_confirmed)
+            _confirmButton.interactable = false;
+        else
+            _confirmButton.interactable = _selectedIndices.Count <= HandMax;
     }
 
     private void UpdateKeepCount()
@@ -165,8 +175,11 @@ public class DrawPhasePanel : MonoBehaviour
 
     private void OnConfirmClicked()
     {
+        if (_confirmed) return;
         if (_currentCards == null) return;
         if (_selectedIndices.Count > HandMax) return;
+
+        _confirmed = true;
 
         var keep = new List<string>();
         foreach (int i in _selectedIndices)

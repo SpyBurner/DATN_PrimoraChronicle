@@ -425,6 +425,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -130
       objectReference: {fileID: 0}
+    - target: {fileID: 4112587006902831968, guid: bfa571fbb489a0e428a30d1e2ebd6c57, type: 3}
+      propertyPath: m_IsOn
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5101050882338008171, guid: bfa571fbb489a0e428a30d1e2ebd6c57, type: 3}
       propertyPath: m_SizeDelta.x
       value: 50

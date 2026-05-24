@@ -185,14 +185,21 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     {
         if (!Object.HasStateAuthority) return;
 
-        if (keep.Count > SupportCardCount)
-            keep = keep.GetRange(0, SupportCardCount);
+        if (keep.Count > HandMax)
+            keep = keep.GetRange(0, HandMax);
 
+        var keepCopy = new List<string>(keep);
         for (int i = HandCount - 1; i > ChampionSlot; i--)
         {
             string card = Hand.Get(i).ToString();
-            if (!keep.Contains(card))
+            if (keepCopy.Contains(card))
+            {
+                keepCopy.Remove(card);
+            }
+            else
+            {
                 ServerDiscardFromHand(i);
+            }
         }
 
         DrawPhaseConfirmed = true;
@@ -216,9 +223,17 @@ public class PlayerCardZoneNetworkView : NetworkBehaviour, IPlayerCardZoneNetwor
     {
         if (!Object.HasStateAuthority) return;
         if (string.IsNullOrEmpty(cardId)) return;
-        if (DiscardCount >= DiscardCapacity) return;
-        Discard.Set(DiscardCount, cardId);
-        DiscardCount++;
+
+        for (int i = 0; i < HandCount; i++)
+        {
+            if (Hand.Get(i).ToString() == cardId)
+            {
+                ServerDiscardFromHand(i);
+                return;
+            }
+        }
+
+        _logger?.LogWarning($"[PlayerCardZone] ServerDiscardFusionCard: '{cardId}' not found in hand for player {Owner}.");
     }
 
     // ── Draw Phase Server API ────────────────────────────────────────────

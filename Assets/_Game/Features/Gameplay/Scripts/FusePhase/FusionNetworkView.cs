@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Core.GDS;
 using Fusion;
 using UnityEngine;
@@ -84,9 +84,9 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
             return;
         }
 
-        if (!ValidateBaseCard(baseCardId))
+        if (!ValidateBaseCard(baseCardId, out string failureReason))
         {
-            _logger?.LogWarning($"[FusionNetworkView] Fusion rejected: invalid base card '{baseCardId}'.");
+            _logger?.LogWarning($"[FusionNetworkView] Fusion rejected: invalid base card '{baseCardId}'. Reason: {failureReason}");
             return;
         }
 
@@ -121,6 +121,9 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         HasFusedThisTurn = true;
         IsConfirmed = true;
 
+        var gsv = GameplayNetworkCoordinator.Instance != null ? GameplayNetworkCoordinator.Instance.GameStateView : null;
+        if (gsv != null) gsv.ServerSetPlayerReady(sender, true);
+
         _logger?.Log($"[FusionNetworkView] Fusion confirmed for {sender}: base={baseCardId}, equips={equipIds.Length}");
     }
 
@@ -134,6 +137,10 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         SpawnUnit(Object.InputAuthority, championId, System.Array.Empty<string>());
         HasFusedThisTurn = true;
         IsConfirmed = true;
+
+        var gsv = GameplayNetworkCoordinator.Instance != null ? GameplayNetworkCoordinator.Instance.GameStateView : null;
+        if (gsv != null) gsv.ServerSetPlayerReady(Object.InputAuthority, true);
+
         _logger?.Log($"[FusionNetworkView] Auto-confirmed fusion (Champion only) for {Object.InputAuthority}.");
     }
 
@@ -166,12 +173,24 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
         return cards.ToArray();
     }
 
-    private bool ValidateBaseCard(string cardId)
+    private bool ValidateBaseCard(string cardId, out string failureReason)
     {
+        failureReason = string.Empty;
         if (_cardLoading == null) return true;
-        if (!_cardLoading.TryGetCardData(cardId, out CardData data)) return false;
+        if (!_cardLoading.TryGetCardData(cardId, out CardData data))
+        {
+            failureReason = $"Card data not found for id '{cardId}'.";
+            return false;
+        }
 
-        return data.type == "troop" || data.type == "champion";
+        string t = data.type.ToLowerInvariant();
+        if (t != "troop" && t != "champion")
+        {
+            failureReason = $"Card '{cardId}' has invalid type '{data.type}' (expected 'troop' or 'champion').";
+            return false;
+        }
+
+        return true;
     }
 
     private bool HasInnateSkill(string cardId)
@@ -251,6 +270,7 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
     private void PushState()
     {
         if (_fusionSubsystem == null) return;
+        if (Object.InputAuthority != Runner.LocalPlayer) return;
 
         _fusionSubsystem.OnAuthoritativeStateReceived(new FusionStateData
         {
