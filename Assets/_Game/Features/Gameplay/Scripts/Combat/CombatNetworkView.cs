@@ -779,7 +779,12 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
     {
         data = default;
         if (string.IsNullOrEmpty(unitId)) return false;
-        if (!uint.TryParse(unitId, out uint raw)) return false;
+
+        string cleanId = unitId.StartsWith("[Id:") && unitId.EndsWith("]")
+            ? unitId.Substring(4, unitId.Length - 5)
+            : unitId;
+
+        if (!uint.TryParse(cleanId, out uint raw)) return false;
         var netId = new NetworkId { Raw = raw };
         return _unitSubsystem != null && _unitSubsystem.TryGetPublic(netId, out data);
     }
@@ -822,7 +827,11 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
     {
         if (string.IsNullOrEmpty(unitId) || !Runner.IsRunning) return null;
 
-        if (uint.TryParse(unitId, out uint raw))
+        string cleanId = unitId.StartsWith("[Id:") && unitId.EndsWith("]")
+            ? unitId.Substring(4, unitId.Length - 5)
+            : unitId;
+
+        if (uint.TryParse(cleanId, out uint raw))
         {
             var netId = new NetworkId { Raw = raw };
             if (Runner.TryFindObject(netId, out var netObj))

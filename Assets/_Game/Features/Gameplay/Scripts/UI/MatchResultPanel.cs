@@ -59,7 +59,6 @@ public class MatchResultPanel : MonoBehaviour
     {
         _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
         _matchResult.MatchEnded += OnMatchEnded;
-        _gameState.PhaseChanged += OnPhaseChanged;
         _confirmButton?.onClick.AddListener(OnConfirmClicked);
 
         if (_matchResult.HasResult)
@@ -69,18 +68,10 @@ public class MatchResultPanel : MonoBehaviour
     private void OnDisable()
     {
         _matchResult.MatchEnded -= OnMatchEnded;
-        _gameState.PhaseChanged -= OnPhaseChanged;
         _confirmButton?.onClick.RemoveListener(OnConfirmClicked);
     }
 
-    private void OnPhaseChanged(GameplayPhase phase)
-    {
-        try
-        {
-            gameObject.SetActive(phase == GameplayPhase.GameOver);
-        }
-        catch (Exception ex) { Debug.LogException(ex); }
-    }
+
 
     private void OnMatchEnded(GameMatchResult result)
     {

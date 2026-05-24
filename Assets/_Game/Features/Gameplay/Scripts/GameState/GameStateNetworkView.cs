@@ -23,6 +23,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
     [SerializeField] private float _mainPhaseDuration = 60f;
     [SerializeField] private float _drawPhaseDuration = 30f;
     [SerializeField] private float _matchTimeLimit = 3600f;
+    [SerializeField] private bool _pauseTimer;
 
     private ChangeDetector _changeDetector;
 
@@ -118,7 +119,7 @@ public class GameStateNetworkView : NetworkBehaviour, IGameStateNetworkBridge
             return;
         }
 
-        if (PhaseTimer.Expired(Runner))
+        if (!_pauseTimer && PhaseTimer.Expired(Runner))
         {
             HandlePhaseTimeout();
         }

@@ -225,7 +225,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3865449857549722891, guid: 2ef551c95f3728b49a9999897acff6dc, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -30.99
+      value: 6.005003
       objectReference: {fileID: 0}
     - target: {fileID: 3865449857549722891, guid: 2ef551c95f3728b49a9999897acff6dc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -664,10 +664,10 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 2998243367937521578, guid: 53a1e0aa326025c4cafe378c20c30be3, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3922217684348057991}
+      addedObject: {fileID: 1055381614663120565}
     - targetCorrespondingSourceObject: {fileID: 2998243367937521578, guid: 53a1e0aa326025c4cafe378c20c30be3, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1055381614663120565}
+      addedObject: {fileID: 3922217684348057991}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 53a1e0aa326025c4cafe378c20c30be3, type: 3}
 --- !u!224 &6303853451982116913 stripped

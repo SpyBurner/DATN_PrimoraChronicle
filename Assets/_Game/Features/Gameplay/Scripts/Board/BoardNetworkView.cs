@@ -184,8 +184,11 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
 
     private void RegisterDeployAreas(BoardSubsystem boardSub)
     {
+        var sorted = new List<PlayerRef>(Runner.ActivePlayers);
+        sorted.Sort((a, b) => a.PlayerId.CompareTo(b.PlayerId));
+
         int playerIndex = 0;
-        foreach (var player in Runner.ActivePlayers)
+        foreach (var player in sorted)
         {
             var deployCoord = playerIndex == 0 ? DeployAreaPlayer1 : DeployAreaPlayer2;
             boardSub.RegisterDeployArea(player, deployCoord);
@@ -241,8 +244,11 @@ public class BoardNetworkView : NetworkBehaviour, IBoardNetworkBridge
 
     public Quaternion GetDeployRotation(int playerIndex)
     {
-        float yRotation = playerIndex == 0 ? 210f : 30f;
-        Vector3 facing = Quaternion.Euler(0f, yRotation, 0f) * Vector3.forward;
-        return Quaternion.LookRotation(Vector3.up, facing);
+        Vector3 deployPos = GetDeployWorldPosition(playerIndex);
+        Vector3 centerPos = transform.position;
+        Vector3 direction = (centerPos - deployPos).normalized;
+        if (direction.sqrMagnitude < 0.001f) direction = Vector3.forward;
+        direction.y = 0f;
+        return Quaternion.LookRotation(direction, Vector3.up);
     }
 }

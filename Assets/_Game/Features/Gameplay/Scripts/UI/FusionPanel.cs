@@ -104,7 +104,6 @@ public class FusionPanel : MonoBehaviour
     {
         try
         {
-            gameObject.SetActive(phase == GameplayPhase.MainPhase);
             if (phase == GameplayPhase.MainPhase)
             {
                 _confirmed = false;

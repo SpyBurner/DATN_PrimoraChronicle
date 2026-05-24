@@ -56,7 +56,6 @@ public class SkillPanel : MonoBehaviour
         _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
 
         _combat.CurrentTurnChanged += OnCurrentTurnChanged;
-        _gameState.PhaseChanged += OnPhaseChanged;
         _targeting.TargetingCancelled += OnTargetingCancelled;
         _endTurnButton?.onClick.AddListener(OnEndTurnClicked);
 
@@ -67,21 +66,13 @@ public class SkillPanel : MonoBehaviour
     private void OnDisable()
     {
         _combat.CurrentTurnChanged -= OnCurrentTurnChanged;
-        _gameState.PhaseChanged -= OnPhaseChanged;
         _targeting.TargetingCancelled -= OnTargetingCancelled;
         _endTurnButton?.onClick.RemoveListener(OnEndTurnClicked);
         ClearSlots();
         _currentActor = default;
     }
 
-    private void OnPhaseChanged(GameplayPhase phase)
-    {
-        try
-        {
-            gameObject.SetActive(phase == GameplayPhase.CombatPhase);
-        }
-        catch (Exception ex) { Debug.LogException(ex); }
-    }
+
 
     private void OnCurrentTurnChanged(NetworkId actorId)
     {

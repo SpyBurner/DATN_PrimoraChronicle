@@ -37,7 +37,6 @@ public class TurnOrderPanel : MonoBehaviour
         _localPlayer = _network.Runner != null ? _network.Runner.LocalPlayer : default;
         _combat.QueueChanged += OnQueueChanged;
         _combat.CurrentTurnChanged += OnCurrentTurnChanged;
-        _gameState.PhaseChanged += OnPhaseChanged;
 
         if (_combat.ActionQueue != null && _combat.ActionQueue.Count > 0)
             RenderQueue(_combat.ActionQueue);
@@ -47,18 +46,10 @@ public class TurnOrderPanel : MonoBehaviour
     {
         _combat.QueueChanged -= OnQueueChanged;
         _combat.CurrentTurnChanged -= OnCurrentTurnChanged;
-        _gameState.PhaseChanged -= OnPhaseChanged;
         ClearItems();
     }
 
-    private void OnPhaseChanged(GameplayPhase phase)
-    {
-        try
-        {
-            gameObject.SetActive(phase == GameplayPhase.CombatPhase);
-        }
-        catch (Exception ex) { Debug.LogException(ex); }
-    }
+
 
     private void OnQueueChanged(IReadOnlyList<CombatQueueEntry> queue)
     {

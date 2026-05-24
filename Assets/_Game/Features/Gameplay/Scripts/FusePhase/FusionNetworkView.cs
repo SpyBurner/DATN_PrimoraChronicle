@@ -263,7 +263,14 @@ public class FusionNetworkView : NetworkBehaviour, IFusionNetworkBridge
             ? _boardSubsystem.GetWorldPosition(deployCoord)
             : Vector3.zero;
 
-        var unitObj = Runner.Spawn(unitPrefab, spawnPos, Quaternion.identity, owner);
+        Quaternion spawnRot = Quaternion.identity;
+        if (coordinator != null && coordinator.BoardView != null)
+        {
+            int pIdx = coordinator.GetPlayerIndex(owner);
+            spawnRot = coordinator.BoardView.GetDeployRotation(pIdx);
+        }
+
+        var unitObj = Runner.Spawn(unitPrefab, spawnPos, spawnRot, owner);
         if (unitObj == null)
         {
             _logger?.LogWarning("[FusionNetworkView] Failed to spawn unit NetworkObject.");

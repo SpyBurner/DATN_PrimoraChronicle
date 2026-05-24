@@ -33,7 +33,6 @@ public class HandPanel : MonoBehaviour
     private void OnEnable()
     {
         _cardZone.HandChanged += OnHandChanged;
-        _gameState.PhaseChanged += OnPhaseChanged;
 
         var runner = FindFirstObjectByType<NetworkRunner>();
         if (runner != null) _localPlayer = runner.LocalPlayer;
@@ -45,18 +44,9 @@ public class HandPanel : MonoBehaviour
     private void OnDisable()
     {
         _cardZone.HandChanged -= OnHandChanged;
-        _gameState.PhaseChanged -= OnPhaseChanged;
     }
 
-    private void OnPhaseChanged(GameplayPhase phase)
-    {
-        try
-        {
-            bool show = phase == GameplayPhase.MainPhase || phase == GameplayPhase.DrawPhase;
-            gameObject.SetActive(show);
-        }
-        catch (Exception ex) { Debug.LogException(ex); }
-    }
+
 
     private void OnHandChanged(PlayerRef player, IReadOnlyList<string> hand)
     {

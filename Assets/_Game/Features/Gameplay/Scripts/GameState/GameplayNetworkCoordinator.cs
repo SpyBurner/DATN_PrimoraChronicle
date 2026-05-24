@@ -253,13 +253,9 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
 
     public int GetPlayerIndex(PlayerRef player)
     {
-        int index = 0;
-        foreach (var p in Runner.ActivePlayers)
-        {
-            if (p == player) return index;
-            index++;
-        }
-        return 0;
+        var sorted = new List<PlayerRef>(Runner.ActivePlayers);
+        sorted.Sort((a, b) => a.PlayerId.CompareTo(b.PlayerId));
+        return sorted.IndexOf(player);
     }
 
     // ── Public API for other subsystems ──────────────────────────────────
@@ -293,7 +289,12 @@ public class GameplayNetworkCoordinator : NetworkBehaviour
         return view;
     }
 
-    public IEnumerable<PlayerRef> GetAllPlayers() => _playerCardZones.Keys;
+    public IEnumerable<PlayerRef> GetAllPlayers()
+    {
+        var players = new List<PlayerRef>(_playerCardZones.Keys);
+        players.Sort((a, b) => a.PlayerId.CompareTo(b.PlayerId));
+        return players;
+    }
 
     public PlayerPieceConfig GetPlayerPieceConfig(int playerIndex)
     {
