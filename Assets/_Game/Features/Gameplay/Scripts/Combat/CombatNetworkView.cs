@@ -301,6 +301,7 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
 
         _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} moved from {data.Position} to {destination}.");
 
+        CheckAllUnitDeaths();
         CheckAutoEndTurn();
     }
 
@@ -360,10 +361,9 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
             var targetView = FindUnitNetworkView(targetUnitId);
             targetView?.ServerApplyDamage(finalDamage);
             _logger?.Log("LOG_COMBAT", nameof(CombatNetworkView), $"Unit {unitId} attacked {targetUnitId} for {finalDamage} damage (raw={rawDamage}).");
-
-            if (TryGetUnitData(targetUnitId, out var postData) && postData.CurrentHP <= 0)
-                ProcessDeath(targetUnitId);
         }
+
+        CheckAllUnitDeaths();
 
         CurrentActorHasActed = true;
         var attackerView = FindUnitNetworkView(unitId);
@@ -638,11 +638,15 @@ public class CombatNetworkView : NetworkBehaviour, ICombatNetworkBridge
         var allUnits = _unitSubsystem?.AllUnits;
         if (allUnits == null) return;
 
+        // Read HP directly from UnitNetworkView (the authoritative networked property).
+        // The unit subsystem cache is updated only in Render(), so within the same tick as
+        // ServerApplyDamage the cache still holds the pre-damage value and cannot be used here.
         var deadUnits = new List<string>();
         foreach (var netId in allUnits)
         {
             string id = netId.ToString();
-            if (TryGetUnitData(id, out UnitPublicData data) && data.CurrentHP <= 0)
+            var view = FindUnitNetworkView(id);
+            if (view != null && view.CurrentHP <= 0)
                 deadUnits.Add(id);
         }
 

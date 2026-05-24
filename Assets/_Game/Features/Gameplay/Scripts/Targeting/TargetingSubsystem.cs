@@ -102,10 +102,25 @@ public class TargetingSubsystem : ITargetingSubsystem
             return;
         }
 
-        _highlighted.AddRange(_board.GetTilesInRange(casterData.Position, _currentRequest.Range));
+        _highlighted.AddRange(ResolveTargetTiles(casterData.Position));
         _rangeTiles.AddRange(_highlighted);
 
         try { HighlightedTilesChanged?.Invoke(_highlighted); }
         catch (Exception ex) { UnityEngine.Debug.LogException(ex); }
+    }
+
+    private IEnumerable<HexCoord> ResolveTargetTiles(HexCoord origin)
+    {
+        if (!string.IsNullOrEmpty(_currentRequest.TargetPatternSkillId)
+            && _cardLoading.TryGetSkillData(_currentRequest.TargetPatternSkillId, out var sd)
+            && sd?.target_pattern != null && sd.target_pattern.Count > 0)
+            return HexPatternResolver.ResolveAll(origin, sd.target_pattern, _board);
+
+        if (!string.IsNullOrEmpty(_currentRequest.TargetPatternCardId)
+            && _cardLoading.TryGetCardData(_currentRequest.TargetPatternCardId, out var cd)
+            && cd?.n_atk_pattern != null && cd.n_atk_pattern.Count > 0)
+            return HexPatternResolver.ResolveAll(origin, cd.n_atk_pattern, _board);
+
+        return _board.GetTilesInRange(origin, _currentRequest.Range);
     }
 }

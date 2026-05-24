@@ -321,6 +321,7 @@ public class SkillPanel : MonoBehaviour
             Mask = mask,
             Range = range,
             DisplayPattern = displayPattern,
+            TargetPatternSkillId = skillId,
             Caster = _currentActor,
             IgnorePathfinding = skillData?.ignore_pathfinding ?? false,
         };
@@ -369,25 +370,21 @@ public class SkillPanel : MonoBehaviour
             return;
         }
 
-        int range = 1;
-        if (_unit.TryGetPublic(_currentActor, out var data)
-            && !string.IsNullOrEmpty(data.BaseCardId)
-            && _cardLoading.TryGetCardData(data.BaseCardId, out var card)
-            && card.n_atk_pattern != null && card.n_atk_pattern.Count > 0)
-        {
-            range = HexPatternResolver.GetRange(card.n_atk_pattern);
-        }
+        string baseCardId = null;
+        if (_unit.TryGetPublic(_currentActor, out var data))
+            baseCardId = data.BaseCardId;
 
         var request = new TargetingRequest
         {
             Mask = TargetMask.Enemy,
-            Range = range,
+            Range = 1,
+            TargetPatternCardId = baseCardId,
             DisplayPattern = null,
             Caster = _currentActor,
             IgnorePathfinding = false
         };
 
-        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"BeginNormalAttackTargeting range={range} caster={_currentActor}");
+        _debugLogger.Log("LOG_SKILL_PANEL", nameof(SkillPanel), $"BeginNormalAttackTargeting cardId={baseCardId} caster={_currentActor}");
         _targeting.BeginTargeting(request, target => OnTargetConfirmed("n_atk", target));
         RefreshSlotInteractability();
     }

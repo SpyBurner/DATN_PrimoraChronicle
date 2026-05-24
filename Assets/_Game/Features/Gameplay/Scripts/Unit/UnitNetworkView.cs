@@ -87,7 +87,7 @@ public class UnitNetworkView : NetworkBehaviour
             MaxHP = CurrentHP;
             Speed = cardData.speed > 0 ? cardData.speed : 3f;
             DeathAnchor = cardData.death_anchor;
-            MoveRange = 2;
+            MoveRange = 1;
             NormalAttackDamage = cardData.n_atk_dmg > 0 ? cardData.n_atk_dmg : 10;
             Faction = cardData.faction ?? "";
         }
@@ -97,7 +97,7 @@ public class UnitNetworkView : NetworkBehaviour
             MaxHP = 50;
             Speed = 3f;
             DeathAnchor = 5;
-            MoveRange = 2;
+            MoveRange = 1;
             NormalAttackDamage = 10;
             Faction = "";
         }
@@ -291,11 +291,15 @@ public class UnitNetworkView : NetworkBehaviour
 
         if (facingCenter || !_lastPresentationCoord.IsValid)
         {
-            // Face toward board center on initial placement.
-            Vector3 center = _boardSubsystem.GetWorldPosition(new HexCoord(0, 0));
-            Vector3 dir = new Vector3(center.x - worldPos.x, 0f, center.z - worldPos.z);
+            // Derive forward from the axis between the two deploy areas so each player faces the opponent.
+            Vector3 point1 = _boardSubsystem.GetWorldPosition(new HexCoord(PositionP, PositionQ));
+            Vector3 point2 = _boardSubsystem.GetWorldPosition(new HexCoord(0, 0)); 
+
+            var dir = point2 - point1;
+
+            _logger.Log("LOG_UNITNETWORKVIEW", nameof(UnitNetworkView), $"Placing unit {UnitId} at {coord} facing {(facingCenter ? "center" : "default direction")}, dir={dir}, point1={point1}, point2={point2}");
             if (dir.sqrMagnitude > 0.001f)
-                transform.rotation = Quaternion.LookRotation(dir.normalized);
+                transform.rotation = Quaternion.LookRotation(-dir.normalized);
         }
         else
         {

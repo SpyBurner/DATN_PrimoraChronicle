@@ -26,6 +26,7 @@ public class TargetingOverlay : MonoBehaviour
 
     private readonly List<TileHighlight> _highlights = new();
     private readonly Dictionary<HexCoord, TileHighlight> _highlightMap = new();
+    private readonly HashSet<HexCoord> _rangeSet = new(); // valid target tiles for click validation
     private TileHighlight _hoverHighlight; // separate highlight for the hovered tile (may be out of range)
 
     private void Awake()
@@ -76,11 +77,13 @@ public class TargetingOverlay : MonoBehaviour
             _activeRequest = request;
             _isActive = true;
             _hoveredCoord = HexCoord.Invalid;
-            // Re-read localPlayer here in case Runner wasn't ready at OnEnable (common on remote client).
+            _rangeSet.Clear();
             if (_network.Runner != null)
                 _localPlayer = _network.Runner.LocalPlayer;
             _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"TargetingStarted mask={request.Mask} range={request.Range} caster={request.Caster} localPlayer={_localPlayer} camera={(_mainCamera != null ? "ok" : "NULL")}");
             ShowRangeHighlights();
+            foreach (var c in _targeting.HighlightedTiles)
+                _rangeSet.Add(c);
         }
         catch (Exception ex) { Debug.LogException(ex); }
     }
@@ -103,6 +106,7 @@ public class TargetingOverlay : MonoBehaviour
         try
         {
             _isActive = false;
+            _rangeSet.Clear();
             ClearHighlights();
         }
         catch (Exception ex) { Debug.LogException(ex); }
@@ -113,6 +117,7 @@ public class TargetingOverlay : MonoBehaviour
         try
         {
             _isActive = false;
+            _rangeSet.Clear();
             ClearHighlights();
         }
         catch (Exception ex) { Debug.LogException(ex); }
@@ -232,52 +237,49 @@ public class TargetingOverlay : MonoBehaviour
 
     private bool IsValidTarget(HexCoord coord)
     {
-        var mask = _activeRequest.Mask;
+        if (_rangeSet.Count > 0 && !_rangeSet.Contains(coord)) return false;
 
+        var mask = _activeRequest.Mask;
         if (mask == TargetMask.Self) return false;
 
-        bool isEmpty = _board.IsEmpty(coord);
+        // Board occupancy (SetOccupant) is StateAuthority-only and not replicated.
+        // Use the unit subsystem directly to determine what's at this coord.
+        PlayerRef? ownerAtCoord = GetUnitOwnerAt(coord);
+        bool isEmpty = !ownerAtCoord.HasValue;
 
         if ((mask & TargetMask.EmptyTile) != 0 && isEmpty)
             return true;
 
         if (!isEmpty)
         {
-            bool isEnemyUnit = IsEnemyAt(coord);
-            bool isAllyUnit = IsAllyAt(coord);
-
-            if ((mask & TargetMask.Enemy) != 0 && isEnemyUnit) return true;
-            if ((mask & TargetMask.Ally) != 0 && isAllyUnit) return true;
+            var myOwner = CasterOwner();
+            bool isEnemy = ownerAtCoord.Value != myOwner;
+            _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"IsValidTarget coord={coord} unitOwner={ownerAtCoord.Value} casterOwner={myOwner} isEnemy={isEnemy} mask={mask}");
+            if ((mask & TargetMask.Enemy) != 0 && isEnemy) return true;
+            if ((mask & TargetMask.Ally) != 0 && !isEnemy) return true;
         }
 
         return false;
     }
 
-    private bool IsEnemyAt(HexCoord coord)
+    // Read caster owner from replicated unit data — avoids Runner.LocalPlayer timing issues.
+    private PlayerRef CasterOwner()
     {
-        foreach (var netId in _unit.AllUnits)
-        {
-            if (!_unit.TryGetPublic(netId, out var unitData)) continue;
-            if (unitData.Position == coord)
-            {
-                bool isEnemy = unitData.Owner != _localPlayer;
-                _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"IsEnemyAt coord={coord} unitOwner={unitData.Owner} localPlayer={_localPlayer} isEnemy={isEnemy}");
-                return isEnemy;
-            }
-        }
-        _debugLogger.Log("LOG_TARGETING", nameof(TargetingOverlay), $"IsEnemyAt coord={coord} — no unit found at tile");
-        return false;
+        if (_unit.TryGetPublic(_activeRequest.Caster, out var casterData))
+            return casterData.Owner;
+        return _network.Runner != null ? _network.Runner.LocalPlayer : _localPlayer;
     }
 
-    private bool IsAllyAt(HexCoord coord)
+    // Returns the owner of the living unit at coord, or null if the tile is empty.
+    private PlayerRef? GetUnitOwnerAt(HexCoord coord)
     {
         foreach (var netId in _unit.AllUnits)
         {
             if (!_unit.TryGetPublic(netId, out var unitData)) continue;
-            if (unitData.Position == coord)
-                return unitData.Owner == _localPlayer;
+            if (unitData.Position == coord && unitData.CurrentHP > 0)
+                return unitData.Owner;
         }
-        return false;
+        return null;
     }
 
     private void SpawnHighlight(HexCoord coord, Color color)
