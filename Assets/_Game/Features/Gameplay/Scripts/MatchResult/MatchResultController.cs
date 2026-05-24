@@ -36,6 +36,7 @@ internal class MatchResultController : IMatchResultController
 
     public async Task ReturnToLobby()
     {
+        await _networkManager.ShutdownRunner();
         await _sceneLoader.LoadScene("Lobby");
     }
 

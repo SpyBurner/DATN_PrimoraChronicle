@@ -31,10 +31,10 @@ public class MatchResultPanel : MonoBehaviour
     [Header("Actions")]
     [SerializeField] private Button _confirmButton;
 
-    [Header("Slot Containers")]
-    [SerializeField] private GameObject _player0Slot;
-    [SerializeField] private GameObject _player1Slot;
-    [SerializeField] private GameObject _player2Slot;
+    [Header("BG color")]
+    [SerializeField] private Image _resultPanelBgImage;
+    [SerializeField] private Color _winBgColor;
+    [SerializeField] private Color _loseBgColor;
 
     private PlayerRef _localPlayer;
 
@@ -53,9 +53,6 @@ public class MatchResultPanel : MonoBehaviour
         if (_xpValueText == null) throw new System.Exception("[MatchResultPanel._xpValueText] Not assigned in Inspector — see wiring-F6.md F6.2");
         if (_timeValueText == null) throw new System.Exception("[MatchResultPanel._timeValueText] Not assigned in Inspector — see wiring-F6.md F6.2");
         if (_confirmButton == null) throw new System.Exception("[MatchResultPanel._confirmButton] Not assigned in Inspector — see wiring-F6.md F6.2");
-        if (_player0Slot == null) throw new System.Exception("[MatchResultPanel._player0Slot] Not assigned in Inspector — see wiring-F6.md F6.2");
-        if (_player1Slot == null) throw new System.Exception("[MatchResultPanel._player1Slot] Not assigned in Inspector — see wiring-F6.md F6.2");
-        if (_player2Slot == null) throw new System.Exception("[MatchResultPanel._player2Slot] Not assigned in Inspector — see wiring-F6.md F6.2");
     }
 
     private void OnEnable()
@@ -64,8 +61,6 @@ public class MatchResultPanel : MonoBehaviour
         _matchResult.MatchEnded += OnMatchEnded;
         _gameState.PhaseChanged += OnPhaseChanged;
         _confirmButton?.onClick.AddListener(OnConfirmClicked);
-
-        if (_player2Slot != null) _player2Slot.SetActive(false);
 
         if (_matchResult.HasResult)
             DisplayResult(_matchResult.Result);
@@ -121,6 +116,9 @@ public class MatchResultPanel : MonoBehaviour
 
         if (_timeValueText != null)
             _timeValueText.text = FormatDuration(result.DurationSeconds);
+
+        if (_resultPanelBgImage != null)
+            _resultPanelBgImage.color = localIsWinner ? _winBgColor : _loseBgColor;
 
         if (_confirmButton != null)
             _confirmButton.interactable = true;
