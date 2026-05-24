@@ -23,31 +23,31 @@ internal class ShopController : IShopController
         var pool = BuildSpellTroopPool();
         if (pool.Count == 0)
         {
-            _debugLogger.LogError("Shop: No Spell or Troop cards available to populate shop.");
+            _debugLogger.LogError("LOG_LOBBY_SHOP", nameof(ShopController), "Shop: No Spell or Troop cards available to populate shop.");
             return;
         }
 
         _model.SetDailyDealCards(PickRandom(pool, DailyDealCount));
         _model.SetCommonCards(PickRandom(pool, CommonCardCount));
-        _debugLogger.Log($"Shop: Generated {DailyDealCount} daily deal cards and {CommonCardCount} common cards.");
+        _debugLogger.Log("LOG_LOBBY_SHOP", nameof(ShopController), $"Shop: Generated {DailyDealCount} daily deal cards and {CommonCardCount} common cards.");
     }
 
     public async Task LoadItems()
     {
         try
         {
-            _debugLogger.Log("Shop: Loading items...");
+            _debugLogger.Log("LOG_LOBBY_SHOP", nameof(ShopController), "Shop: Loading items...");
             var response = await _httpService.Get<ShopItemsResponse>("/api/shop/items");
 
             if (response != null && response.items != null)
             {
                 _model.SetItems(new List<ShopItemData>(response.items));
-                _debugLogger.Log($"Shop: Loaded {response.items.Length} items.");
+                _debugLogger.Log("LOG_LOBBY_SHOP", nameof(ShopController), $"Shop: Loaded {response.items.Length} items.");
             }
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"Shop: Failed to load items: {ex.Message}");
+            _debugLogger.LogError("LOG_LOBBY_SHOP", nameof(ShopController), $"Shop: Failed to load items: {ex.Message}");
         }
     }
 
@@ -56,20 +56,20 @@ internal class ShopController : IShopController
         try
         {
             _model.SetErrorMessage(string.Empty);
-            _debugLogger.Log($"Shop: Purchasing card {cardStringID}...");
+            _debugLogger.Log("LOG_LOBBY_SHOP", nameof(ShopController), $"Shop: Purchasing card {cardStringID}...");
             var payload = new BuyCardRequest { cardStringID = cardStringID };
             var response = await _httpService.Post<BuyCardResponse, BuyCardRequest>("/api/shop/buy-card", payload);
 
             if (response != null && response.status == "success")
             {
                 _model.SetUserGold(response.new_gold);
-                _debugLogger.Log($"Shop: Purchase successful. Remaining gold: {response.new_gold}");
+                _debugLogger.Log("LOG_LOBBY_SHOP", nameof(ShopController), $"Shop: Purchase successful. Remaining gold: {response.new_gold}");
             }
         }
         catch (Exception ex)
         {
             _model.SetErrorMessage(ex.Message);
-            _debugLogger.LogError($"Shop: Purchase failed: {ex.Message}");
+            _debugLogger.LogError("LOG_LOBBY_SHOP", nameof(ShopController), $"Shop: Purchase failed: {ex.Message}");
         }
     }
 

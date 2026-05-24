@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using Zenject;
-using UnityEngine; 
+using UnityEngine;
 
 public class AuthSessionController : IAuthSessionController
 {
@@ -32,13 +32,13 @@ public class AuthSessionController : IAuthSessionController
 
     public async Task StoreSession(string userId, string authToken)
     {
-        _debugLogger.Log($"AuthSession: Storing session for user {userId}");
-        
+        _debugLogger.Log("LOG_AUTH", nameof(AuthSessionController), $"Storing session for user {userId}");
+
         _model.SetCurrentUserId(userId);
         _model.SetAuthToken(authToken);
-        
+
         _httpService.SetAuthToken(authToken);
-        
+
         PlayerPrefs.SetString(UserIdKey, userId);
         PlayerPrefs.SetString(TokenKey, authToken);
         PlayerPrefs.Save();
@@ -48,13 +48,13 @@ public class AuthSessionController : IAuthSessionController
 
     public async Task ClearSession()
     {
-        _debugLogger.Log("AuthSession: Clearing session");
-        
+        _debugLogger.Log("LOG_AUTH", nameof(AuthSessionController), "Clearing session");
+
         _model.SetCurrentUserId(string.Empty);
         _model.SetAuthToken(string.Empty);
-        
+
         _httpService.SetAuthToken(null);
-        
+
         PlayerPrefs.DeleteKey(UserIdKey);
         PlayerPrefs.DeleteKey(TokenKey);
         PlayerPrefs.Save();
@@ -74,7 +74,7 @@ public class AuthSessionController : IAuthSessionController
             string legacyToken = PlayerPrefs.GetString("AuthSession_Token",  string.Empty);
             if (!string.IsNullOrEmpty(legacyId) && !string.IsNullOrEmpty(legacyToken))
             {
-                _debugLogger.Log($"AuthSession: Migrating legacy session for user {legacyId}");
+                _debugLogger.Log("LOG_AUTH", nameof(AuthSessionController), $"Migrating legacy session for user {legacyId}");
                 userId = legacyId;
                 token  = legacyToken;
                 PlayerPrefs.SetString(UserIdKey, userId);
@@ -87,14 +87,14 @@ public class AuthSessionController : IAuthSessionController
 
         if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(token))
         {
-            _debugLogger.Log($"AuthSession: Loading persisted session for user {userId}");
+            _debugLogger.Log("LOG_AUTH", nameof(AuthSessionController), $"Loading persisted session for user {userId}");
             _model.SetCurrentUserId(userId);
             _model.SetAuthToken(token);
             _httpService.SetAuthToken(token);
         }
         else
         {
-            _debugLogger.Log("AuthSession: No persisted session found");
+            _debugLogger.Log("LOG_AUTH", nameof(AuthSessionController), "No persisted session found");
         }
 
         await Task.CompletedTask;

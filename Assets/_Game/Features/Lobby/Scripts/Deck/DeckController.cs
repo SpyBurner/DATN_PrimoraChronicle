@@ -21,27 +21,27 @@ internal class DeckController : IDeckController
             string userId = _authSessionModel.CurrentUserId.Value;
             if (string.IsNullOrWhiteSpace(userId))
             {
-                _debugLogger.LogError("Deck: Cannot load decks without a current user id");
+                _debugLogger.LogError("LOG_LOBBY_DECK", nameof(DeckController), "Deck: Cannot load decks without a current user id");
                 return;
             }
 
-            _debugLogger.Log("Deck: Loading decks from server");
+            _debugLogger.Log("LOG_LOBBY_DECK", nameof(DeckController), "Deck: Loading decks from server");
             string encodedUserId = Uri.EscapeDataString(userId);
             var response = await _httpService.Get<DecksListResponse>($"/api/decks?user_id={encodedUserId}");
             if (response != null && response.decks != null)
             {
                 List<DeckSummaryData> decks = new(response.decks);
                 _model.SetDecks(decks);
-                _debugLogger.Log($"Deck: Loaded {decks.Count} decks");
+                _debugLogger.Log("LOG_LOBBY_DECK", nameof(DeckController), $"Deck: Loaded {decks.Count} decks");
             }
             else
             {
-                _debugLogger.LogError("Deck: Failed to load decks");
+                _debugLogger.LogError("LOG_LOBBY_DECK", nameof(DeckController), "Deck: Failed to load decks");
             }
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"Deck: LoadDecks failed: {ex.Message}");
+            _debugLogger.LogError("LOG_LOBBY_DECK", nameof(DeckController), $"Deck: LoadDecks failed: {ex.Message}");
         }
     }
 }
@@ -51,4 +51,3 @@ internal class DecksListResponse
 {
     public DeckSummaryData[] decks;
 }
-

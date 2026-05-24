@@ -15,7 +15,7 @@ internal class CardDetailController : ICardDetailController
     {
         try
         {
-            _debugLogger.Log($"CardDetail: Loading card {cardId}");
+            _debugLogger.Log("LOG_LOBBY_CARD", nameof(CardDetailController), $"CardDetail: Loading card {cardId}");
             var response = await _httpService.Get<CardDetailResponse>($"/api/collection/cards/{cardId}");
 
             if (response != null)
@@ -25,16 +25,16 @@ internal class CardDetailController : ICardDetailController
                 _model.SetCardCost(response.cost);
                 _model.SetCardPower(response.power);
                 _model.SetCardImageUrl(response.imageUrl);
-                _debugLogger.Log($"CardDetail: Loaded card {response.name}");
+                _debugLogger.Log("LOG_LOBBY_CARD", nameof(CardDetailController), $"CardDetail: Loaded card {response.name}");
             }
             else
             {
-                _debugLogger.LogError("CardDetail: Failed to load card");
+                _debugLogger.LogError("LOG_LOBBY_CARD", nameof(CardDetailController), "CardDetail: Failed to load card");
             }
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"CardDetail: LoadCard failed: {ex.Message}");
+            _debugLogger.LogError("LOG_LOBBY_CARD", nameof(CardDetailController), $"CardDetail: LoadCard failed: {ex.Message}");
         }
     }
 }

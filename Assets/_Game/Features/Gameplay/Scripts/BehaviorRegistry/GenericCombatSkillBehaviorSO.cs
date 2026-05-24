@@ -86,7 +86,7 @@ public class GenericCombatSkillBehaviorSO : CombatSkillBehaviorSO
                 ExecuteMarchOfEmbers(ctx);
                 break;
             default:
-                ctx.Logger?.LogWarning($"[GenericCombatSkill] Unknown behavior: '{behaviorId}'");
+                ctx.Logger?.LogWarning("LOG_COMBATSKILL", nameof(GenericCombatSkillBehaviorSO), $"Unknown behavior: '{behaviorId}'");
                 break;
         }
     }

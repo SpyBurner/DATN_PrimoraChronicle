@@ -12,6 +12,7 @@ public class UIManagerController : IUIManagerController
     [Inject] private readonly UIMappingSO _uiMapping;
     [Inject] private readonly DiContainer _container;
     [Inject] private readonly SceneContextRegistry _sceneContextRegistry;
+    [Inject] private readonly IDebugLogger _logger;
 
     private bool _isInternalOperation = false;
 
@@ -32,7 +33,7 @@ public class UIManagerController : IUIManagerController
         }
         _model.PanelsByLayer.Value[panel.Layer].Add(panel);
 
-        Debug.Log($"[UIManager] Registered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
+        _logger.Log("LOG_UIMANAGER", nameof(UIManagerController), $"Registered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
     }
 
     public void UnregisterPanel(IUIPanel panel)
@@ -49,12 +50,12 @@ public class UIManagerController : IUIManagerController
                         _model.PanelsByLayer.Value.Remove(panel.Layer);
                     }
                 }
-                Debug.Log($"[UIManager] Unregistered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
+                _logger.Log("LOG_UIMANAGER", nameof(UIManagerController), $"Unregistered panel {type.Name}. Total panels: {_model.Panels.Value.Count}");
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"[UIManager] Error unregistering panel {type.Name}: {e.Message}");
+            _logger.LogError("LOG_UIMANAGER", nameof(UIManagerController), $"Error unregistering panel {type.Name}: {e.Message}");
         }
     }
 
@@ -88,7 +89,7 @@ public class UIManagerController : IUIManagerController
         var prefab = _uiMapping.GetPrefabByClassType(typeof(T));
         if (prefab == null)
         {
-            Debug.LogError($"[UIManager] No prefab found in UIMappingSO for class type {typeof(T).Name}");
+            _logger.LogError("LOG_UIMANAGER", nameof(UIManagerController), $"No prefab found in UIMappingSO for class type {typeof(T).Name}");
             return;
         }
         await Show(prefab.gameObject);
@@ -97,7 +98,7 @@ public class UIManagerController : IUIManagerController
     public async Task ShowDefaultScreenForScene(string sceneName = null)
     {
         sceneName ??= SceneManager.GetActiveScene().name;
-        Debug.Log($"[UIManager] Showing default screen for scene: {sceneName}");
+        _logger.Log("LOG_UIMANAGER", nameof(UIManagerController), $"Showing default screen for scene: {sceneName}");
         var prefab = _uiMapping.GetDefaultPrefabBySceneName(sceneName);
         if (prefab != null)
         {
@@ -105,7 +106,7 @@ public class UIManagerController : IUIManagerController
         }
         else
         {
-            Debug.LogWarning($"[UIManager] No default UI mapping found for scene '{sceneName}'");
+            _logger.LogWarning("LOG_UIMANAGER", nameof(UIManagerController), $"No default UI mapping found for scene '{sceneName}'");
         }
     }
 
@@ -124,14 +125,14 @@ public class UIManagerController : IUIManagerController
 
             if (uiRoot == null)
             {
-                Debug.LogError("[UIManager] Cannot ShowView because UIRoot is null in current scene.");
+                _logger.LogError("LOG_UIMANAGER", nameof(UIManagerController), "Cannot ShowView because UIRoot is null in current scene.");
                 return;
             }
 
             // Prevent duplicate panels of the same type
             if (uiPanel != null && _model.Panels.Value.TryGetValue(uiPanel.GetType(), out var existingPanel))
             {
-                Debug.LogWarning($"[UIManager] Panel of type {uiPanel.GetType().Name} is already registered. Ensuring it is shown.");
+                _logger.LogWarning("LOG_UIMANAGER", nameof(UIManagerController), $"Panel of type {uiPanel.GetType().Name} is already registered. Ensuring it is shown.");
                 existingPanel.Show();
                 return;
             }
@@ -151,7 +152,7 @@ public class UIManagerController : IUIManagerController
             var uiRootScene = uiRoot.gameObject.scene;
             var containerToUse = _sceneContextRegistry.TryGetContainerForScene(uiRootScene) ?? _container;
 
-            Debug.Log($"[UIManager] Instantiating prefab '{prefab.name}' for scene '{uiRootScene.name}' (Container: {(containerToUse == _container ? "Global" : "Scene")})");
+            _logger.Log("LOG_UIMANAGER", nameof(UIManagerController), $"Instantiating prefab '{prefab.name}' for scene '{uiRootScene.name}' (Container: {(containerToUse == _container ? "Global" : "Scene")})");
 
             var instance = containerToUse.InstantiatePrefab(prefab, parent);
             instance.SetActive(true); // Ensure instance is active
@@ -159,13 +160,13 @@ public class UIManagerController : IUIManagerController
             var panelInstance = instance.GetComponent<IUIPanel>();
             if (panelInstance != null)
             {
-                Debug.Log($"[UIManager] Calling Show() on panel '{panelInstance.GetType().Name}'");
+                _logger.Log("LOG_UIMANAGER", nameof(UIManagerController), $"Calling Show() on panel '{panelInstance.GetType().Name}'");
                 panelInstance.Show();
-                Debug.Log($"[UIManager] {panelInstance.GetType().Name} state: activeSelf={instance.activeSelf}, activeInHierarchy={instance.activeInHierarchy}");
+                _logger.Log("LOG_UIMANAGER", nameof(UIManagerController), $"{panelInstance.GetType().Name} state: activeSelf={instance.activeSelf}, activeInHierarchy={instance.activeInHierarchy}");
             }
             else
             {
-                Debug.LogError($"[UIManager] Prefab '{prefab.name}' does not have an IUIPanel component on its root!");
+                _logger.LogError("LOG_UIMANAGER", nameof(UIManagerController), $"Prefab '{prefab.name}' does not have an IUIPanel component on its root!");
             }
         }
         finally
@@ -191,7 +192,7 @@ public class UIManagerController : IUIManagerController
         // If this wasn't part of an internal transition and no UI is left, show default
         if (!_isInternalOperation && _model.Panels.Value.Count == 0)
         {
-            Debug.Log($"[UIManager] Last panel '{typeName}' closed and no UI panels left. Showing default screen for current scene.");
+            _logger.Log("LOG_UIMANAGER", nameof(UIManagerController), $"Last panel '{typeName}' closed and no UI panels left. Showing default screen for current scene.");
             await ShowDefaultScreenForScene();
         }
     }
@@ -248,7 +249,7 @@ public class UIManagerController : IUIManagerController
             }
             else
             {
-                Debug.LogWarning("[UIManager] No prefab found for LOADING_SCREEN identifier.");
+                _logger.LogWarning("LOG_UIMANAGER", nameof(UIManagerController), "No prefab found for LOADING_SCREEN identifier.");
             }
         }
         finally

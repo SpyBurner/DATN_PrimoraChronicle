@@ -16,18 +16,18 @@ internal class MatchHistoryController : IMatchHistoryController
     {
         try
         {
-            _debugLogger.Log("MatchHistory: Loading history...");
+            _debugLogger.Log("LOG_LOBBY_HISTORY", nameof(MatchHistoryController), "MatchHistory: Loading history...");
             string responseJson = await _httpService.Get("/api/matches");
             string wrappedJson = $"{{\"items\":{responseJson}}}";
             var wrapper = UnityEngine.JsonUtility.FromJson<MatchHistoryArrayWrapper>(wrappedJson);
             var items = wrapper?.items ?? Array.Empty<MatchHistoryData>();
 
             _model.SetMatchHistory(new List<MatchHistoryData>(items));
-            _debugLogger.Log($"MatchHistory: Loaded {items.Length} matches.");
+            _debugLogger.Log("LOG_LOBBY_HISTORY", nameof(MatchHistoryController), $"MatchHistory: Loaded {items.Length} matches.");
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"MatchHistory: Failed to load history: {ex.Message}");
+            _debugLogger.LogError("LOG_LOBBY_HISTORY", nameof(MatchHistoryController), $"MatchHistory: Failed to load history: {ex.Message}");
         }
     }
 }

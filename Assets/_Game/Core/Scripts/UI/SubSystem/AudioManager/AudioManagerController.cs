@@ -25,7 +25,7 @@ public class AudioManagerController : IAudioManagerController
 
     public void SetMasterVolume(float volume)
     {
-        _debugLogger.Log($"AudioManager: Setting master volume to {volume}");
+        _debugLogger.Log("LOG_AUDIO", nameof(AudioManagerController), $"Setting master volume to {volume}");
         _model.SetMasterVolume(volume);
         SaveVolumeSettings();
         AudioListener.volume = _model.MasterVolume.Value;
@@ -33,7 +33,7 @@ public class AudioManagerController : IAudioManagerController
 
     public void SetMusicVolume(float volume)
     {
-        _debugLogger.Log($"AudioManager: Setting music volume to {volume}");
+        _debugLogger.Log("LOG_AUDIO", nameof(AudioManagerController), $"Setting music volume to {volume}");
         _model.SetMusicVolume(volume);
         SaveVolumeSettings();
         if (_musicSource != null)
@@ -44,7 +44,7 @@ public class AudioManagerController : IAudioManagerController
 
     public void SetSFXVolume(float volume)
     {
-        _debugLogger.Log($"AudioManager: Setting SFX volume to {volume}");
+        _debugLogger.Log("LOG_AUDIO", nameof(AudioManagerController), $"Setting SFX volume to {volume}");
         _model.SetSFXVolume(volume);
         SaveVolumeSettings();
     }
@@ -53,7 +53,7 @@ public class AudioManagerController : IAudioManagerController
     {
         if (clip == null) return;
 
-        _debugLogger.Log($"AudioManager: Playing SFX {clip.name}");
+        _debugLogger.Log("LOG_AUDIO", nameof(AudioManagerController), $"Playing SFX {clip.name}");
         AudioSource.PlayClipAtPoint(clip, Vector3.zero, _model.MasterVolume.Value * _model.SFXVolume.Value * volumeScale);
     }
 
@@ -61,7 +61,7 @@ public class AudioManagerController : IAudioManagerController
     {
         if (clip == null) return;
 
-        _debugLogger.Log($"AudioManager: Playing music {clip.name}");
+        _debugLogger.Log("LOG_AUDIO", nameof(AudioManagerController), $"Playing music {clip.name}");
         if (_musicSource == null)
         {
             CreateAudioSources();
@@ -75,7 +75,7 @@ public class AudioManagerController : IAudioManagerController
 
     public void StopMusic()
     {
-        _debugLogger.Log("AudioManager: Stopping music");
+        _debugLogger.Log("LOG_AUDIO", nameof(AudioManagerController), "Stopping music");
         if (_musicSource != null)
         {
             _musicSource.Stop();

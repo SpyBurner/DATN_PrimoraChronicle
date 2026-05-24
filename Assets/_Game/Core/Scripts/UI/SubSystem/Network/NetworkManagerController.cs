@@ -21,7 +21,7 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
         var count = Runner.SessionInfo.PlayerCount;
         if (count != _model.PlayerCount.Value)
         {
-            _debugLogger.Log($"[NetworkController] Tick: PlayerCount delta detected ({_model.PlayerCount.Value} -> {count}). Pushing to model.");
+            _debugLogger.Log("LOG_NETWORK", nameof(NetworkManagerController), $"Tick: PlayerCount delta detected ({_model.PlayerCount.Value} -> {count}). Pushing to model.");
             _model.SetPlayerCount(count);
         }
     }
@@ -35,12 +35,12 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
     {
         try
         {
-            _debugLogger.Log($"[NetworkController] Starting session — Mode: {args.GameMode}");
+            _debugLogger.Log("LOG_NETWORK", nameof(NetworkManagerController), $"Starting session — Mode: {args.GameMode}");
             _model.SetErrorMessage(string.Empty);
-            
+
             if (Runner == null)
             {
-                _debugLogger.Log($"[NetworkController] Initializing Runner...");
+                _debugLogger.Log("LOG_NETWORK", nameof(NetworkManagerController), "Initializing Runner...");
                 var go = new GameObject("[NetworkRunner]");
                 GameObject.DontDestroyOnLoad(go);
                 Runner = go.AddComponent<NetworkRunner>();
@@ -54,7 +54,7 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
 
             if (result.Ok)
             {
-                _debugLogger.Log($"[NetworkController] Session started: {Runner.SessionInfo.Name} | SessionInfo.PlayerCount={Runner.SessionInfo.PlayerCount}");
+                _debugLogger.Log("LOG_NETWORK", nameof(NetworkManagerController), $"Session started: {Runner.SessionInfo.Name} | SessionInfo.PlayerCount={Runner.SessionInfo.PlayerCount}");
                 _model.SetSessionName(Runner.SessionInfo.Name);
                 _model.SetRegion(Runner.SessionInfo.Region);
                 _model.SetMaxPlayers(Runner.SessionInfo.MaxPlayers);
@@ -65,7 +65,7 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
             else
             {
                 var err = result.ShutdownReason.ToString();
-                _debugLogger.LogError($"[NetworkController] StartGame failed: {err}");
+                _debugLogger.LogError("LOG_NETWORK", nameof(NetworkManagerController), $"StartGame failed: {err}");
                 _model.SetErrorMessage(err);
                 _model.SetRunnerState(NetworkRunner.States.Shutdown);
                 return false;
@@ -73,7 +73,7 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"[NetworkController] StartSession exception: {ex.Message}");
+            _debugLogger.LogError("LOG_NETWORK", nameof(NetworkManagerController), $"StartSession exception: {ex.Message}");
             _model.SetErrorMessage(ex.Message);
             _model.SetRunnerState(NetworkRunner.States.Shutdown);
             return false;
@@ -85,12 +85,12 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
         if (Runner == null) return;
         try
         {
-            _debugLogger.Log("[NetworkController] Shutting down runner.");
+            _debugLogger.Log("LOG_NETWORK", nameof(NetworkManagerController), "Shutting down runner.");
             await Runner.Shutdown();
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"[NetworkController] ShutdownRunner exception: {ex.Message}");
+            _debugLogger.LogError("LOG_NETWORK", nameof(NetworkManagerController), $"ShutdownRunner exception: {ex.Message}");
         }
         finally
         {
@@ -105,14 +105,14 @@ public class NetworkManagerController : INetworkManagerController, INetworkRunne
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        _debugLogger.Log($"[NetworkController] OnPlayerJoined fired: player={player} IsServer={runner.IsServer} IsClient={runner.IsClient} SessionInfo.PlayerCount={runner.SessionInfo.PlayerCount}");
+        _debugLogger.Log("LOG_NETWORK", nameof(NetworkManagerController), $"OnPlayerJoined fired: player={player} IsServer={runner.IsServer} IsClient={runner.IsClient} SessionInfo.PlayerCount={runner.SessionInfo.PlayerCount}");
         _model.SetPlayerCount(runner.SessionInfo.PlayerCount);
         _model.SetLastJoinedPlayer(player);
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-        _debugLogger.Log($"[NetworkController] OnPlayerLeft fired: player={player}");
+        _debugLogger.Log("LOG_NETWORK", nameof(NetworkManagerController), $"OnPlayerLeft fired: player={player}");
         _model.SetPlayerCount(runner.SessionInfo.PlayerCount);
         _model.SetLastLeftPlayer(player);
     }

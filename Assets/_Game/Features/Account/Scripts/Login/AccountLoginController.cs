@@ -34,7 +34,7 @@ public class AccountLoginController : IAccountLoginController
                 return;
             }
 
-            _debugLogger.Log($"Attempting login for {username}");
+            _debugLogger.Log("LOG_ACCOUNT", nameof(AccountLoginController), $"Attempting login for {username}");
 
             var payload = new LoginRequest { username = username, password = password };
             var response = await _httpService.Post<LoginResponse, LoginRequest>("/api/auth/login", payload);
@@ -42,7 +42,7 @@ public class AccountLoginController : IAccountLoginController
             if (response != null && response.user != null && !string.IsNullOrEmpty(response.token))
             {
                 await _authSession.StoreSession(response.user.ID, response.token);
-                _debugLogger.Log($"Login successful for {response.user.username}. Loading Lobby scene.");
+                _debugLogger.Log("LOG_ACCOUNT", nameof(AccountLoginController), $"Login successful for {response.user.username}. Loading Lobby scene.");
                 await _sceneLoader.LoadScene("Lobby");
             }
             else
@@ -52,7 +52,7 @@ public class AccountLoginController : IAccountLoginController
         }
         catch (Exception ex)
         {
-            _debugLogger.LogError($"Login failed: {ex.Message}");
+            _debugLogger.LogError("LOG_ACCOUNT", nameof(AccountLoginController), $"Login failed: {ex.Message}");
             _model.SetErrorMessage($"Login failed: {ex.Message}");
         }
         finally

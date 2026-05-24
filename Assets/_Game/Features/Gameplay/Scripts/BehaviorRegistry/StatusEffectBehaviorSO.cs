@@ -27,7 +27,7 @@ public class StatusEffectBehaviorSO : ScriptableObject
     {
         if (damagePerTurn > 0)
         {
-            logger?.Log($"[StatusEffect] '{behaviorId}' deals {damagePerTurn} to unit {unitView.UnitId}.");
+            logger?.Log("LOG_STATUSEFFECT", nameof(StatusEffectBehaviorSO), $"'{behaviorId}' deals {damagePerTurn} to unit {unitView.UnitId}.");
             return damagePerTurn;
         }
         return 0;
@@ -38,7 +38,7 @@ public class StatusEffectBehaviorSO : ScriptableObject
         if (damageReduction > 0)
         {
             int reduced = Mathf.Max(0, incomingDamage - damageReduction);
-            logger?.Log($"[StatusEffect] '{behaviorId}' reduced damage by {damageReduction}. {incomingDamage} → {reduced}.");
+            logger?.Log("LOG_STATUSEFFECT", nameof(StatusEffectBehaviorSO), $"'{behaviorId}' reduced damage by {damageReduction}. {incomingDamage} → {reduced}.");
             return reduced;
         }
         return incomingDamage;
