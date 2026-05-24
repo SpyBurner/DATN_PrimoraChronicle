@@ -18,13 +18,8 @@ public class FusionPanel : MonoBehaviour
     [SerializeField] private Button _clearBaseButton;
 
     [Header("Innate Slots (always visible)")]
-    [SerializeField] private GameObject _normalAttackSlot;
-    [SerializeField] private TMP_Text _normalAttackNameText;
-    [SerializeField] private TMP_Text _normalAttackDamageText;
-    [SerializeField] private TMP_Text _normalAttackRangeText;
-    [SerializeField] private GameObject _movementSlot;
-    [SerializeField] private TMP_Text _movementNameText;
-    [SerializeField] private TMP_Text _movementRangeText;
+    [SerializeField] private NormalAttackSlotUI _normalAttackSlot;
+    [SerializeField] private MovementSlotUI _movementSlot;
     [SerializeField] private int _defaultMoveRange = 2;
 
     [Header("Fuse Slots")]
@@ -158,8 +153,8 @@ public class FusionPanel : MonoBehaviour
     private void RefreshBaseSlot(string baseCardId)
     {
         bool hasBase = !string.IsNullOrEmpty(baseCardId);
-        if (_normalAttackSlot != null) _normalAttackSlot.SetActive(hasBase);
-        if (_movementSlot != null) _movementSlot.SetActive(hasBase);
+        if (_normalAttackSlot != null) _normalAttackSlot.gameObject.SetActive(hasBase);
+        if (_movementSlot != null) _movementSlot.gameObject.SetActive(hasBase);
         if (_clearBaseButton != null) _clearBaseButton.gameObject.SetActive(hasBase);
 
         if (hasBase && _cardLoading.TryGetCardData(baseCardId, out var cardData))
@@ -181,30 +176,38 @@ public class FusionPanel : MonoBehaviour
 
     private void ApplyNormalAttackInfo(CardData cardData)
     {
-        if (_normalAttackNameText != null) _normalAttackNameText.text = "Attack";
-        if (_normalAttackDamageText != null) _normalAttackDamageText.text = $"DMG: {cardData.n_atk_dmg}";
-        if (_normalAttackRangeText != null)
+        if (_normalAttackSlot == null) return;
+        if (_normalAttackSlot.NameText != null) _normalAttackSlot.NameText.text = "Attack";
+        if (_normalAttackSlot.DamageText != null) _normalAttackSlot.DamageText.text = $"DMG: {cardData.n_atk_dmg}";
+        if (_normalAttackSlot.RangeText != null)
         {
             int range = cardData.n_atk_pattern != null && cardData.n_atk_pattern.Count > 0
                 ? HexPatternResolver.GetRange(cardData.n_atk_pattern)
                 : 1;
-            _normalAttackRangeText.text = $"RNG: {range}";
+            _normalAttackSlot.RangeText.text = $"RNG: {range}";
         }
     }
 
     private void ApplyMovementInfo(CardData cardData)
     {
-        if (_movementNameText != null) _movementNameText.text = "Move";
-        if (_movementRangeText != null) _movementRangeText.text = $"RNG: {_defaultMoveRange}";
+        if (_movementSlot == null) return;
+        if (_movementSlot.NameText != null) _movementSlot.NameText.text = "Move";
+        if (_movementSlot.RangeText != null) _movementSlot.RangeText.text = $"RNG: {_defaultMoveRange}";
     }
 
     private void ClearInnateSlotTexts()
     {
-        if (_normalAttackNameText != null) _normalAttackNameText.text = "";
-        if (_normalAttackDamageText != null) _normalAttackDamageText.text = "";
-        if (_normalAttackRangeText != null) _normalAttackRangeText.text = "";
-        if (_movementNameText != null) _movementNameText.text = "";
-        if (_movementRangeText != null) _movementRangeText.text = "";
+        if (_normalAttackSlot != null)
+        {
+            if (_normalAttackSlot.NameText != null) _normalAttackSlot.NameText.text = "";
+            if (_normalAttackSlot.DamageText != null) _normalAttackSlot.DamageText.text = "";
+            if (_normalAttackSlot.RangeText != null) _normalAttackSlot.RangeText.text = "";
+        }
+        if (_movementSlot != null)
+        {
+            if (_movementSlot.NameText != null) _movementSlot.NameText.text = "";
+            if (_movementSlot.RangeText != null) _movementSlot.RangeText.text = "";
+        }
     }
 
     private void RefreshFuseSlots(FusionStagingData staging)

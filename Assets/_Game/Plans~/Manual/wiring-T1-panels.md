@@ -48,43 +48,38 @@ The `SkillPanel._skillSlotPrefab` field type is now `SkillSlotUI` (component), n
 
 ---
 
-## 3. `PhaseInteractionPanel_Fusion.prefab` — wire innate-slot texts
+## 3. `PhaseInteractionPanel_Fusion.prefab` — wire innate-slot components
 
-The `_normalAttackSlot` and `_movementSlot` GameObjects already exist on the prefab. They now need child texts wired so they actually display content.
+`_normalAttackSlot` and `_movementSlot` now use typed component references (`NormalAttackSlotUI` / `MovementSlotUI`) instead of raw TMP_Text fields. The 5 old inspector fields are gone; only 2 remain.
 
-### 3a. Inside `_normalAttackSlot`
+### 3a. `_normalAttackSlot` prefab root
 
-Add (if missing) three TMP texts as children:
-
-| Child name | Purpose | Status |
+| Step | Action | Status |
 |---|---|---|
-| `NormalAttackName` (TMP_Text) | Will receive literal `"Attack"` | ⬜ |
-| `NormalAttackDamage` (TMP_Text) | Will receive `DMG: <n_atk_dmg>` | ⬜ |
-| `NormalAttackRange` (TMP_Text) | Will receive `RNG: <max n in n_atk_pattern>` (defaults to 1 if pattern empty) | ⬜ |
+| 1 | Add `NormalAttackSlotUI` MonoBehaviour to `_normalAttackSlot` root | ⬜ |
+| 2 | Drag child `TMP_Text` for the name into `NormalAttackSlotUI.NameText` | ⬜ |
+| 3 | Drag child `TMP_Text` for damage into `NormalAttackSlotUI.DamageText` | ⬜ |
+| 4 | Drag child `TMP_Text` for range into `NormalAttackSlotUI.RangeText` | ⬜ |
+
+Then on the `FusionPanel` component on the panel root:
+
+| Field | Assign | Status |
+|---|---|---|
+| `_normalAttackSlot` | drag the `_normalAttackSlot` GameObject (now has `NormalAttackSlotUI`) | ⬜ |
+
+### 3b. `_movementSlot` prefab root
+
+| Step | Action | Status |
+|---|---|---|
+| 1 | Add `MovementSlotUI` MonoBehaviour to `_movementSlot` root | ⬜ |
+| 2 | Drag child `TMP_Text` for the name into `MovementSlotUI.NameText` | ⬜ |
+| 3 | Drag child `TMP_Text` for range into `MovementSlotUI.RangeText` | ⬜ |
 
 Then on the `FusionPanel` component:
 
 | Field | Assign | Status |
 |---|---|---|
-| `_normalAttackNameText` | `NormalAttackName` TMP_Text | ⬜ |
-| `_normalAttackDamageText` | `NormalAttackDamage` TMP_Text | ⬜ |
-| `_normalAttackRangeText` | `NormalAttackRange` TMP_Text | ⬜ |
-
-### 3b. Inside `_movementSlot`
-
-Add (if missing) two TMP texts as children:
-
-| Child name | Purpose | Status |
-|---|---|---|
-| `MovementName` (TMP_Text) | Will receive literal `"Move"` | ⬜ |
-| `MovementRange` (TMP_Text) | Will receive `RNG: <_defaultMoveRange>` (default 2) | ⬜ |
-
-Then on the `FusionPanel` component:
-
-| Field | Assign | Status |
-|---|---|---|
-| `_movementNameText` | `MovementName` TMP_Text | ⬜ |
-| `_movementRangeText` | `MovementRange` TMP_Text | ⬜ |
+| `_movementSlot` | drag the `_movementSlot` GameObject (now has `MovementSlotUI`) | ⬜ |
 | `_defaultMoveRange` | Leave 2 unless GDS changes the unit MoveRange default | ⬜ |
 
 > Any field left unwired is silently skipped (null-guarded) — but the panel will look empty if you don't wire them.
